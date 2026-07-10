@@ -1,0 +1,62 @@
+@import "tailwindcss";
+
+/* 🚨 TAILWIND V4 SAFELIST FOR DYNAMIC SAAS COLORS 🚨 */
+@theme {
+  --color-slate-500: #64748b;
+  --color-red-500: #ef4444;
+  --color-rose-500: #f43f5e;
+  --color-orange-500: #f97316;
+  --color-amber-500: #f59e0b;
+  --color-yellow-400: #facc15;
+  --color-lime-400: #a3e635;
+  --color-emerald-500: #10b981;
+  --color-teal-500: #14b8a6;
+  --color-cyan-500: #06b6d4;
+  --color-blue-500: #3b82f6;
+  --color-indigo-500: #6366f1;
+  --color-violet-500: #8b5cf6;
+  --color-fuchsia-500: #d946ef;
+  --color-pink-500: #ec4899;
+}
+/* Ensure dynamic classes are forced into the build */
+@layer utilities {
+  .bg-slate-500, .text-slate-500 { color: inherit; }
+  .bg-red-500, .text-red-500 { color: inherit; }
+  .bg-rose-500, .text-rose-500 { color: inherit; }
+  .bg-orange-500, .text-orange-500 { color: inherit; }
+  .bg-amber-500, .text-amber-500 { color: inherit; }
+  .bg-yellow-400, .text-yellow-400 { color: inherit; }
+  .bg-lime-400, .text-lime-400 { color: inherit; }
+  .bg-emerald-500, .text-emerald-500 { color: inherit; }
+  .bg-teal-500, .text-teal-500 { color: inherit; }
+  .bg-cyan-500, .text-cyan-500 { color: inherit; }
+  .bg-blue-500, .text-blue-500 { color: inherit; }
+  .bg-indigo-500, .text-indigo-500 { color: inherit; }
+  .bg-violet-500, .text-violet-500 { color: inherit; }
+  .bg-fuchsia-500, .text-fuchsia-500 { color: inherit; }
+  .bg-pink-500, .text-pink-500 { color: inherit; }
+}
+/* -------------------------------------------------- */
+
+@theme {
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: Arial, Helvetica, sans-serif;
+}
