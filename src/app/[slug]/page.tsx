@@ -7,6 +7,7 @@ import AboutSection from '@/components/portfolio/AboutSection';
 import ContentEngine from '@/components/portfolio/content-engine';
 import { Send } from 'lucide-react';
 
+// Force Next.js to ignore static caching and fetch fresh data every time
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 export const fetchCache = 'force-no-store';
@@ -25,25 +26,21 @@ interface FormattedGalleryItem {
   id: string;
   imageUrl: string;
   title?: string;
-  description?: string; // 🚨 Fixed from 'category'
+  description?: string; 
 }
 
 const InstagramIcon = ({ size = 24, ...props }: CustomIconProps) => (
   <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>
 );
-
 const FacebookIcon = ({ size = 24, ...props }: CustomIconProps) => (
   <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
 );
-
 const TwitterIcon = ({ size = 24, ...props }: CustomIconProps) => (
   <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"/></svg>
 );
-
 const LinkedinIcon = ({ size = 24, ...props }: CustomIconProps) => (
   <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect width="4" height="12" x="2" y="9"/><circle cx="4" cy="4" r="2"/></svg>
 );
-
 const YoutubeIcon = ({ size = 24, ...props }: CustomIconProps) => (
   <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M2.5 7.1C2.5 5.4 3.9 4 5.6 4h12.8c1.7 0 3.1 1.4 3.1 3.1v9.8c0 1.7-1.4 3.1-3.1 3.1H5.6C3.9 20 2.5 18.6 2.5 16.9V7.1z"/><path d="m10 15 5-3-5-3v6z"/></svg>
 );
@@ -61,6 +58,7 @@ export default async function DynamicStorefront({ params }: { params: Promise<{ 
   const resolvedParams = await params;
   const slug = resolvedParams.slug;
 
+  // Fetch store data
   const { data: store, error } = await supabase
     .from('storefronts')
     .select('*')
@@ -68,25 +66,20 @@ export default async function DynamicStorefront({ params }: { params: Promise<{ 
     .single();
 
   if (error || !store) {
-    console.log("=== DATABASE FETCH FAILED ===");
-    console.log("Attempted Slug:", slug);
-    console.log("Supabase Error:", error);
     notFound();
   }
 
   const theme = THEME_REGISTRY[store.theme_style] || THEME_REGISTRY['industrial'];
   const layout = store.hero_layout || 'center';
   const brandColor = store.brand_color || 'cyan-500';
-  
+
   const accentColorClass = theme.useBrandAccent ? `text-${brandColor}` : '';
   const buttonBgClass = theme.useBrandAccent ? `bg-${brandColor} text-zinc-950 hover:opacity-80 border-none` : `bg-${brandColor} text-zinc-950`;
   const lineAccent = theme.useBrandAccent ? `bg-${brandColor}` : 'bg-current';
-  
-  // 🚨 Mailto Link Generator
+
   const contactLink = store.contact_email ? `mailto:${store.contact_email}` : '#contact';
-
   const hasAbout = !!store.about_bio || !!store.about_image || !!store.about_heading;
-
+  
   const rawSocialLinks = store.social_links || {};
   const activeSocials: SocialPlatform[] = Object.entries(rawSocialLinks)
     .filter((entry) => !!entry[1]) 
@@ -111,7 +104,7 @@ export default async function DynamicStorefront({ params }: { params: Promise<{ 
       id: obj.id || `gal-${index}`,
       imageUrl: obj.imageUrl || '',
       title: obj.title,
-      description: obj.description || obj.category // 🚨 Properly mapping the description field!
+      description: obj.description || obj.category 
     };
   }).filter((item: FormattedGalleryItem) => item.imageUrl !== ''); 
 
@@ -142,8 +135,6 @@ export default async function DynamicStorefront({ params }: { params: Promise<{ 
               <p className={`text-lg md:text-xl mb-12 leading-relaxed max-w-2xl mx-auto opacity-90 ${theme.bodyText}`}>
                 {store.subtext}
               </p>
-
-              {/* 🚨 Wired up Button */}
               <a href={contactLink} className={`inline-block ${theme.buttonStyle} ${buttonBgClass}`}>
                 {store.primary_cta}
               </a>
@@ -167,7 +158,6 @@ export default async function DynamicStorefront({ params }: { params: Promise<{ 
               <p className={`text-lg mb-10 leading-relaxed ${theme.bodyText}`}>
                 {store.subtext}
               </p>
-
               <div className="flex gap-4">
                 <a href={contactLink} className={`inline-block ${theme.buttonStyle} ${buttonBgClass}`}>
                   {store.primary_cta}
@@ -203,7 +193,6 @@ export default async function DynamicStorefront({ params }: { params: Promise<{ 
               <p className={`text-lg mb-10 leading-relaxed ${theme.bodyText}`}>
                 {store.subtext}
               </p>
-
               <div className="flex gap-4">
                 <a href={contactLink} className={`inline-block ${theme.buttonStyle} ${buttonBgClass}`}>
                   {store.primary_cta}
@@ -240,7 +229,6 @@ export default async function DynamicStorefront({ params }: { params: Promise<{ 
                 {store.subtext}
               </p>
               
-              {/* 🚨 Updated button to use the new contactLink (e.g., '#contact') */}
               <a href={contactLink} className={`inline-block ${theme.buttonStyle}`}>
                 {store.primary_cta}
               </a>
@@ -248,6 +236,7 @@ export default async function DynamicStorefront({ params }: { params: Promise<{ 
           </div>
         </section>
       )}
+
       {/* --- ABOUT SECTION --- */}
       {hasAbout && (
         <div className="container mx-auto px-6 py-20">
@@ -260,7 +249,7 @@ export default async function DynamicStorefront({ params }: { params: Promise<{ 
               ctaText: store.secondary_cta,
               brandColor: store.brand_color,
               socials: activeSocials,
-              isLightMode: theme.isLightMode, // 🚨 Pass Theme Context
+              isLightMode: theme.isLightMode, 
               themeStyle: store.theme_style
             }} 
           />
