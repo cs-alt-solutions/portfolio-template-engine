@@ -29,6 +29,35 @@ interface FormattedGalleryItem {
   description?: string; 
 }
 
+// --- SPECIFICATION DICTIONARIES ---
+// Translates raw database values into sleek, client-facing terminology
+const STYLE_NAMES: Record<string, string> = {
+  industrial: "Industrial Vibe",
+  neo: "Neo-Brutalist",
+  cyberpunk: "Cyberpunk Tech Lab",
+  minimal: "Ultra-Minimalist",
+  elegant: "High Editorial",
+  organic: "Organic & Earthy",
+  editorial: "Classic Editorial",
+  retropop: "Retro Pop"
+};
+
+const HERO_NAMES: Record<string, string> = {
+  'center': "Centered Focus",
+  'split-left': "Split-Left Structure",
+  'split-right': "Split-Right Structure",
+  'cinematic': "Cinematic Frame Layout"
+};
+
+const FLOW_NAMES: Record<string, string> = {
+  'classic': "Classic Flow Layout",
+  'bento': "Bento Grid System",
+  'sticky': "Sticky Scroll Engine",
+  'editorial': "Editorial Hover Stack",
+  'accordion': "Interactive Accordion Flow"
+};
+// ----------------------------------
+
 const InstagramIcon = ({ size = 24, ...props }: CustomIconProps) => (
   <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>
 );
@@ -109,7 +138,7 @@ export default async function DynamicStorefront({ params }: { params: Promise<{ 
   }).filter((item: FormattedGalleryItem) => item.imageUrl !== ''); 
 
   return (
-    <main className={`min-h-screen flex flex-col selection:bg-cyan-500/30 ${theme.pageBg}`}>
+    <main className={`min-h-screen flex flex-col selection:bg-cyan-500/30 ${theme.pageBg} relative pb-24`}>
       
       {/* LAYOUT 1: CENTERED */}
       {layout === 'center' && (
@@ -267,6 +296,39 @@ export default async function DynamicStorefront({ params }: { params: Promise<{ 
         capabilities={store.capabilities || []}
         galleryItems={formattedGalleryItems}
       />
+
+      {/* --- PROTOTYPE ARCHITECTURE HUD BAR --- */}
+      {store.is_template && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-full max-w-2xl px-4 animate-in slide-in-from-bottom-8 fade-in duration-700 delay-500">
+          <div className="bg-zinc-950/90 border border-zinc-800 backdrop-blur-xl p-4 md:p-5 rounded-2xl shadow-2xl flex flex-col md:flex-row items-center justify-between gap-4 font-sans">
+            
+            {/* Spec Readout */}
+            <div className="flex-1 text-center md:text-left">
+              <div className="flex items-center justify-center md:justify-start gap-2 mb-2">
+                <span className="relative flex h-2.5 w-2.5">
+                  <span className={`animate-ping absolute inline-flex h-full w-full rounded-full bg-${brandColor} opacity-75`}></span>
+                  <span className={`relative inline-flex rounded-full h-2.5 w-2.5 bg-${brandColor}`}></span>
+                </span>
+                <span className="text-[10px] font-mono font-bold tracking-[0.2em] uppercase text-zinc-500">
+                  Alternative Solutions Spec
+                </span>
+              </div>
+              
+              <p className="text-xs md:text-sm text-zinc-300 leading-relaxed font-light">
+                This architecture utilizes the <strong className={`text-${brandColor} font-bold uppercase`}>{STYLE_NAMES[store.theme_style] || store.theme_style}</strong> aesthetic, anchored by a <strong className="text-white font-medium">{HERO_NAMES[layout] || layout}</strong> and a <strong className="text-white font-medium">{FLOW_NAMES[store.content_layout || 'classic']}</strong> matrix.
+              </p>
+            </div>
+
+            {/* Sandbox Tag */}
+            <div className="shrink-0 bg-zinc-900 border border-zinc-800 px-4 py-2 rounded-lg text-center shadow-inner">
+              <span className="block text-[10px] font-mono font-black tracking-widest text-zinc-400 uppercase">
+                Live Prototype
+              </span>
+            </div>
+
+          </div>
+        </div>
+      )}
       
     </main>
   );
