@@ -5,6 +5,7 @@ import { supabase } from '@/utils/supabase';
 import { THEME_REGISTRY } from '@/utils/themes';
 import AboutSection from '@/components/portfolio/AboutSection';
 import ContentEngine from '@/components/portfolio/content-engine';
+import PrototypeTourGuide from '@/components/portfolio/PrototypeTourGuide';
 import { Send } from 'lucide-react';
 
 // Force Next.js to ignore static caching and fetch fresh data every time
@@ -297,37 +298,13 @@ export default async function DynamicStorefront({ params }: { params: Promise<{ 
         galleryItems={formattedGalleryItems}
       />
 
-      {/* --- PROTOTYPE ARCHITECTURE HUD BAR --- */}
+      {/* --- PROTOTYPE INTERACTIVE TOUR GUIDE --- */}
       {store.is_template && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-full max-w-2xl px-4 animate-in slide-in-from-bottom-8 fade-in duration-700 delay-500">
-          <div className="bg-zinc-950/90 border border-zinc-800 backdrop-blur-xl p-4 md:p-5 rounded-2xl shadow-2xl flex flex-col md:flex-row items-center justify-between gap-4 font-sans">
-            
-            {/* Spec Readout */}
-            <div className="flex-1 text-center md:text-left">
-              <div className="flex items-center justify-center md:justify-start gap-2 mb-2">
-                <span className="relative flex h-2.5 w-2.5">
-                  <span className={`animate-ping absolute inline-flex h-full w-full rounded-full bg-${brandColor} opacity-75`}></span>
-                  <span className={`relative inline-flex rounded-full h-2.5 w-2.5 bg-${brandColor}`}></span>
-                </span>
-                <span className="text-[10px] font-mono font-bold tracking-[0.2em] uppercase text-zinc-500">
-                  Alternative Solutions Spec
-                </span>
-              </div>
-              
-              <p className="text-xs md:text-sm text-zinc-300 leading-relaxed font-light">
-                This architecture utilizes the <strong className={`text-${brandColor} font-bold uppercase`}>{STYLE_NAMES[store.theme_style] || store.theme_style}</strong> aesthetic, anchored by a <strong className="text-white font-medium">{HERO_NAMES[layout] || layout}</strong> and a <strong className="text-white font-medium">{FLOW_NAMES[store.content_layout || 'classic']}</strong> matrix.
-              </p>
-            </div>
-
-            {/* Sandbox Tag */}
-            <div className="shrink-0 bg-zinc-900 border border-zinc-800 px-4 py-2 rounded-lg text-center shadow-inner">
-              <span className="block text-[10px] font-mono font-black tracking-widest text-zinc-400 uppercase">
-                Live Prototype
-              </span>
-            </div>
-
-          </div>
-        </div>
+        <PrototypeTourGuide 
+          vibe={store.theme_style || 'industrial'} 
+          heroLayout={HERO_NAMES[layout] || layout} 
+          journeyLayout={FLOW_NAMES[store.content_layout || 'classic'] || store.content_layout} 
+        />
       )}
       
     </main>
