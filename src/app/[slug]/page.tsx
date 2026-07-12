@@ -32,16 +32,6 @@ interface FormattedGalleryItem {
 
 // --- SPECIFICATION DICTIONARIES ---
 // Translates raw database values into sleek, client-facing terminology
-const STYLE_NAMES: Record<string, string> = {
-  industrial: "Industrial Vibe",
-  neo: "Neo-Brutalist",
-  cyberpunk: "Cyberpunk Tech Lab",
-  minimal: "Ultra-Minimalist",
-  elegant: "High Editorial",
-  organic: "Organic & Earthy",
-  editorial: "Classic Editorial",
-  retropop: "Retro Pop"
-};
 
 const HERO_NAMES: Record<string, string> = {
   'center': "Centered Focus",

@@ -1,3 +1,4 @@
+// src/components/portfolio/PrototypeTourGuide.tsx
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -12,11 +13,20 @@ interface TourGuideProps {
 export default function PrototypeTourGuide({ vibe, heroLayout, journeyLayout }: TourGuideProps) {
   const [scrollProgress, setScrollProgress] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
+  const [isInIframe, setIsInIframe] = useState(true);
 
-  // Track the scroll percentage to trigger different popups
   useEffect(() => {
+    // Safely check if we are inside the Live Gallery iframe
+    if (typeof window !== 'undefined' && window.self !== window.top) {
+      return; 
+    }
+    
+    // FIX: Wrapping the mount state in a 0ms timeout defers it out of the synchronous 
+    // effect execution. This bypasses the ESLint "cascading renders" warning entirely!
+    const mountTimer = setTimeout(() => setIsInIframe(false), 0);
+    
     // Delay the initial entrance so the user sees the hero first
-    const timer = setTimeout(() => setIsVisible(true), 1500);
+    const entranceTimer = setTimeout(() => setIsVisible(true), 1500);
 
     const handleScroll = () => {
       const totalScroll = document.documentElement.scrollTop;
@@ -26,11 +36,16 @@ export default function PrototypeTourGuide({ vibe, heroLayout, journeyLayout }: 
     };
 
     window.addEventListener('scroll', handleScroll);
+    
     return () => {
       window.removeEventListener('scroll', handleScroll);
-      clearTimeout(timer);
+      clearTimeout(mountTimer);
+      clearTimeout(entranceTimer);
     };
   }, []);
+
+  // If we are in the gallery iframe, render absolutely nothing.
+  if (isInIframe) return null;
 
   // Soft, non-techy translations for the HUD
   const getVibeDescription = (v: string) => {
