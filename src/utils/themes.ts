@@ -1,5 +1,3 @@
-// src/utils/themes.ts
-
 export interface ThemeDefinition {
   isLightMode: boolean;
   pageBg: string;
@@ -18,13 +16,13 @@ export const THEME_REGISTRY: Record<string, ThemeDefinition> = {
   industrial: {
     isLightMode: false,
     pageBg: "bg-zinc-950",
-    primaryText: "text-zinc-100 font-sans", // Brightened text
+    primaryText: "text-zinc-100 font-sans",
     accentText: "font-mono tracking-[0.4em] uppercase text-xl md:text-2xl font-black",
-    bodyText: "text-zinc-300 font-light", // Brightened text
+    bodyText: "text-zinc-300 font-light",
     cardStyle: "bg-zinc-900/30 border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)]",
     overlayFade: "from-zinc-950/10 via-zinc-950/60 to-zinc-950",
-    buttonStyle: "bg-transparent border-2 border-current text-white font-black tracking-widest uppercase text-sm py-4 px-12 rounded-none transition-all hover:bg-white/10", // Updated button style
-    prefix: "", // Removed the hashes
+    buttonStyle: "bg-transparent border-2 border-current text-white font-black tracking-widest uppercase text-sm py-4 px-12 rounded-none transition-all hover:bg-white/10",
+    prefix: "",
     useBrandAccent: true,
     useBrandTint: true
   },
@@ -104,6 +102,19 @@ export const THEME_REGISTRY: Record<string, ThemeDefinition> = {
     buttonStyle: "font-sans font-black tracking-[0.2em] uppercase text-xs py-4 px-12 text-white hover:opacity-80 transition-opacity rounded-none",
     prefix: "",
     useBrandAccent: true,
+    useBrandTint: false
+  },
+  midnight: {
+    isLightMode: false,
+    pageBg: "bg-zinc-950",
+    primaryText: "text-zinc-100 font-sans tracking-tight",
+    accentText: "text-white font-medium tracking-tight text-xl md:text-3xl",
+    bodyText: "text-zinc-400 font-light",
+    cardStyle: "bg-zinc-900/40 backdrop-blur-2xl border border-zinc-800/50 shadow-2xl rounded-xl",
+    overlayFade: "from-zinc-950/20 via-zinc-950/80 to-zinc-950",
+    buttonStyle: "bg-white text-zinc-950 hover:bg-zinc-200 font-bold tracking-wide rounded-md transition-all shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:shadow-[0_0_25px_rgba(255,255,255,0.3)] px-12 py-4 uppercase text-sm",
+    prefix: "",
+    useBrandAccent: false, 
     useBrandTint: false
   }
 };
