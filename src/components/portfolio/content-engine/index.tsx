@@ -1,4 +1,3 @@
-// src/components/portfolio/content-engine/index.tsx
 'use client';
 
 import React from 'react';
@@ -14,17 +13,16 @@ interface ContentEngineProps extends ContentLayoutProps {
 }
 
 export default function ContentEngine(props: ContentEngineProps) {
-  switch (props.layout) {
-    case 'bento':
-      return <BentoGridFlow {...props} />;
-    case 'sticky':
-      return <StickyScrollFlow {...props} />;
-    case 'editorial':
-      return <EditorialHoverFlow {...props} />;
-    case 'accordion':
-      return <AccordionFlow {...props} />;
-    case 'classic':
-    default:
-      return <ClassicFlow {...props} />;
-  }
+  // 🚨 FIXED: Replaced 'any' with 'ContentEngineProps' to satisfy strict typing
+  const FlowRegistry: Record<string, React.ComponentType<ContentEngineProps>> = {
+    bento: BentoGridFlow,
+    sticky: StickyScrollFlow,
+    editorial: EditorialHoverFlow,
+    accordion: AccordionFlow,
+    classic: ClassicFlow,
+  };
+
+  const SelectedFlow = FlowRegistry[props.layout] || ClassicFlow;
+
+  return <SelectedFlow {...props} />;
 }

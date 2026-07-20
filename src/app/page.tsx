@@ -1,3 +1,4 @@
+// src/app/page.tsx
 /* eslint-disable @next/next/no-img-element */
 import { SITE_CONFIG, ABOUT_DATA, GALLERY_ITEMS } from '@/utils/glossary';
 import AboutSection from '@/components/portfolio/AboutSection';
@@ -42,14 +43,12 @@ export default function StorefrontPage() {
 
       {/* 2. THE TRUST BUILDER & CAPABILITIES */}
       <div className="container mx-auto px-6 py-20 space-y-20">
-        
-        {/* 🚨 HERE IS WHERE WE PASS THE PROPS DOWN 🚨 */}
         <AboutSection 
           data={{
             heading: ABOUT_DATA.heading,
             bio: ABOUT_DATA.bio,
             imageUrl: ABOUT_DATA.imageUrl,
-            facebookUrl: ABOUT_DATA.facebookUrl,
+          
             ctaText: ABOUT_DATA.ctaText,
             brandColor: SITE_CONFIG.brandColor
           }} 
@@ -61,10 +60,7 @@ export default function StorefrontPage() {
       {/* 3. THE GALLERY ENGINE */}
       <div className="w-full bg-zinc-900 py-20">
         <div className="container mx-auto px-6">
-          
-          {/* 🚨 HERE IS WHERE WE PASS THE ITEMS DOWN 🚨 */}
           <GalleryGrid items={GALLERY_ITEMS} />
-          
         </div>
       </div>
 

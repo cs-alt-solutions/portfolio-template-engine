@@ -8,7 +8,8 @@ import ContentEngine from '@/components/portfolio/content-engine';
 import PrototypeTourGuide from '@/components/portfolio/PrototypeTourGuide';
 import { Send } from 'lucide-react';
 
-// Force Next.js to ignore static caching and fetch fresh data every time
+// 🚨 THE CACHE KILLERS 🚨
+// This forces Next.js to NEVER cache this route and always ask Supabase for fresh data.
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 export const fetchCache = 'force-no-store';
@@ -31,13 +32,12 @@ interface FormattedGalleryItem {
 }
 
 // --- SPECIFICATION DICTIONARIES ---
-// Translates raw database values into sleek, client-facing terminology
-
 const HERO_NAMES: Record<string, string> = {
   'center': "Centered Focus",
   'split-left': "Split-Left Structure",
   'split-right': "Split-Right Structure",
-  'cinematic': "Cinematic Frame Layout"
+  'cinematic': "Cinematic Frame Layout",
+  'glass': "Frosted Glass Overlay"
 };
 
 const FLOW_NAMES: Record<string, string> = {
@@ -78,7 +78,7 @@ export default async function DynamicStorefront({ params }: { params: Promise<{ 
   const resolvedParams = await params;
   const slug = resolvedParams.slug;
 
-  // Fetch store data
+  // Fetch real-time store data
   const { data: store, error } = await supabase
     .from('storefronts')
     .select('*')
@@ -257,6 +257,51 @@ export default async function DynamicStorefront({ params }: { params: Promise<{ 
         </section>
       )}
 
+      {/* 🔮 LAYOUT 5: GLASS CENTER */}
+      {layout === 'glass' && (
+        <section className="relative w-full min-h-[90vh] flex items-center justify-center p-6 md:p-12 overflow-hidden bg-zinc-950">
+          
+          <div className="absolute inset-0 z-0">
+            {store.hero_image ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img 
+                src={store.hero_image} 
+                alt={store.business_name || 'Background'}
+                className="w-full h-full object-cover opacity-80"
+              />
+            ) : (
+              <div className="w-full h-full bg-zinc-900 bg-[url('/grid.svg')] opacity-20" />
+            )}
+            
+            <div className="absolute inset-0 bg-zinc-950/40" />
+          </div>
+
+          <div className="relative z-10 w-full max-w-5xl mx-auto p-10 md:p-16 bg-white/5 backdrop-blur-2xl border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)] flex flex-col items-center justify-center text-center rounded-4xl">
+            <h1 className="text-4xl md:text-6xl lg:text-7xl font-black mb-6 text-white drop-shadow-lg tracking-tight">
+              {store.tagline || store.business_name}
+            </h1>
+            
+            <p className="text-base md:text-xl text-zinc-200 max-w-2xl mb-10 drop-shadow-md leading-relaxed font-light">
+              {store.subtext}
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-5 w-full justify-center">
+              {store.primary_cta && (
+                <a href={contactLink} className={`px-10 py-4 font-bold uppercase tracking-widest text-xs transition-all duration-300 shadow-xl bg-${brandColor} text-black hover:scale-105 ${theme.buttonStyle}`}>
+                  {store.primary_cta}
+                </a>
+              )}
+              {store.secondary_cta && (
+                <button className={`px-10 py-4 font-bold uppercase tracking-widest text-xs transition-all duration-300 shadow-xl border border-white/30 bg-black/20 text-white hover:bg-white hover:text-black hover:scale-105 backdrop-blur-sm ${theme.buttonStyle}`}>
+                  {store.secondary_cta}
+                </button>
+              )}
+            </div>
+            
+          </div>
+        </section>
+      )}
+      
       {/* --- ABOUT SECTION --- */}
       {hasAbout && (
         <div className="container mx-auto px-6 py-20">
@@ -265,12 +310,12 @@ export default async function DynamicStorefront({ params }: { params: Promise<{ 
               heading: store.about_heading || 'About Us',
               bio: store.about_bio,
               imageUrl: store.about_image,
-              facebookUrl: store.social_url,
               ctaText: store.secondary_cta,
               brandColor: store.brand_color,
-              socials: activeSocials,
+              socials: activeSocials, 
               isLightMode: theme.isLightMode, 
-              themeStyle: store.theme_style
+              themeStyle: store.theme_style,
+              aboutLayout: store.about_layout || 'split' 
             }} 
           />
         </div>
