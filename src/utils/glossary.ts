@@ -94,3 +94,11 @@ export const GALLERY_ITEMS: PortfolioItem[] = [
     size: "large"
   }
 ];
+// Add this to src/utils/glossary.ts
+export const STOREFRONT_DEFAULTS = {
+  ABOUT_HEADING: "About Us",
+  CAPABILITIES_HEADING: "My Services",
+  GALLERY_HEADING: "Featured Work",
+  PRIMARY_CTA: "Learn More",
+  SECONDARY_CTA: "Contact Us"
+};
