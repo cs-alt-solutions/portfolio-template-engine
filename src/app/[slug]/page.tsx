@@ -7,6 +7,7 @@ import { STOREFRONT_DEFAULTS } from '@/utils/glossary'; // <-- IMPORTED THE TRUT
 import AboutSection from '@/components/portfolio/AboutSection';
 import ContentEngine from '@/components/portfolio/content-engine';
 import PrototypeTourGuide from '@/components/portfolio/PrototypeTourGuide';
+import StorefrontClientActions from '../../components/portfolio/StorefrontClientActions'; // <-- IMPORTED CLIENT WRAPPER FOR MODAL & CTA BANNER
 import { Send } from 'lucide-react';
 
 // 🚨 THE CACHE KILLERS 🚨
@@ -97,7 +98,8 @@ export default async function DynamicStorefront({ params }: { params: Promise<{ 
   const buttonBgClass = theme.useBrandAccent ? `bg-${brandColor} text-zinc-950 hover:opacity-80 border-none` : `bg-${brandColor} text-zinc-950`;
   const lineAccent = theme.useBrandAccent ? `bg-${brandColor}` : 'bg-current';
 
-  const contactLink = store.contact_email ? `mailto:${store.contact_email}` : '#contact';
+  // 🚨 ARCHITECTURAL WIN: Primary CTA jumps down to #portfolio gallery instead of prematurely drafting an email!
+  const exploreLink = '#portfolio';
   const hasAbout = !!store.about_bio || !!store.about_image || !!store.about_heading;
   
   const rawSocialLinks = store.social_links || {};
@@ -155,7 +157,7 @@ export default async function DynamicStorefront({ params }: { params: Promise<{ 
               <p className={`text-lg md:text-xl mb-12 leading-relaxed max-w-2xl mx-auto opacity-90 ${theme.bodyText}`}>
                 {store.subtext}
               </p>
-              <a href={contactLink} className={`inline-block ${theme.buttonStyle} ${buttonBgClass}`}>
+              <a href={exploreLink} className={`inline-block ${theme.buttonStyle} ${buttonBgClass}`}>
                 {store.primary_cta || STOREFRONT_DEFAULTS.PRIMARY_CTA}
               </a>
             </div>
@@ -179,14 +181,9 @@ export default async function DynamicStorefront({ params }: { params: Promise<{ 
                 {store.subtext}
               </p>
               <div className="flex gap-4">
-                <a href={contactLink} className={`inline-block ${theme.buttonStyle} ${buttonBgClass}`}>
+                <a href={exploreLink} className={`inline-block ${theme.buttonStyle} ${buttonBgClass}`}>
                   {store.primary_cta || STOREFRONT_DEFAULTS.PRIMARY_CTA}
                 </a>
-                {store.secondary_cta && (
-                  <button className={`bg-transparent border border-${brandColor} text-${brandColor} hover:bg-${brandColor}/10 font-bold tracking-widest uppercase text-xs py-4 px-8 rounded transition-all`}>
-                    {store.secondary_cta}
-                  </button>
-                )}
               </div>
             </div>
           </div>
@@ -214,7 +211,7 @@ export default async function DynamicStorefront({ params }: { params: Promise<{ 
                 {store.subtext}
               </p>
               <div className="flex gap-4">
-                <a href={contactLink} className={`inline-block ${theme.buttonStyle} ${buttonBgClass}`}>
+                <a href={exploreLink} className={`inline-block ${theme.buttonStyle} ${buttonBgClass}`}>
                   {store.primary_cta || STOREFRONT_DEFAULTS.PRIMARY_CTA}
                 </a>
               </div>
@@ -249,7 +246,7 @@ export default async function DynamicStorefront({ params }: { params: Promise<{ 
                 {store.subtext}
               </p>
               
-              <a href={contactLink} className={`inline-block ${theme.buttonStyle}`}>
+              <a href={exploreLink} className={`inline-block ${theme.buttonStyle}`}>
                 {store.primary_cta || STOREFRONT_DEFAULTS.PRIMARY_CTA}
               </a>
             </div>
@@ -287,14 +284,9 @@ export default async function DynamicStorefront({ params }: { params: Promise<{ 
 
             <div className="flex flex-col sm:flex-row gap-5 w-full justify-center">
               {store.primary_cta && (
-                <a href={contactLink} className={`px-10 py-4 font-bold uppercase tracking-widest text-xs transition-all duration-300 shadow-xl bg-${brandColor} text-black hover:scale-105 ${theme.buttonStyle}`}>
+                <a href={exploreLink} className={`px-10 py-4 font-bold uppercase tracking-widest text-xs transition-all duration-300 shadow-xl bg-${brandColor} text-black hover:scale-105 ${theme.buttonStyle}`}>
                   {store.primary_cta || STOREFRONT_DEFAULTS.PRIMARY_CTA}
                 </a>
-              )}
-              {store.secondary_cta && (
-                <button className={`px-10 py-4 font-bold uppercase tracking-widest text-xs transition-all duration-300 shadow-xl border border-white/30 bg-black/20 text-white hover:bg-white hover:text-black hover:scale-105 backdrop-blur-sm ${theme.buttonStyle}`}>
-                  {store.secondary_cta || STOREFRONT_DEFAULTS.SECONDARY_CTA}
-                </button>
               )}
             </div>
             
@@ -310,7 +302,6 @@ export default async function DynamicStorefront({ params }: { params: Promise<{ 
               heading: store.about_heading || STOREFRONT_DEFAULTS.ABOUT_HEADING, // <-- CLEAN FALLBACK
               bio: store.about_bio,
               imageUrl: store.about_image,
-              ctaText: store.secondary_cta,
               brandColor: store.brand_color,
               socials: activeSocials, 
               isLightMode: theme.isLightMode, 
@@ -322,15 +313,24 @@ export default async function DynamicStorefront({ params }: { params: Promise<{ 
       )}
 
       {/* --- THE CONTENT ENGINE --- */}
-      <ContentEngine 
-        layout={store.content_layout || 'classic'}
-        themeStyle={store.theme_style}
-        brandColor={brandColor}
-        isLightMode={theme.isLightMode}
-        capabilitiesHeading={store.capabilities_heading || STOREFRONT_DEFAULTS.CAPABILITIES_HEADING} // <-- CLEAN FALLBACK
-        galleryHeading={store.gallery_heading || STOREFRONT_DEFAULTS.GALLERY_HEADING} // <-- CLEAN FALLBACK
-        capabilities={store.capabilities || []}
-        galleryItems={formattedGalleryItems}
+      <div id="portfolio">
+        <ContentEngine 
+          layout={store.content_layout || 'classic'}
+          themeStyle={store.theme_style}
+          brandColor={brandColor}
+          isLightMode={theme.isLightMode}
+          capabilitiesHeading={store.capabilities_heading || STOREFRONT_DEFAULTS.CAPABILITIES_HEADING} // <-- CLEAN FALLBACK
+          galleryHeading={store.gallery_heading || STOREFRONT_DEFAULTS.GALLERY_HEADING} // <-- CLEAN FALLBACK
+          capabilities={store.capabilities || []}
+          galleryItems={formattedGalleryItems}
+        />
+      </div>
+
+      {/* 🚨 ARCHITECTURAL WIN: BOTTOM CTA BANNER & MODAL MOUNTED VIA CLIENT WRAPPER 🚨 */}
+      <StorefrontClientActions 
+        store={store} 
+        brandColor={brandColor} 
+        isLightMode={theme.isLightMode} 
       />
 
       {/* --- PROTOTYPE INTERACTIVE TOUR GUIDE --- */}

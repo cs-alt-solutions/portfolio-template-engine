@@ -1,3 +1,4 @@
+// src/components/portfolio/AboutSection.tsx
 /* eslint-disable @next/next/no-img-element */
 import React from 'react';
 
@@ -12,7 +13,6 @@ export interface AboutSectionProps {
     heading?: string;
     bio?: string;
     imageUrl?: string;
-    ctaText?: string;
     brandColor?: string;
     socials?: SocialPlatform[];
     aboutLayout?: string;
@@ -28,7 +28,7 @@ const SocialLinks = ({ socials, brandColor, aboutLayout }: {
 }) => {
   if (!socials || socials.length === 0) return null;
   
-  // 🚨 FIX: Center the icons for any of the centered layouts
+  // Center the icons for any of the centered layouts
   const isCentered = ['minimal', 'center', 'card', 'glass', 'glass-card', 'glass_card'].includes(aboutLayout);
   
   return (
@@ -50,7 +50,6 @@ export default function AboutSection({ data }: AboutSectionProps) {
     heading = 'About Us', 
     bio, 
     imageUrl, 
-    ctaText, 
     brandColor = 'cyan-500', 
     socials = [], 
     aboutLayout = 'split'
@@ -58,7 +57,6 @@ export default function AboutSection({ data }: AboutSectionProps) {
 
   if (!bio && !imageUrl) return null;
 
-  // 🚨 FIX: Catch "minimal" OR "center"
   // LAYOUT 1: MINIMAL CENTER
   if (aboutLayout === 'minimal' || aboutLayout === 'center') {
     return (
@@ -79,12 +77,6 @@ export default function AboutSection({ data }: AboutSectionProps) {
         </p>
 
         <SocialLinks socials={socials} brandColor={brandColor} aboutLayout={aboutLayout} />
-        
-        {ctaText && (
-          <button className={`mt-10 px-10 py-4 bg-${brandColor} text-zinc-950 font-black uppercase tracking-widest text-xs transition-all shadow-lg hover:shadow-xl hover:-translate-y-1 rounded-full`}>
-            {ctaText}
-          </button>
-        )}
       </section>
     );
   }
@@ -99,11 +91,6 @@ export default function AboutSection({ data }: AboutSectionProps) {
            </h2>
            <div className={`w-full h-px mt-8 bg-${brandColor}`} />
            <SocialLinks socials={socials} brandColor={brandColor} aboutLayout={aboutLayout} />
-           {ctaText && (
-              <button className={`mt-10 px-8 py-4 bg-transparent border border-${brandColor} text-${brandColor} hover:bg-${brandColor}/10 font-bold uppercase tracking-widest text-xs transition-all w-max rounded-none`}>
-                {ctaText}
-              </button>
-            )}
          </div>
          <div className="w-full lg:w-2/3 space-y-12">
            {imageUrl && (
@@ -119,7 +106,6 @@ export default function AboutSection({ data }: AboutSectionProps) {
      );
   }
 
-  // 🚨 FIX: Catch "card", "glass", "glass-card", or "glass_card"
   // LAYOUT 3: GLASS CARD
   if (aboutLayout === 'card' || aboutLayout === 'glass' || aboutLayout === 'glass-card' || aboutLayout === 'glass_card') {
     return (
@@ -143,11 +129,6 @@ export default function AboutSection({ data }: AboutSectionProps) {
             <div className="flex justify-center w-full">
               <SocialLinks socials={socials} brandColor={brandColor} aboutLayout={aboutLayout} />
             </div>
-            {ctaText && (
-              <button className={`mt-10 px-10 py-4 bg-${brandColor} text-zinc-950 font-black uppercase tracking-widest text-xs transition-all hover:scale-105 rounded-xl shadow-[0_0_20px_rgba(0,0,0,0.3)]`}>
-                {ctaText}
-              </button>
-            )}
          </div>
       </section>
     );
@@ -168,12 +149,6 @@ export default function AboutSection({ data }: AboutSectionProps) {
           </p>
 
           <SocialLinks socials={socials} brandColor={brandColor} aboutLayout={aboutLayout} />
-
-          {ctaText && (
-            <button className={`mt-2 px-8 py-4 bg-${brandColor} text-zinc-950 font-black uppercase tracking-widest text-xs transition-all shadow-lg hover:-translate-y-1 w-max rounded-md`}>
-              {ctaText}
-            </button>
-          )}
         </div>
         {imageUrl && (
           <div className="w-full aspect-square md:aspect-4/5 rounded-3xl overflow-hidden shadow-2xl relative group">
