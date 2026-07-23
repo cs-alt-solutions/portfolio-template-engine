@@ -45,6 +45,10 @@ export default function UniversalLeadModal({
     }, 1000);
   };
 
+  // 🚨 SMART CONTRAST: If they picked a dark/mid tone 500 color, use crisp white text!
+  const isDarkTone = ['blue-500', 'indigo-500', 'violet-500', 'fuchsia-500', 'pink-500', 'red-500', 'rose-500', 'orange-500', 'slate-500', 'zinc-700', 'zinc-800', 'stone-700'].includes(brandColor);
+  const submitTextClass = isDarkTone ? 'text-white font-black drop-shadow-sm' : 'text-zinc-950 font-black';
+
   const bgClass = isLightMode ? 'bg-white text-slate-900 border-slate-200' : 'bg-zinc-900 text-white border-zinc-800';
   const inputBgClass = isLightMode ? 'bg-slate-50 border-slate-300 text-slate-900 focus:bg-white' : 'bg-zinc-950 border-zinc-800 text-white focus:bg-zinc-900';
 
@@ -149,7 +153,7 @@ export default function UniversalLeadModal({
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className={`w-full py-3.5 px-6 rounded-xl font-bold text-zinc-950 bg-${brandColor} shadow-lg hover:opacity-90 active:scale-[0.99] transition-all flex items-center justify-center gap-2 mt-2 disabled:opacity-50 text-xs uppercase tracking-widest`}
+                className={`w-full py-3.5 px-6 rounded-xl font-bold bg-${brandColor} border border-white/20 shadow-lg hover:opacity-90 active:scale-[0.99] transition-all flex items-center justify-center gap-2 mt-2 disabled:opacity-50 text-xs uppercase tracking-widest ${submitTextClass}`}
               >
                 {isSubmitting ? (
                   <span>Transmitting...</span>
