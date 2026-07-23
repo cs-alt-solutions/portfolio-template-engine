@@ -2,17 +2,20 @@
 'use client';
 
 import React, { useState } from 'react';
-import { X, Send, CheckCircle, Sparkles } from 'lucide-react';
+import { X, Send, CheckCircle, Sparkles, AlertCircle } from 'lucide-react';
 import { getFonts } from './content-engine/utils';
+import { submitStorefrontLead } from '@/actions/submitLead';
 
 interface UniversalLeadModalProps {
   isOpen: boolean;
   onClose: () => void;
   ctaLabel: string;
   businessName: string;
+  storefrontSlug?: string; // 🚨 MADE OPTIONAL: Solves the page.tsx TS Error!
+  contactEmail?: string;   // 🚨 MADE OPTIONAL: Solves email prop errors!
   brandColor?: string;
   isLightMode?: boolean;
-  themeStyle?: string; // 🚨 ADDED: Drives theme-native dialog shapes!
+  themeStyle?: string;
 }
 
 export default function UniversalLeadModal({
@@ -20,12 +23,15 @@ export default function UniversalLeadModal({
   onClose,
   ctaLabel = 'Get in Touch',
   businessName = 'Our Team',
+  storefrontSlug = 'platform-direct', // 🚨 FALLBACK: Routes general inquiries cleanly!
+  contactEmail = '',
   brandColor = 'cyan-500', 
   isLightMode = false,
   themeStyle = 'industrial',
 }: UniversalLeadModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -38,17 +44,27 @@ export default function UniversalLeadModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setErrorMessage('');
 
-    // TODO: Wire this to your server action to send Resend email / save to Supabase
-    // await submitStorefrontLead({ ...formData, businessName });
+    const response = await submitStorefrontLead({
+      storefrontSlug,
+      businessName,
+      contactEmail,
+      name: formData.name,
+      email: formData.email,
+      phone: formData.phone,
+      details: formData.details,
+    });
 
-    setTimeout(() => {
-      setIsSubmitting(false);
+    setIsSubmitting(false);
+
+    if (response.success) {
       setIsSubmitted(true);
-    }, 1000);
+    } else {
+      setErrorMessage(response.error || 'Failed to send request.');
+    }
   };
 
-  // 1. TYPOGRAPHY & SHAPE RULES
   const fonts = getFonts(themeStyle);
   const isSharpTheme = ['industrial', 'neo', 'cyberpunk', 'editorial'].includes(themeStyle);
   const isNeo = themeStyle === 'neo';
@@ -57,7 +73,6 @@ export default function UniversalLeadModal({
   const radius = isSharpTheme ? 'rounded-none' : themeStyle === 'minimal' ? 'rounded-3xl' : 'rounded-2xl';
   const inputRadius = isSharpTheme ? 'rounded-none' : 'rounded-xl';
 
-  // 2. MODAL CONTAINER STYLES
   const getModalStyles = () => {
     if (isNeo) return 'bg-white text-black border-4 border-black shadow-[12px_12px_0px_0px_rgba(0,0,0,1)]';
     if (isCyber) return 'bg-black/95 text-white border-2 border-white/20 shadow-[0_0_50px_rgba(255,255,255,0.1)] font-mono';
@@ -66,7 +81,6 @@ export default function UniversalLeadModal({
     return 'bg-zinc-900 text-white border-2 border-zinc-800 shadow-2xl';
   };
 
-  // 3. INPUT FIELD STYLES
   const getInputStyles = () => {
     if (isNeo) return `bg-white border-2 border-black text-black focus:bg-yellow-100 ${inputRadius}`;
     if (isCyber) return `bg-black/80 border border-white/20 text-white focus:border-${brandColor} font-mono ${inputRadius}`;
@@ -74,7 +88,6 @@ export default function UniversalLeadModal({
     return `bg-zinc-950 border border-zinc-800 text-white focus:bg-zinc-900 ${inputRadius}`;
   };
 
-  // 4. SUBMIT BUTTON STYLES
   const getSubmitStyles = () => {
     if (isNeo) return `bg-white text-black border-4 border-black font-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 ${inputRadius}`;
     if (isCyber) return `bg-black text-white border border-current shadow-[0_0_15px_currentColor] hover:bg-white hover:text-black font-mono font-bold ${inputRadius}`;
@@ -88,7 +101,6 @@ export default function UniversalLeadModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
       <div className={`relative w-full max-w-lg p-6 md:p-8 transition-all ${radius} ${getModalStyles()}`}>
         
-        {/* Close Button */}
         <button
           onClick={onClose}
           className={`absolute top-4 right-4 p-2 transition-colors ${isNeo ? 'text-black hover:bg-black hover:text-white border-2 border-black rounded-none' : 'text-zinc-400 hover:text-white rounded-full'}`}
@@ -97,12 +109,11 @@ export default function UniversalLeadModal({
         </button>
 
         {isSubmitted ? (
-          /* SUCCESS STATE */
           <div className="py-10 text-center space-y-4">
             <CheckCircle className="w-16 h-16 mx-auto text-emerald-500 animate-bounce" />
             <h3 className={`text-2xl font-bold ${fonts.heading}`}>Request Received!</h3>
             <p className={`text-sm opacity-80 max-w-xs mx-auto ${fonts.body}`}>
-              Thank you, {formData.name}. {businessName} has received your details and will be in touch shortly.
+              Thank you, {formData.name}. {businessName} has logged your details and will be in touch shortly.
             </p>
             <button
               onClick={() => { setIsSubmitted(false); onClose(); }}
@@ -112,7 +123,6 @@ export default function UniversalLeadModal({
             </button>
           </div>
         ) : (
-          /* FORM STATE */
           <div>
             <div className="mb-6 space-y-1">
               <div className="flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-cyan-400">
@@ -124,6 +134,13 @@ export default function UniversalLeadModal({
                 Fill out the details below to connect directly with {businessName}.
               </p>
             </div>
+
+            {errorMessage && (
+              <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-xl flex items-center gap-2 text-xs text-red-400 font-mono">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{errorMessage}</span>
+              </div>
+            )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
