@@ -25,11 +25,13 @@ interface CustomIconProps extends SVGProps<SVGSVGElement> {
   size?: number | string;
 }
 
+// 🚨 THE FIX: Added 'category' so TypeScript allows the property to pass through
 interface FormattedGalleryItem {
   id: string;
   imageUrl: string;
   title?: string;
   description?: string; 
+  category?: string;
 }
 
 // --- SPECIFICATION DICTIONARIES ---
@@ -126,7 +128,8 @@ export default async function DynamicStorefront({ params }: { params: Promise<{ 
       id: obj.id || `gal-${index}`,
       imageUrl: obj.imageUrl || '',
       title: obj.title,
-      description: obj.description || obj.category 
+      description: obj.description || obj.category,
+      category: obj.category // 🚨 THE FIX: Map the category field explicitly so it isn't dropped!
     };
   }).filter((item: FormattedGalleryItem) => item.imageUrl !== ''); 
 

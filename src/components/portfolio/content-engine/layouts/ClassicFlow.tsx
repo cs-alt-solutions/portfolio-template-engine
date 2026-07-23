@@ -21,7 +21,13 @@ export default function ClassicFlow({
           <h2 className={`text-4xl md:text-5xl mb-16 text-center ${brandTextColor} ${fonts.heading}`}>
             {capabilitiesHeading}
           </h2>
-          <Capabilities items={capabilities} themeStyle={themeStyle} brandColor={brandColor} />
+          {/* 🚨 THE FIX: Pass galleryItems into Capabilities here! 🚨 */}
+          <Capabilities 
+            items={capabilities} 
+            galleryItems={galleryItems} 
+            themeStyle={themeStyle} 
+            brandColor={brandColor} 
+          />
         </div>
       )}
       
