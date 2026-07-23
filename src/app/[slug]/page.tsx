@@ -3,14 +3,13 @@ import React, { SVGProps } from 'react';
 import { notFound } from 'next/navigation';
 import { supabase } from '@/utils/supabase';
 import { THEME_REGISTRY } from '@/utils/themes';
-import { STOREFRONT_DEFAULTS } from '@/utils/glossary'; // <-- IMPORTED THE TRUTH
+import { STOREFRONT_DEFAULTS } from '@/utils/glossary'; 
 import AboutSection from '@/components/portfolio/AboutSection';
 import ContentEngine from '@/components/portfolio/content-engine';
 import PrototypeTourGuide from '@/components/portfolio/PrototypeTourGuide';
-import StorefrontClientActions from '../../components/portfolio/StorefrontClientActions'; // <-- IMPORTED CLIENT WRAPPER FOR MODAL & CTA BANNER
+import StorefrontClientActions from '../../components/portfolio/StorefrontClientActions'; 
 import { Send } from 'lucide-react';
 
-// 🚨 THE CACHE KILLERS 🚨
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 export const fetchCache = 'force-no-store';
@@ -25,7 +24,6 @@ interface CustomIconProps extends SVGProps<SVGSVGElement> {
   size?: number | string;
 }
 
-// 🚨 THE FIX: Added 'category' so TypeScript allows the property to pass through
 interface FormattedGalleryItem {
   id: string;
   imageUrl: string;
@@ -34,7 +32,6 @@ interface FormattedGalleryItem {
   category?: string;
 }
 
-// --- SPECIFICATION DICTIONARIES ---
 const HERO_NAMES: Record<string, string> = {
   'center': "Centered Focus",
   'split-left': "Split-Left Structure",
@@ -50,7 +47,6 @@ const FLOW_NAMES: Record<string, string> = {
   'editorial': "Editorial Hover Stack",
   'accordion': "Interactive Accordion Flow"
 };
-// ----------------------------------
 
 const InstagramIcon = ({ size = 24, ...props }: CustomIconProps) => (
   <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>
@@ -81,7 +77,6 @@ export default async function DynamicStorefront({ params }: { params: Promise<{ 
   const resolvedParams = await params;
   const slug = resolvedParams.slug;
 
-  // Fetch real-time store data
   const { data: store, error } = await supabase
     .from('storefronts')
     .select('*')
@@ -100,10 +95,13 @@ export default async function DynamicStorefront({ params }: { params: Promise<{ 
   const buttonBgClass = theme.useBrandAccent ? `bg-${brandColor} text-zinc-950 hover:opacity-80 border-none` : `bg-${brandColor} text-zinc-950`;
   const lineAccent = theme.useBrandAccent ? `bg-${brandColor}` : 'bg-current';
 
-  // 🚨 ARCHITECTURAL WIN: Primary CTA jumps down to #portfolio gallery instead of prematurely drafting an email!
   const exploreLink = '#portfolio';
   const hasAbout = !!store.about_bio || !!store.about_image || !!store.about_heading;
   
+  // 🚨 SMART CTA STRATEGY: Hero button reads "View {gallery_heading}"
+  const galleryTitle = store.gallery_heading || STOREFRONT_DEFAULTS.GALLERY_HEADING || "Featured Work";
+  const heroButtonText = `View ${galleryTitle}`;
+
   const rawSocialLinks = store.social_links || {};
   const activeSocials: SocialPlatform[] = Object.entries(rawSocialLinks)
     .filter((entry) => !!entry[1]) 
@@ -129,12 +127,12 @@ export default async function DynamicStorefront({ params }: { params: Promise<{ 
       imageUrl: obj.imageUrl || '',
       title: obj.title,
       description: obj.description || obj.category,
-      category: obj.category // 🚨 THE FIX: Map the category field explicitly so it isn't dropped!
+      category: obj.category
     };
   }).filter((item: FormattedGalleryItem) => item.imageUrl !== ''); 
 
   return (
-    <main className={`min-h-screen flex flex-col selection:bg-cyan-500/30 ${theme.pageBg} relative pb-24`}>
+    <main className={`min-h-screen flex flex-col selection:bg-cyan-500/30 ${theme.pageBg} relative`}>
       
       {/* LAYOUT 1: CENTERED */}
       {layout === 'center' && (
@@ -161,7 +159,7 @@ export default async function DynamicStorefront({ params }: { params: Promise<{ 
                 {store.subtext}
               </p>
               <a href={exploreLink} className={`inline-block ${theme.buttonStyle} ${buttonBgClass}`}>
-                {store.primary_cta || STOREFRONT_DEFAULTS.PRIMARY_CTA}
+                {heroButtonText}
               </a>
             </div>
           </div>
@@ -185,7 +183,7 @@ export default async function DynamicStorefront({ params }: { params: Promise<{ 
               </p>
               <div className="flex gap-4">
                 <a href={exploreLink} className={`inline-block ${theme.buttonStyle} ${buttonBgClass}`}>
-                  {store.primary_cta || STOREFRONT_DEFAULTS.PRIMARY_CTA}
+                  {heroButtonText}
                 </a>
               </div>
             </div>
@@ -215,7 +213,7 @@ export default async function DynamicStorefront({ params }: { params: Promise<{ 
               </p>
               <div className="flex gap-4">
                 <a href={exploreLink} className={`inline-block ${theme.buttonStyle} ${buttonBgClass}`}>
-                  {store.primary_cta || STOREFRONT_DEFAULTS.PRIMARY_CTA}
+                  {heroButtonText}
                 </a>
               </div>
             </div>
@@ -250,7 +248,7 @@ export default async function DynamicStorefront({ params }: { params: Promise<{ 
               </p>
               
               <a href={exploreLink} className={`inline-block ${theme.buttonStyle}`}>
-                {store.primary_cta || STOREFRONT_DEFAULTS.PRIMARY_CTA}
+                {heroButtonText}
               </a>
             </div>
           </div>
@@ -286,11 +284,9 @@ export default async function DynamicStorefront({ params }: { params: Promise<{ 
             </p>
 
             <div className="flex flex-col sm:flex-row gap-5 w-full justify-center">
-              {store.primary_cta && (
-                <a href={exploreLink} className={`px-10 py-4 font-bold uppercase tracking-widest text-xs transition-all duration-300 shadow-xl bg-${brandColor} text-black hover:scale-105 ${theme.buttonStyle}`}>
-                  {store.primary_cta || STOREFRONT_DEFAULTS.PRIMARY_CTA}
-                </a>
-              )}
+              <a href={exploreLink} className={`px-10 py-4 font-bold uppercase tracking-widest text-xs transition-all duration-300 shadow-xl bg-${brandColor} text-black hover:scale-105 ${theme.buttonStyle}`}>
+                {heroButtonText}
+              </a>
             </div>
             
           </div>
@@ -302,7 +298,7 @@ export default async function DynamicStorefront({ params }: { params: Promise<{ 
         <div className="container mx-auto px-6 py-20">
           <AboutSection 
             data={{
-              heading: store.about_heading || STOREFRONT_DEFAULTS.ABOUT_HEADING, // <-- CLEAN FALLBACK
+              heading: store.about_heading || STOREFRONT_DEFAULTS.ABOUT_HEADING, 
               bio: store.about_bio,
               imageUrl: store.about_image,
               brandColor: store.brand_color,
@@ -322,19 +318,37 @@ export default async function DynamicStorefront({ params }: { params: Promise<{ 
           themeStyle={store.theme_style}
           brandColor={brandColor}
           isLightMode={theme.isLightMode}
-          capabilitiesHeading={store.capabilities_heading || STOREFRONT_DEFAULTS.CAPABILITIES_HEADING} // <-- CLEAN FALLBACK
-          galleryHeading={store.gallery_heading || STOREFRONT_DEFAULTS.GALLERY_HEADING} // <-- CLEAN FALLBACK
+          capabilitiesHeading={store.capabilities_heading || STOREFRONT_DEFAULTS.CAPABILITIES_HEADING} 
+          galleryHeading={store.gallery_heading || STOREFRONT_DEFAULTS.GALLERY_HEADING} 
           capabilities={store.capabilities || []}
           galleryItems={formattedGalleryItems}
         />
       </div>
 
-      {/* 🚨 ARCHITECTURAL WIN: BOTTOM CTA BANNER & MODAL MOUNTED VIA CLIENT WRAPPER 🚨 */}
+      {/* 🚨 THE RE-ENGINEERED CONVERSION BANNER & MODAL 🚨 */}
       <StorefrontClientActions 
         store={store} 
         brandColor={brandColor} 
         isLightMode={theme.isLightMode} 
       />
+
+      {/* 🚨 RESTORED: POWERED BY ALTERNATIVE SOLUTIONS BAR 🚨 */}
+      <footer className="w-full py-8 px-6 border-t border-white/10 bg-zinc-950 text-[11px] font-mono text-zinc-500 uppercase tracking-widest flex flex-col sm:flex-row items-center justify-between gap-4 relative z-20">
+        <div>
+          &copy; {new Date().getFullYear()} {store.business_name || 'All Rights Reserved'}.
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span>Powered by</span>
+          <a 
+            href="https://alternativesolutions.io" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="text-zinc-300 hover:text-cyan-400 font-bold transition-colors underline decoration-cyan-500/50 underline-offset-4"
+          >
+            Alternative Solutions
+          </a>
+        </div>
+      </footer>
 
       {/* --- PROTOTYPE INTERACTIVE TOUR GUIDE --- */}
       {store.is_template && (
