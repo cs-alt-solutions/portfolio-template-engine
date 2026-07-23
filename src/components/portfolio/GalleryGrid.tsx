@@ -1,12 +1,13 @@
 // src/components/portfolio/GalleryGrid.tsx
 import React from 'react';
-import { getFonts } from './content-engine/utils'; // 🚨 FIXED IMPORT PATH
+import { getFonts } from './content-engine/utils'; 
 
 interface GalleryItem {
   id: string;
   imageUrl: string;
   title?: string;
   description?: string;
+  category?: string;
 }
 
 interface GalleryGridProps {
@@ -15,17 +16,23 @@ interface GalleryGridProps {
 }
 
 export default function GalleryGrid({ items, themeStyle = 'industrial' }: GalleryGridProps) {
+  // 1. Validate basic URLs
   const validItems = items?.filter(item => item && item.imageUrl && item.imageUrl.trim() !== '') || [];
 
-  if (validItems.length === 0) return null;
+  // 🚨 2. THE CLEAN SWEEP: Filter out images attached to specific services above!
+  const unattachedItems = validItems.filter(
+    (item) => !item.category || item.category.trim() === ""
+  );
+
+  // If every photo is attached to a capability card above, hide the bottom section
+  if (unattachedItems.length === 0) return null;
   
   const fonts = getFonts(themeStyle);
-  
   const isLightMode = ['elegant', 'minimal', 'organic', 'editorial', 'neo', 'retropop'].includes(themeStyle);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-4">
-      {validItems.map((item, i) => (
+      {unattachedItems.map((item, i) => (
         <div 
           key={item.id || i} 
           className="group relative overflow-hidden rounded-2xl shadow-lg transition-all duration-300 hover:shadow-2xl aspect-square"
