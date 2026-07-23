@@ -98,7 +98,6 @@ export default async function DynamicStorefront({ params }: { params: Promise<{ 
   const exploreLink = '#portfolio';
   const hasAbout = !!store.about_bio || !!store.about_image || !!store.about_heading;
   
-  // 🚨 SMART CTA STRATEGY: Hero button reads "View {gallery_heading}"
   const galleryTitle = store.gallery_heading || STOREFRONT_DEFAULTS.GALLERY_HEADING || "Featured Work";
   const heroButtonText = `View ${galleryTitle}`;
 
@@ -325,11 +324,12 @@ export default async function DynamicStorefront({ params }: { params: Promise<{ 
         />
       </div>
 
-      {/* 🚨 THE RE-ENGINEERED CONVERSION BANNER & MODAL 🚨 */}
+      {/* 🚨 THEME-AWARE CONVERSION BANNER & MODAL 🚨 */}
       <StorefrontClientActions 
         store={store} 
         brandColor={brandColor} 
-        isLightMode={theme.isLightMode} 
+        isLightMode={theme.isLightMode}
+        themeStyle={store.theme_style} 
       />
 
       {/* 🚨 RESTORED: POWERED BY ALTERNATIVE SOLUTIONS BAR 🚨 */}
