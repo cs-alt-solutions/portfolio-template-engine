@@ -19,7 +19,7 @@ export default function StorefrontPage() {
   };
 
   return (
-    <main className="min-h-screen flex flex-col bg-zinc-950 text-white selection:bg-cyan-500/30 relative pb-24">
+    <main className="min-h-screen flex flex-col bg-zinc-950 text-white selection:bg-cyan-500/30 relative">
       
       {/* 1. HERO BLOCK: Optimized for visual impact */}
       <section className="relative h-[85vh] w-full flex items-center overflow-hidden">
@@ -118,6 +118,24 @@ export default function StorefrontPage() {
         businessName={SITE_CONFIG.businessName || 'Our Team'}
         brandColor={SITE_CONFIG.brandColor || '#06b6d4'}
       />
+
+      {/* 🚨 6. POWERED BY ALTERNATIVE SOLUTIONS BAR 🚨 */}
+      <footer className="w-full py-8 px-6 border-t border-white/10 bg-zinc-950 text-xs font-mono text-zinc-500 uppercase tracking-widest flex flex-col sm:flex-row items-center justify-between gap-4 relative z-20">
+        <div>
+          © {new Date().getFullYear()} {SITE_CONFIG.businessName || 'All Rights Reserved'}.
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span>Powered by</span>
+          <a 
+            href="https://alternativesolutions.io" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="text-zinc-300 hover:text-cyan-400 font-bold transition-colors underline decoration-cyan-500/50 underline-offset-4"
+          >
+            Alternative Solutions
+          </a>
+        </div>
+      </footer>
 
     </main>
   );
