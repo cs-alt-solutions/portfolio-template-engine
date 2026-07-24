@@ -76,7 +76,7 @@ const SOCIAL_META: Record<string, { base: string; icon: React.ElementType }> = {
 export default async function DynamicStorefront({ params }: { params: Promise<{ slug: string }> }) {
   const resolvedParams = await params;
   const slug = resolvedParams.slug;
-
+  
   const { data: store, error } = await supabase
     .from('storefronts')
     .select('*')
@@ -90,17 +90,15 @@ export default async function DynamicStorefront({ params }: { params: Promise<{ 
   const theme = THEME_REGISTRY[store.theme_style] || THEME_REGISTRY['industrial'];
   const layout = store.hero_layout || 'center';
   const brandColor = store.brand_color || 'cyan-500';
-
   const accentColorClass = theme.useBrandAccent ? `text-${brandColor}` : '';
   const buttonBgClass = theme.useBrandAccent ? `bg-${brandColor} text-zinc-950 hover:opacity-80 border-none` : `bg-${brandColor} text-zinc-950`;
   const lineAccent = theme.useBrandAccent ? `bg-${brandColor}` : 'bg-current';
-
   const exploreLink = '#portfolio';
-  const hasAbout = !!store.about_bio || !!store.about_image || !!store.about_heading;
   
+  const hasAbout = !!store.about_bio || !!store.about_image || !!store.about_heading;
   const galleryTitle = store.gallery_heading || STOREFRONT_DEFAULTS.GALLERY_HEADING || "Featured Work";
   const heroButtonText = `View ${galleryTitle}`;
-
+  
   const rawSocialLinks = store.social_links || {};
   const activeSocials: SocialPlatform[] = Object.entries(rawSocialLinks)
     .filter((entry) => !!entry[1]) 
@@ -141,9 +139,8 @@ export default async function DynamicStorefront({ params }: { params: Promise<{ 
             <img src={store.hero_image} alt={store.business_name} className="w-full h-full object-cover object-center scale-105 opacity-50" />
           </div>
           
-          {theme.useBrandTint && <div className={`absolute inset-0 z-0 opacity-40 bg-${brandColor} mix-blend-color`} />}
+          {theme.useBrandTint && <div className={`absolute inset-0 z-0 opacity-20 bg-${brandColor} mix-blend-color`} />}
           <div className={`absolute inset-0 z-0 bg-linear-to-b ${theme.overlayFade}`} />
-
           <div className="container mx-auto px-4 relative z-10 flex flex-col items-center mt-12">
             <div className={`w-full max-w-4xl text-center p-8 md:p-16 relative overflow-hidden group ${theme.cardStyle}`}>
               {theme.useBrandAccent && <div className={`absolute top-0 left-0 w-full h-1.5 ${lineAccent}`} />}
@@ -151,10 +148,11 @@ export default async function DynamicStorefront({ params }: { params: Promise<{ 
               <h2 className={`${theme.accentText} ${accentColorClass} mb-6 drop-shadow-md`}>
                 {theme.prefix}{store.business_name}
               </h2>
-              <h1 className={`${theme.primaryText} text-5xl md:text-7xl lg:text-8xl leading-[1.1] tracking-tighter mb-8 drop-shadow-2xl`}>
+              {/* 🚀 THE FIX: Removed hardcoded kerning/leading so themes.ts commands the typography! */}
+              <h1 className={`${theme.primaryText} text-5xl md:text-7xl lg:text-8xl mb-8 drop-shadow-sm max-w-5xl mx-auto`}>
                 {store.tagline}
               </h1>
-              <p className={`text-lg md:text-xl mb-12 leading-relaxed max-w-2xl mx-auto opacity-90 ${theme.bodyText}`}>
+              <p className={`text-lg md:text-xl mb-12 max-w-2xl mx-auto opacity-90 ${theme.bodyText}`}>
                 {store.subtext}
               </p>
               <a href={exploreLink} className={`inline-block ${theme.buttonStyle} ${buttonBgClass}`}>
@@ -174,10 +172,10 @@ export default async function DynamicStorefront({ params }: { params: Promise<{ 
                 <div className={`h-px w-12 ${lineAccent}`} /> 
                 {theme.prefix}{store.business_name}
               </h2>
-              <h1 className={`${theme.primaryText} text-5xl md:text-6xl lg:text-7xl leading-[1.05] tracking-tight mb-6`}>
+              <h1 className={`${theme.primaryText} text-5xl md:text-6xl lg:text-7xl mb-6`}>
                 {store.tagline}
               </h1>
-              <p className={`text-lg mb-10 leading-relaxed ${theme.bodyText}`}>
+              <p className={`text-lg mb-10 ${theme.bodyText}`}>
                 {store.subtext}
               </p>
               <div className="flex gap-4">
@@ -204,10 +202,10 @@ export default async function DynamicStorefront({ params }: { params: Promise<{ 
                 <div className={`h-px w-12 ${lineAccent}`} /> 
                 {theme.prefix}{store.business_name}
               </h2>
-              <h1 className={`${theme.primaryText} text-5xl md:text-6xl lg:text-7xl leading-[1.05] tracking-tight mb-6`}>
+              <h1 className={`${theme.primaryText} text-5xl md:text-6xl lg:text-7xl mb-6`}>
                 {store.tagline}
               </h1>
-              <p className={`text-lg mb-10 leading-relaxed ${theme.bodyText}`}>
+              <p className={`text-lg mb-10 ${theme.bodyText}`}>
                 {store.subtext}
               </p>
               <div className="flex gap-4">
@@ -233,13 +231,12 @@ export default async function DynamicStorefront({ params }: { params: Promise<{ 
             <img src={store.hero_image} alt={store.business_name} className="w-full h-full object-cover object-center scale-105" />
             <div className="absolute inset-0 bg-linear-to-t from-black via-black/50 to-transparent opacity-90" />
           </div>
-
           <div className="container mx-auto px-6 relative z-10">
             <div className={`max-w-3xl ${theme.cardStyle === 'bg-transparent border-none shadow-none' ? '' : `p-8 backdrop-blur-sm bg-black/20 border-l-4 ${theme.useBrandAccent ? `border-${brandColor}` : 'border-white'}`}`}>
               <h2 className={`${theme.accentText} ${accentColorClass} mb-4`}>
                 {theme.prefix}{store.business_name}
               </h2>
-              <h1 className="text-white font-sans text-5xl md:text-7xl leading-none tracking-tighter mb-6 font-black">
+              <h1 className={`${theme.primaryText} text-white text-5xl md:text-7xl mb-6`}>
                 {store.tagline}
               </h1>
               <p className="text-xl mb-10 leading-relaxed font-light text-zinc-300 max-w-xl">
@@ -254,10 +251,9 @@ export default async function DynamicStorefront({ params }: { params: Promise<{ 
         </section>
       )}
 
-      {/* 🔮 LAYOUT 5: GLASS CENTER */}
+      {/* LAYOUT 5: GLASS CENTER */}
       {layout === 'glass' && (
         <section className="relative w-full min-h-[90vh] flex items-center justify-center p-6 md:p-12 overflow-hidden bg-zinc-950">
-          
           <div className="absolute inset-0 z-0">
             {store.hero_image ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -269,29 +265,26 @@ export default async function DynamicStorefront({ params }: { params: Promise<{ 
             ) : (
               <div className="w-full h-full bg-zinc-900 bg-[url('/grid.svg')] opacity-20" />
             )}
-            
             <div className="absolute inset-0 bg-zinc-950/40" />
           </div>
-
+          
           <div className="relative z-10 w-full max-w-5xl mx-auto p-10 md:p-16 bg-white/5 backdrop-blur-2xl border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)] flex flex-col items-center justify-center text-center rounded-4xl">
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-black mb-6 text-white drop-shadow-lg tracking-tight">
+            <h1 className={`${theme.primaryText} text-4xl md:text-6xl lg:text-7xl mb-6 text-white drop-shadow-lg max-w-4xl mx-auto`}>
               {store.tagline || store.business_name}
             </h1>
-            
             <p className="text-base md:text-xl text-zinc-200 max-w-2xl mb-10 drop-shadow-md leading-relaxed font-light">
               {store.subtext}
             </p>
-
+            
             <div className="flex flex-col sm:flex-row gap-5 w-full justify-center">
               <a href={exploreLink} className={`px-10 py-4 font-bold uppercase tracking-widest text-xs transition-all duration-300 shadow-xl bg-${brandColor} text-black hover:scale-105 ${theme.buttonStyle}`}>
                 {heroButtonText}
               </a>
-            </div>
-            
+            </div>           
           </div>
         </section>
       )}
-      
+
       {/* --- ABOUT SECTION --- */}
       {hasAbout && (
         <div className="container mx-auto px-6 py-20">
@@ -304,7 +297,7 @@ export default async function DynamicStorefront({ params }: { params: Promise<{ 
               socials: activeSocials, 
               isLightMode: theme.isLightMode, 
               themeStyle: store.theme_style,
-              aboutLayout: store.about_layout || 'split' 
+              aboutLayout: store.about_layout || 'split'
             }} 
           />
         </div>
@@ -324,7 +317,7 @@ export default async function DynamicStorefront({ params }: { params: Promise<{ 
         />
       </div>
 
-      {/* 🚨 THEME-AWARE CONVERSION BANNER & MODAL 🚨 */}
+      {/* THEME-AWARE CONVERSION BANNER & MODAL */}
       <StorefrontClientActions 
         store={store} 
         brandColor={brandColor} 
@@ -332,7 +325,7 @@ export default async function DynamicStorefront({ params }: { params: Promise<{ 
         themeStyle={store.theme_style} 
       />
 
-      {/* 🚨 RESTORED: POWERED BY ALTERNATIVE SOLUTIONS BAR 🚨 */}
+      {/* RESTORED: POWERED BY ALTERNATIVE SOLUTIONS BAR */}
       <footer className="w-full py-8 px-6 border-t border-white/10 bg-zinc-950 text-[11px] font-mono text-zinc-500 uppercase tracking-widest flex flex-col sm:flex-row items-center justify-between gap-4 relative z-20">
         <div>
           &copy; {new Date().getFullYear()} {store.business_name || 'All Rights Reserved'}.
