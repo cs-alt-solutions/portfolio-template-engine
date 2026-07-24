@@ -1,6 +1,5 @@
 // src/components/portfolio/UniversalLeadModal.tsx
 'use client';
-
 import React, { useState } from 'react';
 import { X, Send, CheckCircle, Sparkles, AlertCircle } from 'lucide-react';
 import { getFonts } from './content-engine/utils';
@@ -11,8 +10,8 @@ interface UniversalLeadModalProps {
   onClose: () => void;
   ctaLabel: string;
   businessName: string;
-  storefrontSlug?: string; // 🚨 MADE OPTIONAL: Solves the page.tsx TS Error!
-  contactEmail?: string;   // 🚨 MADE OPTIONAL: Solves email prop errors!
+  storefrontSlug?: string; 
+  contactEmail?: string;   
   brandColor?: string;
   isLightMode?: boolean;
   themeStyle?: string;
@@ -23,7 +22,7 @@ export default function UniversalLeadModal({
   onClose,
   ctaLabel = 'Get in Touch',
   businessName = 'Our Team',
-  storefrontSlug = 'platform-direct', // 🚨 FALLBACK: Routes general inquiries cleanly!
+  storefrontSlug = 'platform-direct',
   contactEmail = '',
   brandColor = 'cyan-500', 
   isLightMode = false,
@@ -66,14 +65,20 @@ export default function UniversalLeadModal({
   };
 
   const fonts = getFonts(themeStyle);
-  const isSharpTheme = ['industrial', 'neo', 'cyberpunk', 'editorial'].includes(themeStyle);
   const isNeo = themeStyle === 'neo';
   const isCyber = themeStyle === 'cyberpunk';
   const isMidnight = themeStyle === 'midnight';
-  const radius = isSharpTheme ? 'rounded-none' : themeStyle === 'minimal' ? 'rounded-3xl' : 'rounded-2xl';
-  const inputRadius = isSharpTheme ? 'rounded-none' : 'rounded-xl';
+
+  // 🚀 THE FIX: Ensure Elegant modal and form fields inherit sharp rounded-sm corners!
+  const radius = themeStyle === 'elegant' ? 'rounded-sm' : 
+                 ['industrial', 'neo', 'cyberpunk', 'editorial'].includes(themeStyle) ? 'rounded-none' : 
+                 themeStyle === 'minimal' ? 'rounded-3xl' : 'rounded-2xl';
+                 
+  const inputRadius = themeStyle === 'elegant' ? 'rounded-sm' : 
+                      ['industrial', 'neo', 'cyberpunk', 'editorial'].includes(themeStyle) ? 'rounded-none' : 'rounded-xl';
 
   const getModalStyles = () => {
+    if (themeStyle === 'elegant') return 'bg-white text-zinc-900 border border-zinc-200 shadow-[0_20px_50px_rgba(0,0,0,0.15)]';
     if (isNeo) return 'bg-white text-black border-4 border-black shadow-[12px_12px_0px_0px_rgba(0,0,0,1)]';
     if (isCyber) return 'bg-black/95 text-white border-2 border-white/20 shadow-[0_0_50px_rgba(255,255,255,0.1)] font-mono';
     if (isMidnight) return 'bg-zinc-950/90 text-white backdrop-blur-2xl border border-white/10 shadow-2xl';
@@ -82,6 +87,7 @@ export default function UniversalLeadModal({
   };
 
   const getInputStyles = () => {
+    if (themeStyle === 'elegant') return `bg-zinc-50 border border-zinc-300 text-zinc-900 focus:bg-white focus:border-zinc-800 ${inputRadius}`;
     if (isNeo) return `bg-white border-2 border-black text-black focus:bg-yellow-100 ${inputRadius}`;
     if (isCyber) return `bg-black/80 border border-white/20 text-white focus:border-${brandColor} font-mono ${inputRadius}`;
     if (isLightMode) return `bg-slate-50 border border-slate-300 text-slate-900 focus:bg-white ${inputRadius}`;
@@ -89,6 +95,7 @@ export default function UniversalLeadModal({
   };
 
   const getSubmitStyles = () => {
+    if (themeStyle === 'elegant') return `bg-zinc-950 text-white hover:bg-zinc-800 font-serif tracking-widest shadow-md ${inputRadius}`;
     if (isNeo) return `bg-white text-black border-4 border-black font-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 ${inputRadius}`;
     if (isCyber) return `bg-black text-white border border-current shadow-[0_0_15px_currentColor] hover:bg-white hover:text-black font-mono font-bold ${inputRadius}`;
     
@@ -117,7 +124,7 @@ export default function UniversalLeadModal({
             </p>
             <button
               onClick={() => { setIsSubmitted(false); onClose(); }}
-              className={`mt-6 px-6 py-2.5 font-medium transition-all text-xs uppercase tracking-wider ${isNeo ? 'bg-black text-white border-2 border-black rounded-none font-bold' : 'bg-zinc-800 text-white hover:bg-zinc-700 rounded-xl'}`}
+              className={`mt-6 px-6 py-2.5 font-medium transition-all text-xs uppercase tracking-wider ${isNeo ? 'bg-black text-white border-2 border-black rounded-none font-bold' : 'bg-zinc-800 text-white hover:bg-zinc-700 rounded-sm'}`}
             >
               Back to Website
             </button>
@@ -125,7 +132,7 @@ export default function UniversalLeadModal({
         ) : (
           <div>
             <div className="mb-6 space-y-1">
-              <div className="flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-cyan-400">
+              <div className="flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-cyan-500">
                 <Sparkles className="w-3.5 h-3.5" />
                 <span>Direct Inquiry</span>
               </div>
@@ -136,7 +143,7 @@ export default function UniversalLeadModal({
             </div>
 
             {errorMessage && (
-              <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-xl flex items-center gap-2 text-xs text-red-400 font-mono">
+              <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-sm flex items-center gap-2 text-xs text-red-400 font-mono">
                 <AlertCircle className="w-4 h-4 shrink-0" />
                 <span>{errorMessage}</span>
               </div>
@@ -216,7 +223,6 @@ export default function UniversalLeadModal({
             </form>
           </div>
         )}
-
       </div>
     </div>
   );
