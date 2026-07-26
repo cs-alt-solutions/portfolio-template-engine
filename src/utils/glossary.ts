@@ -9,7 +9,6 @@ export const SITE_CONFIG = {
   primaryCTA: "Order This Week's Menu", 
   secondaryCTA: "See the Food",
   brandColor: "emerald-500",
-  // Logo is used for Hero background/branding
   heroImage: "/template-model/brand-logo.jpg", 
 };
 
@@ -114,43 +113,43 @@ export interface AuditStep {
 
 export const AUDIT_ROADMAP: AuditStep[] = [
   {
-    title: "Hero & First Impression",
+    title: "First Impression & Hero",
     targetId: "hero",
-    description: "This is your digital handshake. Let's verify the core hook.",
+    description: "Hey! When you look at the top of the page, does this feel right? Do you like the headline and what it says?",
     checks: [
-      "Tagline & Hook hit with the right energy",
-      "Subtext accurately explains your offer",
-      "Color palette & overall vibe feel authentic"
+      "The tagline and opening hook feel right",
+      "The background image sets the correct mood",
+      "The colors and overall vibe look great"
     ]
   },
   {
-    title: "Story & Social Verification",
+    title: "Your Story & Background",
     targetId: "about",
-    description: "Scroll down to your About section. Time to test your links.",
+    description: "Let's check out your story section. How does this look? Do you like the phrasing and details?",
     checks: [
-      "About Heading & Bio tell your true story",
-      "Clicked all social media links (They must open correctly)",
-      "Spelling and branding are 100% accurate"
+      "The headline and personal bio tell your true story",
+      "The photo looks sharp and well-placed",
+      "Social links open correctly"
     ]
   },
   {
-    title: "Services & Layout Flow",
-    targetId: "portfolio", // Perfectly points to your ContentEngine ID!
-    description: "Review how we styled your capabilities and service offerings.",
+    title: "Services & Offerings",
+    targetId: "portfolio",
+    description: "Take a look at your services and work layout below. Does this flow match your vision?",
     checks: [
-      "Service descriptions are sharp and clear",
-      "Accordion / Card layout fits your business flow",
-      "No missing services or pricing errors"
+      "Service titles and descriptions are spot on",
+      "The layout style feels clean and easy to navigate",
+      "No missing offerings or text errors"
     ]
   },
   {
-    title: "Lead Capture & CTA Audit",
+    title: "Final Polish & Conversion",
     targetId: "contact",
-    description: "MANDATORY TEST: Submit a test inquiry through your contact form now.",
+    description: "Last step! Check the final call-to-action banner and test out submitting an inquiry.",
     checks: [
-      "Physically filled out and submitted a test lead form",
-      "Received the lead confirmation alert",
-      "Primary action buttons point to the right destination"
+      "Tested submitting a mock request through the contact form",
+      "The final conversion button points where you want",
+      "Everything looks completely ready for launch"
     ]
   }
 ];

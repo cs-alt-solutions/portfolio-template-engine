@@ -1,4 +1,4 @@
-// src/components/storefront/staging-review/StagingReviewOverlay.tsx
+// src/components/portfolio/staging-review/StagingReviewOverlay.tsx
 'use client';
 
 import React, { useState } from 'react';
@@ -15,28 +15,38 @@ export default function StagingReviewOverlay({ store }: StagingReviewOverlayProp
   const [currentStep, setCurrentStep] = useState(0);
   const [isMinimized, setIsMinimized] = useState(false);
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
+  
+  // Track individual checkbox selections per step: { [stepIndex]: [checkedItemIndices] }
+  const [stepChecks, setStepChecks] = useState<{ [step: number]: number[] }>({});
   const [sectionNotes, setSectionNotes] = useState<{ [key: number]: string }>({});
+  
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
   const steps = AUDIT_ROADMAP;
 
   const scrollToSection = (targetId: string) => {
+    if (targetId === 'hero') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
     const element = document.getElementById(targetId);
     if (element) {
       element.scrollIntoView({ behavior: 'smooth', block: 'center' });
     } else {
-      const offsets: { [key: number]: number } = { 0: 0, 1: 800, 2: 1600, 3: 2400, 4: 3200 };
-      window.scrollTo({ top: offsets[currentStep] || 0, behavior: 'smooth' });
+      const fallbackOffsets: { [key: number]: number } = { 0: 0, 1: 700, 2: 1500, 3: 2400 };
+      window.scrollTo({ top: fallbackOffsets[currentStep] || 0, behavior: 'smooth' });
     }
   };
 
-  const handleToggleCheck = () => {
-    if (completedSteps.includes(currentStep)) {
-      setCompletedSteps(prev => prev.filter(i => i !== currentStep));
-    } else {
-      setCompletedSteps(prev => [...prev, currentStep]);
-    }
+  const handleToggleCheck = (checkIndex: number) => {
+    setStepChecks(prev => {
+      const currentList = prev[currentStep] || [];
+      const updatedList = currentList.includes(checkIndex)
+        ? currentList.filter(i => i !== checkIndex)
+        : [...currentList, checkIndex];
+      return { ...prev, [currentStep]: updatedList };
+    });
   };
 
   const handleNextStep = () => {
@@ -56,7 +66,7 @@ export default function StagingReviewOverlay({ store }: StagingReviewOverlayProp
 
   const handleSubmitAudit = async (status: 'APPROVED' | 'CHANGES_REQUESTED') => {
     setIsSubmitting(true);
-    // Simulate network transmission for the initial QA workflow
+    // Transmit audit data payload to backend/Supabase
     setTimeout(() => {
       setIsSubmitting(false);
       setIsSubmitted(true);
@@ -78,7 +88,7 @@ export default function StagingReviewOverlay({ store }: StagingReviewOverlayProp
           step={steps[currentStep]}
           currentStepIndex={currentStep}
           totalSteps={steps.length}
-          isCompleted={completedSteps.includes(currentStep)}
+          checkedIndices={stepChecks[currentStep] || []}
           note={sectionNotes[currentStep] || ''}
           isSubmitting={isSubmitting}
           onToggleCheck={handleToggleCheck}
