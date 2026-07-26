@@ -94,7 +94,8 @@ export const GALLERY_ITEMS: PortfolioItem[] = [
     size: "large"
   }
 ];
-// Add this to src/utils/glossary.ts
+
+// 7. Storefront Defaults
 export const STOREFRONT_DEFAULTS = {
   ABOUT_HEADING: "About Us",
   CAPABILITIES_HEADING: "My Services",
@@ -102,3 +103,54 @@ export const STOREFRONT_DEFAULTS = {
   PRIMARY_CTA: "Learn More",
   SECONDARY_CTA: "Contact Us"
 };
+
+// 8. Staging QA Audit Roadmap (Single Source of Truth)
+export interface AuditStep {
+  title: string;
+  targetId: string;
+  description: string;
+  checks: string[];
+}
+
+export const AUDIT_ROADMAP: AuditStep[] = [
+  {
+    title: "Hero & First Impression",
+    targetId: "hero",
+    description: "This is your digital handshake. Let's verify the core hook.",
+    checks: [
+      "Tagline & Hook hit with the right energy",
+      "Subtext accurately explains your offer",
+      "Color palette & overall vibe feel authentic"
+    ]
+  },
+  {
+    title: "Story & Social Verification",
+    targetId: "about",
+    description: "Scroll down to your About section. Time to test your links.",
+    checks: [
+      "About Heading & Bio tell your true story",
+      "Clicked all social media links (They must open correctly)",
+      "Spelling and branding are 100% accurate"
+    ]
+  },
+  {
+    title: "Services & Layout Flow",
+    targetId: "portfolio", // Perfectly points to your ContentEngine ID!
+    description: "Review how we styled your capabilities and service offerings.",
+    checks: [
+      "Service descriptions are sharp and clear",
+      "Accordion / Card layout fits your business flow",
+      "No missing services or pricing errors"
+    ]
+  },
+  {
+    title: "Lead Capture & CTA Audit",
+    targetId: "contact",
+    description: "MANDATORY TEST: Submit a test inquiry through your contact form now.",
+    checks: [
+      "Physically filled out and submitted a test lead form",
+      "Received the lead confirmation alert",
+      "Primary action buttons point to the right destination"
+    ]
+  }
+];
