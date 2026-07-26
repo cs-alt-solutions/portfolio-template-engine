@@ -8,6 +8,7 @@ import AboutSection from '@/components/portfolio/AboutSection';
 import ContentEngine from '@/components/portfolio/content-engine';
 import PrototypeTourGuide from '@/components/portfolio/PrototypeTourGuide';
 import StorefrontClientActions from '../../components/portfolio/StorefrontClientActions'; 
+import StagingReviewOverlay from '@/components/portfolio/staging-review/StagingReviewOverlay'; // 🚀 FIXED: Pointing to portfolio directory!
 import { Send } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
@@ -148,7 +149,6 @@ export default async function DynamicStorefront({ params }: { params: Promise<{ 
               <h2 className={`${theme.accentText} ${accentColorClass} mb-6 drop-shadow-md`}>
                 {theme.prefix}{store.business_name}
               </h2>
-              {/* 🚀 THE FIX: Removed hardcoded kerning/leading so themes.ts commands the typography! */}
               <h1 className={`${theme.primaryText} text-5xl md:text-7xl lg:text-8xl mb-8 drop-shadow-sm max-w-5xl mx-auto`}>
                 {store.tagline}
               </h1>
@@ -343,13 +343,18 @@ export default async function DynamicStorefront({ params }: { params: Promise<{ 
         </div>
       </footer>
 
-      {/* --- PROTOTYPE INTERACTIVE TOUR GUIDE --- */}
+      {/* --- PROTOTYPE INTERACTIVE TOUR GUIDE (ONLY FOR TEMPLATES) --- */}
       {store.is_template && (
         <PrototypeTourGuide 
           vibe={store.theme_style || 'industrial'} 
           heroLayout={HERO_NAMES[layout] || layout} 
           journeyLayout={FLOW_NAMES[store.content_layout || 'classic'] || store.content_layout} 
         />
+      )}
+
+      {/* 🚀 STAGING QA OVERLAY: Only renders when project is IN_REVIEW and NOT a template! */}
+      {!store.is_template && store.status?.toUpperCase() === 'IN_REVIEW' && (
+        <StagingReviewOverlay store={store} />
       )}
       
     </main>
