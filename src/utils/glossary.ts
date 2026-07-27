@@ -4,7 +4,7 @@
 export const SITE_CONFIG = {
   businessName: "Meals by Megan",
   tagline: "Fresh, Local, Ready to Eat.",
-  subtext: "Stop stressing over Sunday meal prep. We deliver chef-crafted, macro-friendly meals straight to your door every week.",
+  subtext: "Stop stressing over Sunday meal prep. I deliver chef-crafted, macro-friendly meals straight to your door every week.",
   contactEmail: "orders@mealsbymegan.com",
   primaryCTA: "Order This Week's Menu", 
   secondaryCTA: "See the Food",
@@ -38,7 +38,7 @@ export interface CapabilityItem {
 
 export const CAPABILITIES: CapabilityItem[] = [
   { id: "1", title: "Weekly Meal Prep", description: "5 to 15 meals a week, perfectly portioned and delivered fresh—never frozen." },
-  { id: "2", title: "Custom Macros", description: "Whether you are hitting the gym or managing dietary restrictions, we tailor the fuel to your goals." },
+  { id: "2", title: "Custom Macros", description: "Whether you are hitting the gym or managing dietary restrictions, I tailor the fuel to your goals." },
   { id: "3", title: "Family Style Trays", description: "Large-format bakes and proteins designed to feed the whole family on a busy Tuesday night." }
 ];
 
@@ -50,7 +50,7 @@ export interface BusinessFeature {
 
 export const CORE_FEATURES: BusinessFeature[] = [
   { id: "1", text: "1. Pick Your Meals: New menus drop every Wednesday. Lock in your choices by Friday." },
-  { id: "2", text: "2. We Prep & Cook: We source local ingredients and cook everything fresh over the weekend." },
+  { id: "2", text: "2. I Prep & Cook: I source local ingredients and cook everything fresh over the weekend." },
   { id: "3", text: "3. Monday Delivery: Your meals arrive in insulated cooler bags, ready to heat and eat." }
 ];
 
@@ -100,7 +100,7 @@ export const STOREFRONT_DEFAULTS = {
   CAPABILITIES_HEADING: "My Services",
   GALLERY_HEADING: "Featured Work",
   PRIMARY_CTA: "Learn More",
-  SECONDARY_CTA: "Contact Us"
+  SECONDARY_CTA: "Contact Me"
 };
 
 // 8. Staging QA Audit Roadmap (Single Source of Truth)
@@ -125,7 +125,7 @@ export const AUDIT_ROADMAP: AuditStep[] = [
   {
     title: "Your Story & Background",
     targetId: "about",
-    description: "Let's check out your story section. How does this look? Do you like the phrasing and details?",
+    description: "Take a look at your story section. How does this look? Do you like the phrasing and details?",
     checks: [
       "The headline and personal bio tell your true story",
       "The photo looks sharp and well-placed",
@@ -143,13 +143,13 @@ export const AUDIT_ROADMAP: AuditStep[] = [
     ]
   },
   {
-    title: "Final Polish & Conversion",
+    title: "Final Review & Next Steps",
     targetId: "contact",
-    description: "Last step! Check the final call-to-action banner and test out submitting an inquiry.",
+    description: "You've reviewed your canvas! If you want adjustments, leave me a note below. If everything looks ready for the world, tick the approval box to unlock your $5/mo hosting link!",
     checks: [
       "Tested submitting a mock request through the contact form",
-      "The final conversion button points where you want",
-      "Everything looks completely ready for launch"
+      "Reviewed all text, imagery, and layout flows",
+      "I approve this build and I am ready to launch!"
     ]
   }
 ];

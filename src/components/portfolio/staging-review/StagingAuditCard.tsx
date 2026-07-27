@@ -2,7 +2,7 @@
 'use client';
 
 import React from 'react';
-import { ChevronDown, MessageSquare, ArrowRight, ArrowLeft, ThumbsUp, Send } from 'lucide-react';
+import { ChevronDown, MessageSquare, ArrowRight, ArrowLeft, Sparkles, Send } from 'lucide-react';
 import { AuditStep } from './types';
 import StagingChecklist from './StagingChecklist';
 
@@ -39,9 +39,12 @@ export default function StagingAuditCard({
 }: Props) {
   const isFinalStep = currentStepIndex === totalSteps - 1;
   const hasPrevStep = currentStepIndex > 0;
+  
+  // For Steps 1-3: Must check every box to proceed to the next section
+  const canProceedNext = checkedIndices.length === step.checks.length;
 
-  // 🚀 MANDATORY VALIDATION: Must check every box in this section to unlock navigation!
-  const canProceed = checkedIndices.length === step.checks.length;
+  // For Step 4: Is the explicit "I approve this build" checkbox checked? (It is always the last box!)
+  const isApproved = isFinalStep && checkedIndices.includes(step.checks.length - 1);
 
   return (
     <div className="bg-zinc-950/95 backdrop-blur-xl border-2 border-fuchsia-500/40 rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col max-w-md w-full">
@@ -99,21 +102,29 @@ export default function StagingAuditCard({
           onToggleCheck={onToggleCheck}
         />
 
-        {/* TWEAK NOTES (OPTIONAL) */}
+        {/* TWEAK NOTES */}
         <div className="mb-5">
           <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
             <MessageSquare className="w-3 h-3 text-cyan-400" />
-            <span>Any changes or tweaks for this section? (Optional)</span>
+            <span>
+              {isFinalStep
+                ? "Any Tweaks or Copy Adjustments? (Optional)"
+                : "Any changes or tweaks for this section? (Optional)"}
+            </span>
           </label>
           <textarea
             value={note}
             onChange={(e) => onNoteChange(e.target.value)}
-            placeholder={`e.g., "Love it! Just change the headline text slightly..."`}
+            placeholder={
+              isFinalStep
+                ? `e.g., "I need to tweak the About bio slightly, or swap one photo before launch..."`
+                : `e.g., "Love it! Just change the headline text slightly..."`
+            }
             className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-3 text-xs text-white placeholder-zinc-600 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all resize-none h-20"
           />
         </div>
 
-        {/* STEP NAVIGATION DECK WITH DYNAMIC LOCKS */}
+        {/* STEP NAVIGATION DECK */}
         {!isFinalStep ? (
           <div className="flex items-center gap-2">
             {hasPrevStep && (
@@ -128,56 +139,57 @@ export default function StagingAuditCard({
             )}
             <button
               onClick={onNextStep}
-              disabled={!canProceed}
+              disabled={!canProceedNext}
               className={`flex-1 font-black text-xs uppercase tracking-widest py-3.5 rounded-xl transition-all flex items-center justify-center gap-2 group ${
-                canProceed
+                canProceedNext
                   ? 'bg-cyan-500 hover:bg-cyan-400 text-zinc-950 shadow-[0_0_15px_rgba(6,182,212,0.3)] cursor-pointer'
                   : 'bg-zinc-900 text-zinc-500 border border-zinc-800 cursor-not-allowed opacity-60'
               }`}
             >
               <span>
-                {canProceed
+                {canProceedNext
                   ? 'Looks Good • Next Section'
                   : `Check Boxes to Proceed (${checkedIndices.length}/${step.checks.length})`}
               </span>
-              {canProceed && <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />}
+              {canProceedNext && <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />}
             </button>
           </div>
         ) : (
           <div className="space-y-2 pt-2 border-t border-zinc-800">
-            <span className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider block text-center mb-1">
-              Review Complete • Ready to submit?
+            <span className="text-zinc-400 text-[10px] font-mono uppercase tracking-wider block text-center mb-1">
+              {isApproved
+                ? "✨ Build Approved • Ready For Launch"
+                : "🛠️ Adjustments Mode • I Will Apply Your Notes"}
             </span>
             
-            <button
-              onClick={() => onSubmitAudit('APPROVED')}
-              disabled={isSubmitting || !canProceed}
-              className={`w-full font-black text-xs uppercase tracking-widest py-3.5 rounded-xl transition-all flex items-center justify-center gap-2 ${
-                canProceed && !isSubmitting
-                  ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-[0_0_20px_rgba(16,185,129,0.3)] cursor-pointer'
-                  : 'bg-zinc-900 text-zinc-500 border border-zinc-800 cursor-not-allowed opacity-60'
-              }`}
-            >
-              <ThumbsUp className="w-4 h-4" />
-              <span>
-                {canProceed
-                  ? 'Approve & Greenlight Build'
-                  : `Acknowledge Checks (${checkedIndices.length}/${step.checks.length})`}
-              </span>
-            </button>
-
-            <button
-              onClick={() => onSubmitAudit('CHANGES_REQUESTED')}
-              disabled={isSubmitting || !canProceed}
-              className={`w-full font-bold text-xs uppercase tracking-widest py-3 rounded-xl border transition-all flex items-center justify-center gap-2 ${
-                canProceed && !isSubmitting
-                  ? 'bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border-zinc-700 hover:border-zinc-600 cursor-pointer'
-                  : 'bg-zinc-950 text-zinc-600 border-zinc-900 cursor-not-allowed opacity-50'
-              }`}
-            >
-              <Send className="w-3.5 h-3.5 text-fuchsia-400" />
-              <span>Submit Notes For Tweaks</span>
-            </button>
+            {/* DYNAMIC BRANCHING SUBMISSION BUTTON */}
+            {isApproved ? (
+              <button
+                onClick={() => onSubmitAudit('APPROVED')}
+                disabled={isSubmitting}
+                className="w-full font-black text-xs uppercase tracking-widest py-4 rounded-xl transition-all flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-zinc-950 shadow-[0_0_25px_rgba(16,185,129,0.4)] cursor-pointer hover:scale-[1.02] disabled:opacity-50"
+              >
+                <Sparkles className="w-4 h-4 animate-spin" />
+                <span>
+                  {isSubmitting
+                    ? 'Activating Onboarding...'
+                    : 'Approve Build & Activate $5/mo Hosting'}
+                </span>
+              </button>
+            ) : (
+              <button
+                onClick={() => onSubmitAudit('CHANGES_REQUESTED')}
+                disabled={isSubmitting}
+                className="w-full font-black text-xs uppercase tracking-widest py-4 rounded-xl transition-all flex items-center justify-center gap-2 bg-fuchsia-600 hover:bg-fuchsia-500 text-white shadow-[0_0_20px_rgba(192,38,213,0.3)] cursor-pointer hover:scale-[1.02] disabled:opacity-50"
+              >
+                <Send className="w-4 h-4" />
+                <span>
+                  {isSubmitting
+                    ? 'Transmitting Tweak List...'
+                    : 'Transmit Tweak List For Polish'}
+                </span>
+              </button>
+            )}
 
             {hasPrevStep && (
               <button

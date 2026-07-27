@@ -6,6 +6,7 @@ import { StorefrontAuditData, AUDIT_ROADMAP } from './types';
 import StagingMinimizedBadge from './StagingMinimizedBadge';
 import StagingSuccessCard from './StagingSuccessCard';
 import StagingAuditCard from './StagingAuditCard';
+import { submitStagingAudit } from '@/actions/submitStagingAudit';
 
 export interface StagingReviewOverlayProps {
   store: StorefrontAuditData;
@@ -15,17 +16,13 @@ export default function StagingReviewOverlay({ store }: StagingReviewOverlayProp
   const [currentStep, setCurrentStep] = useState(0);
   const [isMinimized, setIsMinimized] = useState(false);
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
-  
-  // Track individual checkbox selections per step: { [stepIndex]: [checkedItemIndices] }
   const [stepChecks, setStepChecks] = useState<{ [step: number]: number[] }>({});
   const [sectionNotes, setSectionNotes] = useState<{ [key: number]: string }>({});
-  
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [submittedStatus, setSubmittedStatus] = useState<'APPROVED' | 'CHANGES_REQUESTED' | null>(null);
 
   const steps = AUDIT_ROADMAP;
 
-  // 🚀 FIXED: Accept targetStepIndex explicitly so asynchronous state doesn't cause stale fallback offsets!
   const scrollToSection = (targetId: string, targetStepIndex: number) => {
     if (targetId === 'hero' || targetStepIndex === 0) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -51,11 +48,8 @@ export default function StagingReviewOverlay({ store }: StagingReviewOverlayProp
   };
 
   const handleNextStep = () => {
-    // 🚀 DEFENSIVE GUARD: Reject advancement if checkpoints aren't 100% complete
     const currentChecks = stepChecks[currentStep] || [];
-    if (currentChecks.length < steps[currentStep].checks.length) {
-      return;
-    }
+    if (currentChecks.length < steps[currentStep].checks.length) return;
 
     if (!completedSteps.includes(currentStep)) {
       setCompletedSteps(prev => [...prev, currentStep]);
@@ -80,31 +74,29 @@ export default function StagingReviewOverlay({ store }: StagingReviewOverlayProp
   };
 
   const handleSubmitAudit = async (status: 'APPROVED' | 'CHANGES_REQUESTED') => {
-    // 🚀 DEFENSIVE GUARD: Ensure final checkboxes are acknowledged before submission
-    const currentChecks = stepChecks[currentStep] || [];
-    if (currentChecks.length < steps[currentStep].checks.length) {
-      return;
-    }
-
     setIsSubmitting(true);
-    
-    // 🚀 FIXED: Actively utilizing store and status to eliminate unused variable linter errors!
-    console.log(`Transmitting staging audit for [${store?.slug || 'unknown-store'}] with status: ${status}`, {
-      storeId: store?.id,
-      notes: sectionNotes,
-      checkedSteps: stepChecks
+
+    const response = await submitStagingAudit({
+      storefrontSlug: store?.slug || 'demo-store',
+      businessName: store?.business_name || 'Valued Client',
+      contactEmail: store?.contact_email || '',
+      sectionNotes: sectionNotes,
+      completedSteps: [...completedSteps, currentStep],
+      status: status,
     });
 
-    setTimeout(() => {
-      setIsSubmitting(false);
-      setIsSubmitted(true);
-    }, 1500);
+    if (response?.warning) {
+      console.warn('Staging Audit Notice:', response.warning);
+    }
+
+    setIsSubmitting(false);
+    setSubmittedStatus(status);
   };
 
   return (
     <div className="fixed bottom-6 right-6 z-50 transition-all duration-300 flex justify-end pointer-events-auto">
-      {isSubmitted ? (
-        <StagingSuccessCard onDismiss={() => setIsMinimized(true)} />
+      {submittedStatus ? (
+        <StagingSuccessCard status={submittedStatus} onDismiss={() => setIsMinimized(true)} />
       ) : isMinimized ? (
         <StagingMinimizedBadge
           completedCount={completedSteps.length}
