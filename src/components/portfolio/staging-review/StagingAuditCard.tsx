@@ -104,8 +104,8 @@ export default function StagingAuditCard({
             <MessageSquare className="w-3 h-3 text-cyan-400" />
             <span>
               {isFinalStep
-                ? "Any Tweaks or Copy Adjustments? (Optional)"
-                : "Any changes or tweaks for this section? (Optional)"}
+                ? "What Adjustments or Changes Do You Need? (Optional)"
+                : "Any changes or adjustments for this section? (Optional)"}
             </span>
           </label>
           <textarea
@@ -113,8 +113,8 @@ export default function StagingAuditCard({
             onChange={(e) => onNoteChange(e.target.value)}
             placeholder={
               isFinalStep
-                ? `e.g., "I need to tweak the About bio slightly, or swap one photo before launch..."`
-                : `e.g., "Love it! Just change the headline text slightly..."`
+                ? `e.g., "I need to tweak the wording in the About section, or swap out one photo before we launch..."`
+                : `e.g., "Love the layout! Just change the headline wording slightly..."`
             }
             className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-3 text-xs text-white placeholder-zinc-600 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all resize-none h-20"
           />
@@ -154,11 +154,10 @@ export default function StagingAuditCard({
           <div className="space-y-2 pt-2 border-t border-zinc-800">
             <span className="text-zinc-400 text-[10px] font-mono uppercase tracking-wider block text-center mb-1">
               {isApproved
-                ? "✨ Build Approved • Ready For Launch"
-                : "🛠️ Adjustments Mode • I Will Apply Your Notes"}
+                ? "Build Approved • Ready For Live Hosting"
+                : "Feedback Mode • I Will Apply Your Adjustments"}
             </span>
             
-            {/* 🚀 FIXED: Using Tailwind v4 canonical bg-linear-to-r syntax! */}
             {isApproved ? (
               <button
                 onClick={() => onSubmitAudit('APPROVED')}
@@ -181,8 +180,8 @@ export default function StagingAuditCard({
                 <Send className="w-4 h-4" />
                 <span>
                   {isSubmitting
-                    ? 'Transmitting Tweak List...'
-                    : 'Transmit Tweak List For Polish'}
+                    ? 'Sending Feedback...'
+                    : 'Submit Adjustments & Feedback'}
                 </span>
               </button>
             )}

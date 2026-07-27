@@ -115,41 +115,41 @@ export const AUDIT_ROADMAP: AuditStep[] = [
   {
     title: "First Impression & Hero",
     targetId: "hero",
-    description: "Hey! When you look at the top of the page, does this feel right? Do you like the headline and what it says?",
+    description: "First impressions are everything! Look at the very top of your site. I need your honest feedback—don't just pat me on the back! If something feels off, tell me so I can fix it.",
     checks: [
-      "The tagline and opening hook feel right",
-      "The background image sets the correct mood",
-      "The colors and overall vibe look great"
+      "Read the main headline aloud—does it actually sound like your authentic brand voice?",
+      "Look at the background photo—does it instantly set the right mood for your customers?",
+      "Check the colors and overall layout—does this feel like a site you are proud to show off?"
     ]
   },
   {
     title: "Your Story & Background",
     targetId: "about",
-    description: "Take a look at your story section. How does this look? Do you like the phrasing and details?",
+    description: "This is where your customers get to know the real you. Check my wording closely! If I missed a key detail about your story or business, drop a note below so I can correct it.",
     checks: [
-      "The headline and personal bio tell your true story",
-      "The photo looks sharp and well-placed",
-      "Social links open correctly"
+      "Read the personal bio carefully—are all the facts, names, and details 100% accurate?",
+      "Look at your profile picture—is it sharp, clear, and representing you well?",
+      "Click every single social media link—do they actually open up to your real pages?"
     ]
   },
   {
     title: "Services & Offerings",
     targetId: "portfolio",
-    description: "Take a look at your services and work layout below. Does this flow match your vision?",
+    description: "Let's check your moneymakers! Your services and past work need to be spot on. Tell me if anything is missing, misspelled, or needs a different wording.",
     checks: [
-      "Service titles and descriptions are spot on",
-      "The layout style feels clean and easy to navigate",
-      "No missing offerings or text errors"
+      "Check the service titles and descriptions—does this clearly explain what you offer?",
+      "Look through your featured work and photos—are these the exact projects you want highlighted?",
+      "Scan for typos or missing services—is there anything else you want to add or remove?"
     ]
   },
   {
     title: "Final Review & Next Steps",
     targetId: "contact",
-    description: "You've reviewed your canvas! If you want adjustments, leave me a note below. If everything looks ready for the world, tick the approval box to unlock your $5/mo hosting link!",
+    description: "We made it to the finish line! Test out the contact form below, double-check your notes, and let me know if we are making adjustments or pulling the trigger on your live launch!",
     checks: [
-      "Tested submitting a mock request through the contact form",
-      "Reviewed all text, imagery, and layout flows",
-      "I approve this build and I am ready to launch!"
+      "Did you send a fake message through the contact form to make sure it hits your email inbox?",
+      "Are you 100% happy with all the wording, photos, and layout across the entire site?",
+      "I approve this build as-is and I am ready to lock in my $5/mo hosting to go live!"
     ]
   }
 ];
