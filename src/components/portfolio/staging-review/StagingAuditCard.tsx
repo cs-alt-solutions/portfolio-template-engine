@@ -2,7 +2,7 @@
 'use client';
 
 import React from 'react';
-import { ChevronDown, MessageSquare, ArrowRight, ThumbsUp, Send } from 'lucide-react';
+import { ChevronDown, MessageSquare, ArrowRight, ArrowLeft, ThumbsUp, Send } from 'lucide-react';
 import { AuditStep } from './types';
 import StagingChecklist from './StagingChecklist';
 
@@ -16,6 +16,7 @@ interface Props {
   onToggleCheck: (index: number) => void;
   onNoteChange: (val: string) => void;
   onNextStep: () => void;
+  onPrevStep: () => void;
   onSubmitAudit: (status: 'APPROVED' | 'CHANGES_REQUESTED') => void;
   onMinimize: () => void;
   completedSteps: number[];
@@ -31,11 +32,13 @@ export default function StagingAuditCard({
   onToggleCheck,
   onNoteChange,
   onNextStep,
+  onPrevStep,
   onSubmitAudit,
   onMinimize,
   completedSteps
 }: Props) {
   const isFinalStep = currentStepIndex === totalSteps - 1;
+  const hasPrevStep = currentStepIndex > 0;
 
   return (
     <div className="bg-zinc-950/95 backdrop-blur-xl border-2 border-fuchsia-500/40 rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col max-w-md w-full">
@@ -95,7 +98,7 @@ export default function StagingAuditCard({
 
         {/* TWEAK NOTES */}
         <div className="mb-5">
-          <label className="block text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+          <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
             <MessageSquare className="w-3 h-3 text-cyan-400" />
             <span>Any changes or tweaks for this section?</span>
           </label>
@@ -109,13 +112,25 @@ export default function StagingAuditCard({
 
         {/* STEP NAVIGATION DECK */}
         {!isFinalStep ? (
-          <button
-            onClick={onNextStep}
-            className="w-full bg-cyan-500 hover:bg-cyan-400 text-zinc-950 font-black text-xs uppercase tracking-widest py-3.5 rounded-xl shadow-[0_0_15px_rgba(6,182,212,0.3)] transition-all flex items-center justify-center gap-2 group cursor-pointer"
-          >
-            <span>Looks Good • Next Section</span>
-            <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-          </button>
+          <div className="flex items-center gap-2">
+            {hasPrevStep && (
+              <button
+                onClick={onPrevStep}
+                className="px-3.5 py-3.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white font-bold text-xs uppercase tracking-widest rounded-xl border border-zinc-800 transition-all flex items-center justify-center gap-1 shrink-0 cursor-pointer"
+                title="Go to previous step"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span>Back</span>
+              </button>
+            )}
+            <button
+              onClick={onNextStep}
+              className="flex-1 bg-cyan-500 hover:bg-cyan-400 text-zinc-950 font-black text-xs uppercase tracking-widest py-3.5 rounded-xl shadow-[0_0_15px_rgba(6,182,212,0.3)] transition-all flex items-center justify-center gap-2 group cursor-pointer"
+            >
+              <span>Looks Good • Next</span>
+              <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+            </button>
+          </div>
         ) : (
           <div className="space-y-2 pt-2 border-t border-zinc-800">
             <span className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider block text-center mb-1">
@@ -139,6 +154,17 @@ export default function StagingAuditCard({
               <Send className="w-3.5 h-3.5 text-fuchsia-400" />
               <span>Submit Notes For Tweaks</span>
             </button>
+
+            {hasPrevStep && (
+              <button
+                onClick={onPrevStep}
+                disabled={isSubmitting}
+                className="w-full py-2 text-zinc-500 hover:text-zinc-300 text-[10px] font-mono uppercase tracking-widest transition-colors flex items-center justify-center gap-1 cursor-pointer"
+              >
+                <ArrowLeft className="w-3 h-3" />
+                <span>Back to previous section</span>
+              </button>
+            )}
           </div>
         )}
       </div>

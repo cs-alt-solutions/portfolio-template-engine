@@ -11,7 +11,7 @@ export interface StagingReviewOverlayProps {
   store: StorefrontAuditData;
 }
 
-export default function StagingReviewOverlay({ store }: StagingReviewOverlayProps) {
+export default function StagingReviewOverlay({ }: StagingReviewOverlayProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [isMinimized, setIsMinimized] = useState(false);
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
@@ -60,11 +60,19 @@ export default function StagingReviewOverlay({ store }: StagingReviewOverlayProp
     }
   };
 
+  const handlePrevStep = () => {
+    if (currentStep > 0) {
+      const prevStep = currentStep - 1;
+      setCurrentStep(prevStep);
+      scrollToSection(steps[prevStep].targetId);
+    }
+  };
+
   const handleNoteChange = (text: string) => {
     setSectionNotes(prev => ({ ...prev, [currentStep]: text }));
   };
 
-  const handleSubmitAudit = async (status: 'APPROVED' | 'CHANGES_REQUESTED') => {
+  const handleSubmitAudit = async () => {
     setIsSubmitting(true);
     // Transmit audit data payload to backend/Supabase
     setTimeout(() => {
@@ -94,6 +102,7 @@ export default function StagingReviewOverlay({ store }: StagingReviewOverlayProp
           onToggleCheck={handleToggleCheck}
           onNoteChange={handleNoteChange}
           onNextStep={handleNextStep}
+          onPrevStep={handlePrevStep}
           onSubmitAudit={handleSubmitAudit}
           onMinimize={() => setIsMinimized(true)}
           completedSteps={completedSteps}

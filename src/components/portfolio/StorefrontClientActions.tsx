@@ -1,5 +1,6 @@
 // src/components/portfolio/StorefrontClientActions.tsx
 'use client';
+
 import React, { useState } from 'react';
 import UniversalLeadModal from '@/components/portfolio/UniversalLeadModal';
 import { STOREFRONT_DEFAULTS } from '@/utils/glossary';
@@ -35,7 +36,7 @@ export default function StorefrontClientActions({
 
   const headlineText = store.primary_cta || "Let's Work Together";
   const buttonText = store.secondary_cta || STOREFRONT_DEFAULTS.SECONDARY_CTA || "Get in Touch";
-  
+
   const fonts = getFonts(themeStyle);
   const isNeo = themeStyle === 'neo';
   const isCyber = themeStyle === 'cyberpunk';
@@ -50,7 +51,6 @@ export default function StorefrontClientActions({
     return 'bg-zinc-900/90 border-y border-zinc-800 text-white shadow-2xl';
   };
 
-  // 🚀 THE FIX: Give Elegant its own dedicated button styling with sharp corners!
   const getButtonStyles = () => {
     if (themeStyle === 'elegant') {
       return 'bg-zinc-950 text-white border border-zinc-800 hover:bg-zinc-800 rounded-sm font-serif tracking-widest shadow-lg';
@@ -75,7 +75,7 @@ export default function StorefrontClientActions({
 
   return (
     <>
-      <section className={`py-16 px-6 text-center relative z-20 transition-colors overflow-hidden ${getBannerStyles()}`}>
+      <section id="contact" className={`py-16 px-6 text-center relative z-20 transition-colors overflow-hidden ${getBannerStyles()}`}>
         <div className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-48 bg-${brandColor}/15 rounded-full blur-3xl pointer-events-none`} />
         <div className="max-w-3xl mx-auto space-y-4 relative z-10">
           <h2 className={`text-3xl md:text-5xl tracking-tight drop-shadow-sm ${fonts.heading}`}>
@@ -95,7 +95,6 @@ export default function StorefrontClientActions({
           </div>
         </div>
       </section>
-
       <UniversalLeadModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}

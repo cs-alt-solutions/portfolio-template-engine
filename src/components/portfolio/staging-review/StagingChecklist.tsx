@@ -29,7 +29,7 @@ export default function StagingChecklist({ checks, checkedIndices, onToggleCheck
                 ? 'bg-fuchsia-500 border-fuchsia-400 text-white shadow-[0_0_8px_rgba(192,38,213,0.4)]'
                 : 'border-zinc-700 bg-zinc-950 group-hover:border-zinc-500'
             }`}>
-              {isChecked && <Check className="w-3 h-3 stroke-[3]" />}
+              {isChecked && <Check className="w-3 h-3 stroke-3" />}
             </div>
             <span className={`text-xs transition-colors ${
               isChecked ? 'text-zinc-300 font-medium' : 'text-zinc-400 group-hover:text-zinc-200'

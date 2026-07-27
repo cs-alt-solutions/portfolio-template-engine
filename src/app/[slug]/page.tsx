@@ -8,7 +8,7 @@ import AboutSection from '@/components/portfolio/AboutSection';
 import ContentEngine from '@/components/portfolio/content-engine';
 import PrototypeTourGuide from '@/components/portfolio/PrototypeTourGuide';
 import StorefrontClientActions from '../../components/portfolio/StorefrontClientActions'; 
-import StagingReviewOverlay from '@/components/portfolio/staging-review/StagingReviewOverlay'; // 🚀 FIXED: Pointing to portfolio directory!
+import StagingReviewOverlay from '@/components/portfolio/staging-review/StagingReviewOverlay';
 import { Send } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
@@ -134,7 +134,7 @@ export default async function DynamicStorefront({ params }: { params: Promise<{ 
       
       {/* LAYOUT 1: CENTERED */}
       {layout === 'center' && (
-        <section className="relative min-h-[95vh] w-full flex items-center justify-center overflow-hidden">
+        <section id="hero" className="relative min-h-[95vh] w-full flex items-center justify-center overflow-hidden">
           <div className="absolute inset-0 z-0">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={store.hero_image} alt={store.business_name} className="w-full h-full object-cover object-center scale-105 opacity-50" />
@@ -165,7 +165,7 @@ export default async function DynamicStorefront({ params }: { params: Promise<{ 
 
       {/* LAYOUT 2: SPLIT-LEFT */}
       {layout === 'split-left' && (
-        <section className={`relative min-h-[90vh] w-full flex flex-col md:flex-row ${theme.pageBg}`}>
+        <section id="hero" className={`relative min-h-[90vh] w-full flex flex-col md:flex-row ${theme.pageBg}`}>
           <div className="w-full md:w-1/2 flex items-center justify-center p-8 md:p-16 lg:p-24 relative z-10">
             <div className="w-full max-w-xl text-left">
               <h2 className={`${theme.accentText} ${accentColorClass} mb-4 flex items-center gap-4`}>
@@ -195,7 +195,7 @@ export default async function DynamicStorefront({ params }: { params: Promise<{ 
 
       {/* LAYOUT 3: SPLIT-RIGHT */}
       {layout === 'split-right' && (
-        <section className={`relative min-h-[90vh] w-full flex flex-col md:flex-row-reverse ${theme.pageBg}`}>
+        <section id="hero" className={`relative min-h-[90vh] w-full flex flex-col md:flex-row-reverse ${theme.pageBg}`}>
           <div className="w-full md:w-1/2 flex items-center justify-center p-8 md:p-16 lg:p-24 relative z-10">
             <div className="w-full max-w-xl text-left">
               <h2 className={`${theme.accentText} ${accentColorClass} mb-4 flex items-center gap-4`}>
@@ -225,7 +225,7 @@ export default async function DynamicStorefront({ params }: { params: Promise<{ 
 
       {/* LAYOUT 4: CINEMATIC */}
       {layout === 'cinematic' && (
-        <section className="relative min-h-screen w-full flex items-end justify-start overflow-hidden pb-20">
+        <section id="hero" className="relative min-h-screen w-full flex items-end justify-start overflow-hidden pb-20">
           <div className="absolute inset-0 z-0">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={store.hero_image} alt={store.business_name} className="w-full h-full object-cover object-center scale-105" />
@@ -253,7 +253,7 @@ export default async function DynamicStorefront({ params }: { params: Promise<{ 
 
       {/* LAYOUT 5: GLASS CENTER */}
       {layout === 'glass' && (
-        <section className="relative w-full min-h-[90vh] flex items-center justify-center p-6 md:p-12 overflow-hidden bg-zinc-950">
+        <section id="hero" className="relative w-full min-h-[90vh] flex items-center justify-center p-6 md:p-12 overflow-hidden bg-zinc-950">
           <div className="absolute inset-0 z-0">
             {store.hero_image ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -287,7 +287,7 @@ export default async function DynamicStorefront({ params }: { params: Promise<{ 
 
       {/* --- ABOUT SECTION --- */}
       {hasAbout && (
-        <div className="container mx-auto px-6 py-20">
+        <div id="about" className="container mx-auto px-6 py-20">
           <AboutSection 
             data={{
               heading: store.about_heading || STOREFRONT_DEFAULTS.ABOUT_HEADING, 
