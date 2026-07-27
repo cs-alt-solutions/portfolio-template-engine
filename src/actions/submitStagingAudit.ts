@@ -54,7 +54,7 @@ export async function submitStagingAudit(payload: StagingAuditPayload) {
       from: `Alternative Solutions Staging <staging@alternativesolutions.io>`,
       to: [clientEmail],
       subject: isApproved 
-        ? `Staging Approved: ${payload.businessName} ($5/mo Onboarding)` 
+        ? `Staging Approved: ${payload.businessName} ($5/mo Hosting Link)` 
         : `Adjustments Received: ${payload.businessName}`,
       html: `
         <!DOCTYPE html>
@@ -80,7 +80,7 @@ export async function submitStagingAudit(payload: StagingAuditPayload) {
                       </h2>
                       <p style="margin: 0 0 24px 0; color: #3f3f46; font-size: 15px; line-height: 1.6;">
                         ${isApproved 
-                          ? 'Thank you for completing your interactive site walkthrough. I have logged your verified checkpoints and approved the build for launch.' 
+                          ? 'Thank you for completing your interactive site walkthrough. I have logged your verified checkpoints and approved the build for live hosting.' 
                           : 'Thank you for walking through your staging canvas! I have logged your section notes and am preparing your adjustments.'}
                       </p>
                       
@@ -88,8 +88,8 @@ export async function submitStagingAudit(payload: StagingAuditPayload) {
                         <p style="margin: 0; color: ${isApproved ? '#166534' : '#86198f'}; font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">What happens next?</p>
                         <p style="margin: 8px 0 0 0; color: ${isApproved ? '#15803d' : '#a21caf'}; font-size: 14px; line-height: 1.5;">
                           ${isApproved
-                            ? 'Be on the lookout for a follow-up email containing your <strong>$5/month live hosting link</strong>. Activating your hosting subscription secures your server space online. From there, I will coordinate with you to connect your custom web domain and launch the site!'
-                            : 'I will apply your requested wording adjustments and layout tweaks to the build. Once updated, I will send it back your way for final approval so I can get your hosting and domain set up!'}
+                            ? 'Be on the lookout for a follow-up email containing your <strong>$5/month live hosting link</strong>. Activating this pushes your storefront live online!<br><br><strong>Want a custom domain name (like yourbusiness.com)?</strong><br>Just reply to this email! I can help you purchase your domain and wire it all up under my $15/month Professional Plan.'
+                            : 'I will apply your requested wording adjustments and layout tweaks to the build. Once updated, I will send it back your way for final review so I can get your hosting activated and push your site live!'}
                         </p>
                       </div>
 
@@ -136,7 +136,7 @@ export async function submitStagingAudit(payload: StagingAuditPayload) {
             <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;" />
             <p style="font-size: 14px; color: #4b5563;">
               <strong>Action Required:</strong> ${isApproved 
-                ? 'Send the client their $5/mo hosting link to unlock their live domain and finalize launch!' 
+                ? 'Send the client their $5/mo hosting link to push their site live! If they want a custom domain, pitch the $15/mo Pro Plan upgrade.' 
                 : 'Review the copy adjustments above, apply them to the codebase, and notify the client once updated!'}
             </p>
           </div>

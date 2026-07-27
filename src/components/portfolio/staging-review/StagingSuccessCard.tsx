@@ -40,8 +40,8 @@ export default function StagingSuccessCard({ status, onDismiss }: Props) {
         </p>
         <p className="text-zinc-400 text-[11px] leading-relaxed">
           {isApproved
-            ? 'Be on the lookout for a follow-up email containing your $5/month live hosting link. Activating your hosting subscription secures your server space online. From there, I will coordinate with you to connect your custom web domain and launch the site!'
-            : 'I will apply your requested wording adjustments and layout tweaks to the build. Once updated, I will send it back your way for final approval so I can get your hosting and domain set up!'}
+            ? 'Be on the lookout for an email containing your $5/month live hosting link. Activating this pushes your storefront live online! If you also want a custom domain name (like yourbusiness.com), just reply to that email—I can help you buy and connect one under my $15/month Professional Plan.'
+            : 'I will apply your requested wording adjustments and layout tweaks to the build. Once updated, I will send it back your way for final review so I can get your hosting activated and push your site live!'}
         </p>
       </div>       
       
