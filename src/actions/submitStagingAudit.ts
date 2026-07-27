@@ -88,8 +88,8 @@ export async function submitStagingAudit(payload: StagingAuditPayload) {
                         <p style="margin: 0; color: ${isApproved ? '#166534' : '#86198f'}; font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">What happens next?</p>
                         <p style="margin: 8px 0 0 0; color: ${isApproved ? '#15803d' : '#a21caf'}; font-size: 14px; line-height: 1.5;">
                           ${isApproved
-                            ? 'Be on the lookout for a follow-up email containing your <strong>$5/month live hosting subscription link</strong>. Once activated, your custom domain will be unlocked and pushed live!'
-                            : 'I will apply your requested copy tweaks and layout adjustments. Once completed, I will notify you so I can get your professional domain live!'}
+                            ? 'Be on the lookout for a follow-up email containing your <strong>$5/month live hosting link</strong>. Activating your hosting subscription secures your server space online. From there, I will coordinate with you to connect your custom web domain and launch the site!'
+                            : 'I will apply your requested wording adjustments and layout tweaks to the build. Once updated, I will send it back your way for final approval so I can get your hosting and domain set up!'}
                         </p>
                       </div>
 
