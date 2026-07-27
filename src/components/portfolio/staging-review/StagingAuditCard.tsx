@@ -101,7 +101,7 @@ export default function StagingAuditCard({
 
         {/* TWEAK NOTES (OPTIONAL) */}
         <div className="mb-5">
-          <label className="block text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+          <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
             <MessageSquare className="w-3 h-3 text-cyan-400" />
             <span>Any changes or tweaks for this section? (Optional)</span>
           </label>
