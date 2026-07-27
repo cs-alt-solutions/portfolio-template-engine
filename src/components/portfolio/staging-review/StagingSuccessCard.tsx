@@ -16,6 +16,7 @@ export default function StagingSuccessCard({ status, onDismiss }: Props) {
     <div className={`bg-zinc-950 border-2 rounded-2xl p-6 shadow-2xl text-center animate-in fade-in slide-in-from-bottom-5 max-w-md w-full ${
       isApproved ? 'border-cyan-500/50 shadow-[0_0_50px_rgba(6,182,212,0.3)]' : 'border-fuchsia-500/50 shadow-[0_0_50px_rgba(192,38,213,0.3)]'
     }`}>       
+      {/* 🚀 RESTORED: Glowing Lucide Icon Wrapper with Spinning Sparkles & Wrench */}
       <div className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 ${
         isApproved
           ? 'bg-linear-to-tr from-emerald-500 to-cyan-500 text-zinc-950 shadow-[0_0_20px_rgba(16,185,129,0.5)]'
@@ -25,7 +26,7 @@ export default function StagingSuccessCard({ status, onDismiss }: Props) {
       </div>       
       
       <h3 className="text-white font-black text-lg uppercase tracking-tight mb-2">
-        {isApproved ? '🎉 Woohoo! Build Approved & Locked!' : '✍️ Awesome! Adjustments Logged!'}
+        {isApproved ? 'Build Approved & Locked' : 'Adjustments Logged'}
       </h3>       
       
       <p className="text-zinc-300 text-xs leading-relaxed mb-4 font-normal">         
