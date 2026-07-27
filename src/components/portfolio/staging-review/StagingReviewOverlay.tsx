@@ -95,14 +95,16 @@ export default function StagingReviewOverlay({ store }: StagingReviewOverlayProp
 
   return (
     <div className="fixed bottom-6 right-6 z-50 transition-all duration-300 flex justify-end pointer-events-auto">
-      {submittedStatus ? (
-        <StagingSuccessCard status={submittedStatus} onDismiss={() => setIsMinimized(true)} />
-      ) : isMinimized ? (
+      {/* 🚀 FIXED: isMinimized evaluated FIRST so clicking Dismiss actually minimizes the modal! */}
+      {isMinimized ? (
         <StagingMinimizedBadge
           completedCount={completedSteps.length}
           totalSteps={steps.length}
+          isSubmitted={!!submittedStatus}
           onExpand={() => setIsMinimized(false)}
         />
+      ) : submittedStatus ? (
+        <StagingSuccessCard status={submittedStatus} onDismiss={() => setIsMinimized(true)} />
       ) : (
         <StagingAuditCard
           step={steps[currentStep]}

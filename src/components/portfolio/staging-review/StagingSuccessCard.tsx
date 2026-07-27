@@ -25,13 +25,13 @@ export default function StagingSuccessCard({ status, onDismiss }: Props) {
       </div>       
       
       <h3 className="text-white font-black text-lg uppercase tracking-tight mb-2">
-        {isApproved ? 'Build Approved & Locked!' : 'Adjustments List Sent!'}
+        {isApproved ? '🎉 Woohoo! Build Approved & Locked!' : '✍️ Awesome! Adjustments Logged!'}
       </h3>       
       
       <p className="text-zinc-300 text-xs leading-relaxed mb-4 font-normal">         
         {isApproved
-          ? 'I have received your official sign-off! Your interactive walkthrough receipt has been sent to your inbox.'
-          : 'I have received your feedback and requested adjustments! I am reviewing your notes right now.'}
+          ? 'I received your official sign-off! You just took the biggest step toward getting your business online. A copy of your walkthrough receipt is waiting in your inbox.'
+          : 'You just helped make this build 10x better! I received your notes and feedback, and I am ready to dive into the code.'}
       </p>
 
       <div className="bg-zinc-900/80 border border-zinc-800 rounded-xl p-3.5 mb-6 text-left">
@@ -40,8 +40,8 @@ export default function StagingSuccessCard({ status, onDismiss }: Props) {
         </p>
         <p className="text-zinc-400 text-[11px] leading-relaxed">
           {isApproved
-            ? 'Be on the lookout for an email containing your $5/month live hosting link. Activating this pushes your storefront live online! If you also want a custom domain name (like yourbusiness.com), just reply to that email—I can help you buy and connect one under my $15/month Professional Plan.'
-            : 'I will apply your requested wording adjustments and layout tweaks to the build. Once updated, I will send it back your way for final review so I can get your hosting activated and push your site live!'}
+            ? 'Keep an eye on your inbox for your official activation email! Activating your hosting subscription gets your site live on the Alternative Solutions grid right away (Standard Plan). If you chose the Professional Plan ($15/mo), I will also start guiding you through securing your custom .com domain so I can handle the DNS wiring and get your personal web address live to the world!'
+            : 'I am opening up the hood right now to work my magic on your copy adjustments and layout tweaks! Once I have everything looking pristine, I will send an updated link back your way for a final look. As soon as you give me the green light, I will get your hosting plan activated and push your storefront live!'}
         </p>
       </div>       
       

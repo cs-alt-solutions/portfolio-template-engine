@@ -54,8 +54,8 @@ export async function submitStagingAudit(payload: StagingAuditPayload) {
       from: `Alternative Solutions Staging <staging@alternativesolutions.io>`,
       to: [clientEmail],
       subject: isApproved 
-        ? `Staging Approved: ${payload.businessName} ($5/mo Hosting Link)` 
-        : `Adjustments Received: ${payload.businessName}`,
+        ? `🎉 Staging Approved: ${payload.businessName} (Next Steps For Launch!)` 
+        : `✍️ Adjustments Logged: ${payload.businessName} (I'm On It!)`,
       html: `
         <!DOCTYPE html>
         <html>
@@ -76,20 +76,20 @@ export async function submitStagingAudit(payload: StagingAuditPayload) {
                   <tr>
                     <td style="padding: 40px;">
                       <h2 style="margin: 0 0 16px 0; color: #0f172a; font-size: 18px; font-weight: 700;">
-                        ${isApproved ? 'I have received your official sign-off!' : 'I have received your requested adjustments!'}
+                        ${isApproved ? 'I Have Received Your Official Sign-Off!' : 'You Just Helped Make This Build 10x Better!'}
                       </h2>
                       <p style="margin: 0 0 24px 0; color: #3f3f46; font-size: 15px; line-height: 1.6;">
                         ${isApproved 
-                          ? 'Thank you for completing your interactive site walkthrough. I have logged your verified checkpoints and approved the build for live hosting.' 
-                          : 'Thank you for walking through your staging canvas! I have logged your section notes and am preparing your adjustments.'}
+                          ? 'Thank you for taking the time to explore your staging canvas! I have logged your verified checkpoints and locked in this build for launch. You did awesome!' 
+                          : 'Thank you for taking the time to explore your staging canvas! I have logged your section notes and I am jumping into the code to make your adjustments.'}
                       </p>
                       
                       <div style="background-color: ${isApproved ? '#f0fdf4' : '#fdf4ff'}; border: 1px solid ${isApproved ? '#bbf7d0' : '#f0abfc'}; border-radius: 8px; padding: 20px; margin-bottom: 24px;">
                         <p style="margin: 0; color: ${isApproved ? '#166534' : '#86198f'}; font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">What happens next?</p>
                         <p style="margin: 8px 0 0 0; color: ${isApproved ? '#15803d' : '#a21caf'}; font-size: 14px; line-height: 1.5;">
                           ${isApproved
-                            ? 'Be on the lookout for a follow-up email containing your <strong>$5/month live hosting link</strong>. Activating this pushes your storefront live online!<br><br><strong>Want a custom domain name (like yourbusiness.com)?</strong><br>Just reply to this email! I can help you purchase your domain and wire it all up under my $15/month Professional Plan.'
-                            : 'I will apply your requested wording adjustments and layout tweaks to the build. Once updated, I will send it back your way for final review so I can get your hosting activated and push your site live!'}
+                            ? 'Keep an eye on your inbox for your official activation email! Activating your hosting subscription gets your site live on the Alternative Solutions grid right away (Standard Plan).<br><br><strong>Selected the Professional Plan ($15/mo)?</strong><br>I will also start guiding you through securing your custom .com domain so I can handle the DNS wiring and get your personal web address live to the world!'
+                            : 'I am opening up the hood right now to work my magic on your wording adjustments and layout tweaks! Once I have everything looking pristine, I will send an updated link back your way for a final look. As soon as you give me the green light, I will get your hosting activated and push your storefront live!'}
                         </p>
                       </div>
 
@@ -116,7 +116,7 @@ export async function submitStagingAudit(payload: StagingAuditPayload) {
       from: `Staging Alert <staging@alternativesolutions.io>`,
       to: [adminEmail],
       subject: isApproved 
-        ? `🚨 APPROVED ($5/mo Ready): ${payload.businessName}` 
+        ? `🚨 APPROVED ($5/mo or Pro Ready): ${payload.businessName}` 
         : `🛠️ ADJUSTMENTS REQUESTED: ${payload.businessName}`,
       html: `
         <!DOCTYPE html>
@@ -136,7 +136,7 @@ export async function submitStagingAudit(payload: StagingAuditPayload) {
             <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;" />
             <p style="font-size: 14px; color: #4b5563;">
               <strong>Action Required:</strong> ${isApproved 
-                ? 'Send the client their $5/mo hosting link to push their site live! If they want a custom domain, pitch the $15/mo Pro Plan upgrade.' 
+                ? 'Send the client their hosting activation link! If they chose the Professional Plan ($15/mo), begin guiding them through domain registrar selection and DNS setup.' 
                 : 'Review the copy adjustments above, apply them to the codebase, and notify the client once updated!'}
             </p>
           </div>
