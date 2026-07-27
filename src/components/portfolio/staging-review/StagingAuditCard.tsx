@@ -40,6 +40,9 @@ export default function StagingAuditCard({
   const isFinalStep = currentStepIndex === totalSteps - 1;
   const hasPrevStep = currentStepIndex > 0;
 
+  // 🚀 MANDATORY VALIDATION: Must check every box in this section to unlock navigation!
+  const canProceed = checkedIndices.length === step.checks.length;
+
   return (
     <div className="bg-zinc-950/95 backdrop-blur-xl border-2 border-fuchsia-500/40 rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col max-w-md w-full">
       
@@ -96,11 +99,11 @@ export default function StagingAuditCard({
           onToggleCheck={onToggleCheck}
         />
 
-        {/* TWEAK NOTES */}
+        {/* TWEAK NOTES (OPTIONAL) */}
         <div className="mb-5">
-          <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+          <label className="block text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
             <MessageSquare className="w-3 h-3 text-cyan-400" />
-            <span>Any changes or tweaks for this section?</span>
+            <span>Any changes or tweaks for this section? (Optional)</span>
           </label>
           <textarea
             value={note}
@@ -110,7 +113,7 @@ export default function StagingAuditCard({
           />
         </div>
 
-        {/* STEP NAVIGATION DECK */}
+        {/* STEP NAVIGATION DECK WITH DYNAMIC LOCKS */}
         {!isFinalStep ? (
           <div className="flex items-center gap-2">
             {hasPrevStep && (
@@ -125,10 +128,19 @@ export default function StagingAuditCard({
             )}
             <button
               onClick={onNextStep}
-              className="flex-1 bg-cyan-500 hover:bg-cyan-400 text-zinc-950 font-black text-xs uppercase tracking-widest py-3.5 rounded-xl shadow-[0_0_15px_rgba(6,182,212,0.3)] transition-all flex items-center justify-center gap-2 group cursor-pointer"
+              disabled={!canProceed}
+              className={`flex-1 font-black text-xs uppercase tracking-widest py-3.5 rounded-xl transition-all flex items-center justify-center gap-2 group ${
+                canProceed
+                  ? 'bg-cyan-500 hover:bg-cyan-400 text-zinc-950 shadow-[0_0_15px_rgba(6,182,212,0.3)] cursor-pointer'
+                  : 'bg-zinc-900 text-zinc-500 border border-zinc-800 cursor-not-allowed opacity-60'
+              }`}
             >
-              <span>Looks Good • Next</span>
-              <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+              <span>
+                {canProceed
+                  ? 'Looks Good • Next Section'
+                  : `Check Boxes to Proceed (${checkedIndices.length}/${step.checks.length})`}
+              </span>
+              {canProceed && <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />}
             </button>
           </div>
         ) : (
@@ -139,17 +151,29 @@ export default function StagingAuditCard({
             
             <button
               onClick={() => onSubmitAudit('APPROVED')}
-              disabled={isSubmitting}
-              className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs uppercase tracking-widest py-3.5 rounded-xl shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+              disabled={isSubmitting || !canProceed}
+              className={`w-full font-black text-xs uppercase tracking-widest py-3.5 rounded-xl transition-all flex items-center justify-center gap-2 ${
+                canProceed && !isSubmitting
+                  ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-[0_0_20px_rgba(16,185,129,0.3)] cursor-pointer'
+                  : 'bg-zinc-900 text-zinc-500 border border-zinc-800 cursor-not-allowed opacity-60'
+              }`}
             >
               <ThumbsUp className="w-4 h-4" />
-              <span>Approve & Greenlight Build</span>
+              <span>
+                {canProceed
+                  ? 'Approve & Greenlight Build'
+                  : `Acknowledge Checks (${checkedIndices.length}/${step.checks.length})`}
+              </span>
             </button>
 
             <button
               onClick={() => onSubmitAudit('CHANGES_REQUESTED')}
-              disabled={isSubmitting}
-              className="w-full bg-zinc-900 hover:bg-zinc-800 text-zinc-300 font-bold text-xs uppercase tracking-widest py-3 rounded-xl border border-zinc-700 hover:border-zinc-600 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+              disabled={isSubmitting || !canProceed}
+              className={`w-full font-bold text-xs uppercase tracking-widest py-3 rounded-xl border transition-all flex items-center justify-center gap-2 ${
+                canProceed && !isSubmitting
+                  ? 'bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border-zinc-700 hover:border-zinc-600 cursor-pointer'
+                  : 'bg-zinc-950 text-zinc-600 border-zinc-900 cursor-not-allowed opacity-50'
+              }`}
             >
               <Send className="w-3.5 h-3.5 text-fuchsia-400" />
               <span>Submit Notes For Tweaks</span>

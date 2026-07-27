@@ -11,7 +11,7 @@ export interface StagingReviewOverlayProps {
   store: StorefrontAuditData;
 }
 
-export default function StagingReviewOverlay({ }: StagingReviewOverlayProps) {
+export default function StagingReviewOverlay({ store }: StagingReviewOverlayProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [isMinimized, setIsMinimized] = useState(false);
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
@@ -50,6 +50,12 @@ export default function StagingReviewOverlay({ }: StagingReviewOverlayProps) {
   };
 
   const handleNextStep = () => {
+    // 🚀 DEFENSIVE GUARD: Reject advancement if checkpoints aren't 100% complete
+    const currentChecks = stepChecks[currentStep] || [];
+    if (currentChecks.length < steps[currentStep].checks.length) {
+      return;
+    }
+
     if (!completedSteps.includes(currentStep)) {
       setCompletedSteps(prev => [...prev, currentStep]);
     }
@@ -72,7 +78,13 @@ export default function StagingReviewOverlay({ }: StagingReviewOverlayProps) {
     setSectionNotes(prev => ({ ...prev, [currentStep]: text }));
   };
 
-  const handleSubmitAudit = async () => {
+  const handleSubmitAudit = async (status: 'APPROVED' | 'CHANGES_REQUESTED') => {
+    // 🚀 DEFENSIVE GUARD: Ensure final checkboxes are acknowledged before submission
+    const currentChecks = stepChecks[currentStep] || [];
+    if (currentChecks.length < steps[currentStep].checks.length) {
+      return;
+    }
+
     setIsSubmitting(true);
     // Transmit audit data payload to backend/Supabase
     setTimeout(() => {
