@@ -44,8 +44,9 @@ export async function submitStagingAudit(payload: StagingAuditPayload) {
     const adminEmail = process.env.FALLBACK_LEADS_EMAIL || 'support@alternativesolutions.io';
     const clientEmail = payload.contactEmail || adminEmail;
 
+    // 🚀 FIXED: Using entry[1] instead of destructuring an unused variable!
     const formattedNotes = Object.entries(payload.sectionNotes)
-      .filter(([_, note]) => note && note.trim() !== '')
+      .filter((entry) => Boolean(entry[1] && entry[1].trim()))
       .map(([step, note]) => `• Section ${Number(step) + 1}: "${note}"`)
       .join('\n') || (isApproved ? 'No specific copy tweaks requested. Build approved as-is!' : 'No written notes provided.');
 

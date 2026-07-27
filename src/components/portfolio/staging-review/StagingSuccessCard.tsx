@@ -1,8 +1,9 @@
 // src/components/portfolio/staging-review/StagingSuccessCard.tsx
 'use client';
 
+// 🚀 FIXED: Removed unused CheckCircle import to satisfy ESLint!
 import React from 'react';
-import { Sparkles, CheckCircle, Wrench } from 'lucide-react';
+import { Sparkles, Wrench } from 'lucide-react';
 
 interface Props {
   status: 'APPROVED' | 'CHANGES_REQUESTED';
@@ -16,9 +17,10 @@ export default function StagingSuccessCard({ status, onDismiss }: Props) {
     <div className={`bg-zinc-950 border-2 rounded-2xl p-6 shadow-2xl text-center animate-in fade-in slide-in-from-bottom-5 max-w-md w-full ${
       isApproved ? 'border-cyan-500/50 shadow-[0_0_50px_rgba(6,182,212,0.3)]' : 'border-fuchsia-500/50 shadow-[0_0_50px_rgba(192,38,213,0.3)]'
     }`}>       
+      {/* 🚀 FIXED: Using Tailwind v4 canonical bg-linear-to-tr syntax! */}
       <div className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 ${
         isApproved
-          ? 'bg-gradient-to-tr from-emerald-500 to-cyan-500 text-zinc-950 shadow-[0_0_20px_rgba(16,185,129,0.5)]'
+          ? 'bg-linear-to-tr from-emerald-500 to-cyan-500 text-zinc-950 shadow-[0_0_20px_rgba(16,185,129,0.5)]'
           : 'bg-fuchsia-500/20 border border-fuchsia-500/40 text-fuchsia-400'
       }`}>         
         {isApproved ? <Sparkles className="w-6 h-6 animate-spin" /> : <Wrench className="w-6 h-6 animate-bounce" />}

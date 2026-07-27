@@ -39,11 +39,7 @@ export default function StagingAuditCard({
 }: Props) {
   const isFinalStep = currentStepIndex === totalSteps - 1;
   const hasPrevStep = currentStepIndex > 0;
-  
-  // For Steps 1-3: Must check every box to proceed to the next section
   const canProceedNext = checkedIndices.length === step.checks.length;
-
-  // For Step 4: Is the explicit "I approve this build" checkbox checked? (It is always the last box!)
   const isApproved = isFinalStep && checkedIndices.includes(step.checks.length - 1);
 
   return (
@@ -162,12 +158,12 @@ export default function StagingAuditCard({
                 : "🛠️ Adjustments Mode • I Will Apply Your Notes"}
             </span>
             
-            {/* DYNAMIC BRANCHING SUBMISSION BUTTON */}
+            {/* 🚀 FIXED: Using Tailwind v4 canonical bg-linear-to-r syntax! */}
             {isApproved ? (
               <button
                 onClick={() => onSubmitAudit('APPROVED')}
                 disabled={isSubmitting}
-                className="w-full font-black text-xs uppercase tracking-widest py-4 rounded-xl transition-all flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-zinc-950 shadow-[0_0_25px_rgba(16,185,129,0.4)] cursor-pointer hover:scale-[1.02] disabled:opacity-50"
+                className="w-full font-black text-xs uppercase tracking-widest py-4 rounded-xl transition-all flex items-center justify-center gap-2 bg-linear-to-r from-emerald-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-zinc-950 shadow-[0_0_25px_rgba(16,185,129,0.4)] cursor-pointer hover:scale-[1.02] disabled:opacity-50"
               >
                 <Sparkles className="w-4 h-4 animate-spin" />
                 <span>
