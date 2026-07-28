@@ -50,12 +50,13 @@ export async function submitStagingAudit(payload: StagingAuditPayload) {
       .join('\n') || (isApproved ? 'No specific adjustments requested. Build approved as-is!' : 'No written notes provided.');
 
     // 2. Email #1 -> To the Client (Dynamic Branching Receipt with "I" voice)
-    await resend.emails.send({
+    const { data: clientData, error: clientError } = await resend.emails.send({
       from: `Alternative Solutions Staging <staging@alternativesolutions.io>`,
       to: [clientEmail],
       subject: isApproved 
-        ? `🎉 Staging Approved: ${payload.businessName} (Next Steps For Launch!)` 
-        : `✍️ Adjustments Logged: ${payload.businessName} (I'm On It!)`,
+         ? `✨ Staging Approved: ${payload.businessName} (Next Steps For Launch!)` 
+         : `🛠️ Adjustments Logged: ${payload.businessName} (I'm On It!)`,
+      /* Note: Inline styles are strictly required inside HTML email strings because email clients strip external stylesheets! */
       html: `
         <!DOCTYPE html>
         <html>
@@ -80,19 +81,18 @@ export async function submitStagingAudit(payload: StagingAuditPayload) {
                       </h2>
                       <p style="margin: 0 0 24px 0; color: #3f3f46; font-size: 15px; line-height: 1.6;">
                         ${isApproved 
-                          ? 'Thank you for taking the time to explore your staging canvas! I have logged your verified checkpoints and locked in this build for launch. You did awesome!' 
-                          : 'Thank you for taking the time to explore your staging canvas! I have logged your section notes and I am jumping into the code to make your adjustments.'}
+                           ? 'Thank you for taking the time to explore your staging canvas! I have logged your verified checkpoints and locked in this build for launch. You did awesome!' 
+                           : 'Thank you for taking the time to explore your staging canvas! I have logged your section notes and I am jumping into the code to make your adjustments.'}
                       </p>
                       
                       <div style="background-color: ${isApproved ? '#f0fdf4' : '#fdf4ff'}; border: 1px solid ${isApproved ? '#bbf7d0' : '#f0abfc'}; border-radius: 8px; padding: 20px; margin-bottom: 24px;">
                         <p style="margin: 0; color: ${isApproved ? '#166534' : '#86198f'}; font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">What happens next?</p>
                         <p style="margin: 8px 0 0 0; color: ${isApproved ? '#15803d' : '#a21caf'}; font-size: 14px; line-height: 1.5;">
-                          ${isApproved
-                            ? 'Keep an eye on your inbox for your official activation email! Activating your hosting subscription gets your site live on the Alternative Solutions grid right away (Standard Plan).<br><br><strong>Selected the Professional Plan ($15/mo)?</strong><br>I will also start guiding you through securing your custom .com domain so I can handle the DNS wiring and get your personal web address live to the world!'
+                          ${isApproved 
+                            ? 'Keep an eye on your inbox for your official activation email! Activating your hosting subscription gets your site live on the Alternative Solutions grid right away (Standard Plan).<br><br><strong>Selected the Professional Plan ($15/mo)?</strong><br>I will also start guiding you through securing your custom .com domain so I can handle the DNS wiring and get your personal web address live to the world!' 
                             : 'I am opening up the hood right now to work my magic on your wording adjustments and layout tweaks! Once I have everything looking pristine, I will send an updated link back your way for a final look. As soon as you give me the green light, I will get your hosting activated and push your storefront live!'}
                         </p>
                       </div>
-
                       <p style="margin: 0 0 8px 0; color: #0f172a; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Your Logged Section Notes:</p>
                       <div style="border-left: 4px solid ${isApproved ? '#10b981' : '#d946ef'}; background-color: #f8fafc; padding: 16px; border-radius: 0 8px 8px 0; font-size: 14px; color: #334155; white-space: pre-wrap;">${formattedNotes}</div>
                     </td>
@@ -111,20 +111,26 @@ export async function submitStagingAudit(payload: StagingAuditPayload) {
       `,
     });
 
+    if (clientError) {
+      console.error('❌ Resend Client Email Failed:', clientError);
+    } else {
+      console.log('✅ Client Receipt Dispatched:', clientData);
+    }
+
     // 3. Email #2 -> To Alt Solutions Admin (Courtney)
-    await resend.emails.send({
+    const { data: adminData, error: adminError } = await resend.emails.send({
       from: `Staging Alert <staging@alternativesolutions.io>`,
       to: [adminEmail],
       subject: isApproved 
-        ? `🚨 APPROVED ($5/mo or Pro Ready): ${payload.businessName}` 
-        : `🛠️ ADJUSTMENTS REQUESTED: ${payload.businessName}`,
+         ? `🚀 APPROVED ($5/mo or Pro Ready): ${payload.businessName}` 
+         : `⚠️ ADJUSTMENTS REQUESTED: ${payload.businessName}`,
       html: `
         <!DOCTYPE html>
         <html>
         <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; padding: 20px; color: #111827;">
           <div style="max-w: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 8px; padding: 24px; background: #ffffff;">
             <h2 style="color: ${isApproved ? '#059669' : '#c026d3'}; margin-top: 0;">
-              ${isApproved ? '✅ Client Walkthrough Approved!' : '🛠️ Client Requested Build Adjustments'}
+              ${isApproved ? '✨ Client Walkthrough Approved!' : '🛠️ Client Requested Build Adjustments'}
             </h2>
             <p><strong>Client Name:</strong> ${payload.businessName}</p>
             <p><strong>Storefront Slug:</strong> ${payload.storefrontSlug}</p>
@@ -136,14 +142,20 @@ export async function submitStagingAudit(payload: StagingAuditPayload) {
             <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;" />
             <p style="font-size: 14px; color: #4b5563;">
               <strong>Action Required:</strong> ${isApproved 
-                ? 'Send the client their hosting activation link! If they chose the Professional Plan ($15/mo), begin guiding them through domain registrar selection and DNS setup.' 
-                : 'Review the copy adjustments above, apply them to the codebase, and notify the client once updated!'}
+                 ? 'Send the client their hosting activation link! If they chose the Professional Plan ($15/mo), begin guiding them through domain registrar selection and DNS setup.' 
+                 : 'Review the copy adjustments above, apply them to the codebase, and notify the client once updated!'}
             </p>
           </div>
         </body>
         </html>
       `,
     });
+
+    if (adminError) {
+      console.error('❌ Resend Admin Alert Failed:', adminError);
+    } else {
+      console.log('✅ Admin Alert Dispatched:', adminData);
+    }
 
     return { success: true };
   } catch (error) {
