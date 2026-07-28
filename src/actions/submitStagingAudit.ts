@@ -17,6 +17,17 @@ export async function submitStagingAudit(payload: StagingAuditPayload) {
   try {
     const isApproved = payload.status === 'APPROVED';
 
+    // Build an ironclad digital receipt for historical proof
+    const historicalAuditTrail = {
+      client_notes: payload.sectionNotes,
+      verified_checkpoints: payload.completedSteps,
+      total_sections_verified: `${payload.completedSteps.length} of 4 Sections Checked`,
+      legal_signoff: isApproved 
+        ? "Client explicitly verified all section checkpoints and locked in the build as-is for launch. No further complimentary revisions." 
+        : "Client requested specific copy adjustments prior to launch approval.",
+      logged_at: new Date().toISOString(),
+    };
+
     // 1. Log Audit in Supabase Ledger
     const { error: dbError } = await supabase
       .from('storefront_audits')
@@ -25,7 +36,7 @@ export async function submitStagingAudit(payload: StagingAuditPayload) {
           storefront_slug: payload.storefrontSlug,
           business_name: payload.businessName,
           client_email: payload.contactEmail,
-          audit_notes: JSON.stringify(payload.sectionNotes),
+          audit_notes: JSON.stringify(historicalAuditTrail, null, 2),
           status: isApproved ? 'APPROVED_PENDING_BILLING' : 'CHANGES_REQUESTED',
         },
       ]);
