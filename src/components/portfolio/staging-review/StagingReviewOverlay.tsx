@@ -1,127 +1,126 @@
-// src/components/portfolio/staging-review/StagingReviewOverlay.tsx
 'use client';
 
 import React, { useState } from 'react';
-import { StorefrontAuditData, AUDIT_ROADMAP } from './types';
-import StagingMinimizedBadge from './StagingMinimizedBadge';
-import StagingSuccessCard from './StagingSuccessCard';
-import StagingAuditCard from './StagingAuditCard';
-import { submitStagingAudit } from '@/actions/submitStagingAudit';
+import { supabase } from '@/utils/supabase';
+import { MessageSquare, Send, X, CheckCircle2 } from 'lucide-react';
 
-export interface StagingReviewOverlayProps {
-  store: StorefrontAuditData;
+interface StagingReviewOverlayProps {
+  storefrontId: string;
+  clientName: string;
 }
 
-export default function StagingReviewOverlay({ store }: StagingReviewOverlayProps) {
-  const [currentStep, setCurrentStep] = useState(0);
-  const [isMinimized, setIsMinimized] = useState(false);
-  const [completedSteps, setCompletedSteps] = useState<number[]>([]);
-  const [stepChecks, setStepChecks] = useState<{ [step: number]: number[] }>({});
-  const [sectionNotes, setSectionNotes] = useState<{ [key: number]: string }>({});
+export default function StagingReviewOverlay({ storefrontId, clientName }: StagingReviewOverlayProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [note, setNote] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submittedStatus, setSubmittedStatus] = useState<'APPROVED' | 'CHANGES_REQUESTED' | null>(null);
+  const [success, setSuccess] = useState(false);
 
-  const steps = AUDIT_ROADMAP;
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!note.trim()) return;
 
-  const scrollToSection = (targetId: string, targetStepIndex: number) => {
-    if (targetId === 'hero' || targetStepIndex === 0) {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      return;
-    }
-    const element = document.getElementById(targetId);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    } else {
-      const fallbackOffsets: Record<number, number> = { 0: 0, 1: 800, 2: 1600, 3: 2800 };
-      window.scrollTo({ top: fallbackOffsets[targetStepIndex] || 0, behavior: 'smooth' });
-    }
-  };
-
-  const handleToggleCheck = (checkIndex: number) => {
-    setStepChecks(prev => {
-      const currentList = prev[currentStep] || [];
-      const updatedList = currentList.includes(checkIndex)
-        ? currentList.filter(i => i !== checkIndex)
-        : [...currentList, checkIndex];
-      return { ...prev, [currentStep]: updatedList };
-    });
-  };
-
-  const handleNextStep = () => {
-    const currentChecks = stepChecks[currentStep] || [];
-    if (currentChecks.length < steps[currentStep].checks.length) return;
-
-    if (!completedSteps.includes(currentStep)) {
-      setCompletedSteps(prev => [...prev, currentStep]);
-    }
-    if (currentStep < steps.length - 1) {
-      const nextStep = currentStep + 1;
-      setCurrentStep(nextStep);
-      scrollToSection(steps[nextStep].targetId, nextStep);
-    }
-  };
-
-  const handlePrevStep = () => {
-    if (currentStep > 0) {
-      const prevStep = currentStep - 1;
-      setCurrentStep(prevStep);
-      scrollToSection(steps[prevStep].targetId, prevStep);
-    }
-  };
-
-  const handleNoteChange = (text: string) => {
-    setSectionNotes(prev => ({ ...prev, [currentStep]: text }));
-  };
-
-  const handleSubmitAudit = async (status: 'APPROVED' | 'CHANGES_REQUESTED') => {
     setIsSubmitting(true);
 
-    const response = await submitStagingAudit({
-      storefrontSlug: store?.slug || 'demo-store',
-      businessName: store?.business_name || 'Valued Client',
-      contactEmail: store?.contact_email || '',
-      sectionNotes: sectionNotes,
-      completedSteps: [...completedSteps, currentStep],
-      status: status,
-    });
+    try {
+      // 1. Fetch existing audit notes first so we don't overwrite them
+      const { data: storeData, error: fetchError } = await supabase
+        .from('storefronts')
+        .select('audit_notes')
+        .eq('id', storefrontId)
+        .single();
 
-    if (response?.warning) {
-      console.warn('Staging Audit Notice:', response.warning);
+      if (fetchError) throw fetchError;
+
+      const existingNotes = storeData.audit_notes || [];
+      
+      // 2. Create the new note object
+      const newNote = {
+        id: crypto.randomUUID(),
+        note: note.trim(),
+        status: 'pending', // You will change this to 'resolved' in your dashboard
+        timestamp: new Date().toISOString(),
+      };
+
+      // 3. Push the merged array back to Supabase and update status
+      const { error: updateError } = await supabase
+        .from('storefronts')
+        .update({ 
+          audit_notes: [...existingNotes, newNote],
+          status: 'REVISIONS_REQUESTED' // Alerts your dashboard
+        })
+        .eq('id', storefrontId);
+
+      if (updateError) throw updateError;
+
+      setSuccess(true);
+      setNote('');
+      setTimeout(() => {
+        setSuccess(false);
+        setIsOpen(false);
+      }, 3000);
+
+    } catch (error) {
+      console.error('Error submitting feedback:', error);
+      alert('Failed to send feedback. Please try again.');
+    } finally {
+      setIsSubmitting(false);
     }
-
-    setIsSubmitting(false);
-    setSubmittedStatus(status);
   };
 
+  if (!isOpen) {
+    return (
+      <button 
+        onClick={() => setIsOpen(true)}
+        className="fixed bottom-6 right-6 z-50 flex items-center gap-2 bg-zinc-900 text-white px-4 py-3 rounded-full shadow-2xl border border-zinc-700 hover:border-cyan-500 transition-colors"
+      >
+        <MessageSquare className="w-5 h-5 text-cyan-400" />
+        <span className="font-mono text-sm">Add Feedback</span>
+      </button>
+    );
+  }
+
   return (
-    <div className="fixed bottom-6 right-6 z-50 transition-all duration-300 flex justify-end pointer-events-auto">
-      {/* 🚀 FIXED: isMinimized evaluated FIRST so clicking Dismiss actually minimizes the modal! */}
-      {isMinimized ? (
-        <StagingMinimizedBadge
-          completedCount={completedSteps.length}
-          totalSteps={steps.length}
-          isSubmitted={!!submittedStatus}
-          onExpand={() => setIsMinimized(false)}
-        />
-      ) : submittedStatus ? (
-        <StagingSuccessCard status={submittedStatus} onDismiss={() => setIsMinimized(true)} />
-      ) : (
-        <StagingAuditCard
-          step={steps[currentStep]}
-          currentStepIndex={currentStep}
-          totalSteps={steps.length}
-          checkedIndices={stepChecks[currentStep] || []}
-          note={sectionNotes[currentStep] || ''}
-          isSubmitting={isSubmitting}
-          onToggleCheck={handleToggleCheck}
-          onNoteChange={handleNoteChange}
-          onNextStep={handleNextStep}
-          onPrevStep={handlePrevStep}
-          onSubmitAudit={handleSubmitAudit}
-          onMinimize={() => setIsMinimized(true)}
-          completedSteps={completedSteps}
-        />
-      )}
+    <div className="fixed bottom-6 right-6 z-50 w-80 bg-zinc-950 border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+      {/* Header */}
+      <div className="bg-zinc-900 px-4 py-3 flex justify-between items-center border-b border-zinc-800">
+        <div>
+          <h3 className="text-white font-bold text-sm tracking-wide">Staging Audit</h3>
+          <p className="text-zinc-400 text-xs font-mono">{clientName}</p>
+        </div>
+        <button onClick={() => setIsOpen(false)} className="text-zinc-500 hover:text-white transition-colors">
+          <X className="w-5 h-5" />
+        </button>
+      </div>
+
+      {/* Body */}
+      <div className="p-4">
+        {success ? (
+          <div className="flex flex-col items-center justify-center py-6 text-emerald-400">
+            <CheckCircle2 className="w-8 h-8 mb-2" />
+            <p className="text-sm font-medium">Feedback Sent</p>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+            <label className="text-xs text-zinc-400 font-mono uppercase tracking-wider">
+              Request a Change:
+            </label>
+            <textarea 
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              placeholder="e.g. Can we make the hero background darker?"
+              className="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-3 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-cyan-500 resize-none h-24"
+            />
+            <button 
+              type="submit"
+              disabled={isSubmitting || !note.trim()}
+              className="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2 rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
+            >
+              {isSubmitting ? 'Sending...' : 'Submit Request'}
+              <Send className="w-4 h-4" />
+            </button>
+          </form>
+        )}
+      </div>
     </div>
   );
 }

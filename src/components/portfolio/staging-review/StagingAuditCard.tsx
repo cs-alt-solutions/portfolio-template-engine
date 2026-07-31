@@ -1,210 +1,154 @@
-// src/components/portfolio/staging-review/StagingAuditCard.tsx
 'use client';
 
-import React from 'react';
-import { ChevronDown, MessageSquare, ArrowRight, ArrowLeft, Sparkles, Send } from 'lucide-react';
-import { AuditStep } from './types';
-import StagingChecklist from './StagingChecklist';
+import React, { useState, useEffect } from 'react';
+import { ChevronDown, ChevronUp, Check, X, ArrowRight, CheckCircle2 } from 'lucide-react';
+import type { ReviewStep } from './types';
 
-interface Props {
-  step: AuditStep;
+interface StagingAuditCardProps {
+  step: ReviewStep;
   currentStepIndex: number;
   totalSteps: number;
-  checkedIndices: number[];
   note: string;
-  isSubmitting: boolean;
-  onToggleCheck: (index: number) => void;
-  onNoteChange: (val: string) => void;
-  onNextStep: () => void;
-  onPrevStep: () => void;
-  onSubmitAudit: (status: 'APPROVED' | 'CHANGES_REQUESTED') => void;
-  onMinimize: () => void;
-  completedSteps: number[];
+  isExpanded: boolean;
+  onUpdateNote: (note: string) => void;
+  onNext: () => void;
+  onPrev: () => void;
+  onToggleExpand: () => void;
+  onSubmit: () => void;
+  isSubmitting?: boolean;
 }
 
 export default function StagingAuditCard({
   step,
   currentStepIndex,
   totalSteps,
-  checkedIndices,
   note,
-  isSubmitting,
-  onToggleCheck,
-  onNoteChange,
-  onNextStep,
-  onPrevStep,
-  onSubmitAudit,
-  onMinimize,
-  completedSteps
-}: Props) {
-  const isFinalStep = currentStepIndex === totalSteps - 1;
-  const hasPrevStep = currentStepIndex > 0;
-  const canProceedNext = checkedIndices.length === step.checks.length;
-  const isApproved = isFinalStep && checkedIndices.includes(step.checks.length - 1);
+  isExpanded,
+  onUpdateNote,
+  onNext,
+  onPrev,
+  onToggleExpand,
+  onSubmit,
+  isSubmitting = false
+}: StagingAuditCardProps) {
+  // New state to track if the user wants to make a revision for this specific step
+  const [needsRevision, setNeedsRevision] = useState<boolean | null>(note.length > 0 ? true : null);
+
+  // The Auto-Scroll Hijack
+  useEffect(() => {
+    if (step.targetId) {
+      const element = document.getElementById(step.targetId);
+      if (element) {
+        // Scroll the target element to the center of the viewport smoothly
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+  }, [step.targetId]);
 
   return (
-    <div className="bg-zinc-950/95 backdrop-blur-xl border-2 border-fuchsia-500/40 rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col max-w-md w-full">
+    <div className="flex flex-col bg-zinc-950 border border-zinc-800 rounded-xl shadow-2xl overflow-hidden pointer-events-auto w-[320px]">
       
       {/* HEADER */}
-      <div className="bg-zinc-900/90 border-b border-zinc-800 px-5 py-3.5 flex items-center justify-between">
-        <div className="flex items-center gap-2.5">
-          <span className="flex h-2.5 w-2.5 relative">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-fuchsia-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-fuchsia-500"></span>
-          </span>
-          <span className="text-white font-black text-xs uppercase tracking-widest">
-            Staging Walkthrough • Step {currentStepIndex + 1} of {totalSteps}
-          </span>
+      <button 
+        onClick={onToggleExpand}
+        className="w-full bg-zinc-900 px-4 py-3 flex items-center justify-between hover:bg-zinc-800 transition-colors border-b border-zinc-800"
+      >
+        <div className="flex items-center gap-3">
+          <div className="w-6 h-6 rounded-full bg-cyan-500/20 text-cyan-400 flex items-center justify-center text-xs font-bold border border-cyan-500/30">
+            {currentStepIndex + 1}
+          </div>
+          <span className="text-white font-bold text-sm tracking-wide">{step.title}</span>
         </div>
-        <button
-          onClick={onMinimize}
-          className="text-zinc-500 hover:text-white p-1 rounded-lg hover:bg-zinc-800 transition-colors cursor-pointer"
-          title="Minimize to browse freely"
-        >
-          <ChevronDown className="w-4 h-4" />
-        </button>
-      </div>
+        {isExpanded ? <ChevronUp className="w-4 h-4 text-zinc-400" /> : <ChevronDown className="w-4 h-4 text-zinc-400" />}
+      </button>
 
-      {/* PROGRESS BAR */}
-      <div className="w-full bg-zinc-900 h-1.5 flex">
-        {Array.from({ length: totalSteps }).map((_, idx) => (
-          <div
-            key={idx}
-            className={`h-full flex-1 transition-all duration-500 border-r border-zinc-950 ${
-              completedSteps.includes(idx)
-                ? 'bg-fuchsia-500 shadow-[0_0_10px_rgba(192,38,213,0.8)]'
-                : idx === currentStepIndex
-                ? 'bg-cyan-400 animate-pulse'
-                : 'bg-zinc-800'
-            }`}
-          />
-        ))}
-      </div>
-
-      {/* BODY CONTENT */}
-      <div className="p-5 flex-1 max-h-[70vh] overflow-y-auto custom-scrollbar">
-        <div className="mb-4">
-          <span className="text-fuchsia-400 font-mono text-[10px] font-bold uppercase tracking-widest block mb-1">
-            Section: {step.title}
-          </span>
-          <p className="text-zinc-200 text-sm leading-relaxed font-normal mb-3">
+      {/* BODY */}
+      {isExpanded && (
+        <div className="p-5 flex flex-col gap-5">
+          <p className="text-sm text-zinc-300 leading-relaxed font-light">
             {step.description}
           </p>
-        </div>
 
-        <StagingChecklist
-          checks={step.checks}
-          checkedIndices={checkedIndices}
-          onToggleCheck={onToggleCheck}
-        />
-
-        {/* TWEAK NOTES */}
-        <div className="mb-5">
-          <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-            <MessageSquare className="w-3 h-3 text-cyan-400" />
-            <span>
-              {isFinalStep
-                ? "What Adjustments or Changes Do You Need? (Optional)"
-                : "Any changes or adjustments for this section? (Optional)"}
-            </span>
-          </label>
-          <textarea
-            value={note}
-            onChange={(e) => onNoteChange(e.target.value)}
-            placeholder={
-              isFinalStep
-                ? `e.g., "I need to tweak the wording in the About section, or swap out one photo before we launch..."`
-                : `e.g., "Love the layout! Just change the headline wording slightly..."`
-            }
-            className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-3 text-xs text-white placeholder-zinc-600 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all resize-none h-20"
-          />
-        </div>
-
-        {/* STEP NAVIGATION DECK */}
-        {!isFinalStep ? (
-          <div className="flex items-center gap-2">
-            {hasPrevStep && (
-              <button
-                onClick={onPrevStep}
-                className="px-3.5 py-3.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white font-bold text-xs uppercase tracking-widest rounded-xl border border-zinc-800 transition-all flex items-center justify-center gap-1 shrink-0 cursor-pointer"
-                title="Go to previous step"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                <span>Back</span>
-              </button>
-            )}
-            <button
-              onClick={onNextStep}
-              disabled={!canProceedNext}
-              className={`flex-1 font-black text-xs uppercase tracking-widest py-3.5 rounded-xl transition-all flex items-center justify-center gap-2 group ${
-                canProceedNext
-                  ? 'bg-cyan-500 hover:bg-cyan-400 text-zinc-950 shadow-[0_0_15px_rgba(6,182,212,0.3)] cursor-pointer'
-                  : 'bg-zinc-900 text-zinc-500 border border-zinc-800 cursor-not-allowed opacity-60'
-              }`}
-            >
-              <span>
-                {canProceedNext
-                  ? 'Looks Good • Next Section'
-                  : `Check Boxes to Proceed (${checkedIndices.length}/${step.checks.length})`}
-              </span>
-              {canProceedNext && <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />}
-            </button>
-          </div>
-        ) : (
-          <div className="space-y-2 pt-2 border-t border-zinc-800">
-            <span className="text-zinc-400 text-[10px] font-mono uppercase tracking-wider block text-center mb-1">
-              {isApproved
-                ? "Build Approved • Ready For Live Hosting"
-                : "Feedback Mode • I Will Apply Your Adjustments"}
-            </span>
+          <div className="flex flex-col gap-3">
+            <label className="text-[10px] text-zinc-500 font-mono uppercase tracking-widest">
+              Does this look good?
+            </label>
             
-            {isApproved ? (
-              <button
-                onClick={() => onSubmitAudit('APPROVED')}
-                disabled={isSubmitting}
-                className="w-full font-black text-xs uppercase tracking-widest py-4 rounded-xl transition-all flex items-center justify-center gap-2 bg-linear-to-r from-emerald-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-zinc-950 shadow-[0_0_25px_rgba(16,185,129,0.4)] cursor-pointer hover:scale-[1.02] disabled:opacity-50"
+            <div className="flex gap-2">
+              <button 
+                onClick={() => {
+                  setNeedsRevision(false);
+                  onUpdateNote(''); // Clear the note if they say it's good
+                }}
+                className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold transition-colors flex items-center justify-center gap-2 ${needsRevision === false ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50' : 'bg-zinc-900 text-zinc-400 border border-zinc-800 hover:border-zinc-700'}`}
               >
-                <Sparkles className="w-4 h-4 animate-spin" />
-                <span>
-                  {isSubmitting
-                    ? 'Activating Onboarding...'
-                    : 'Approve Build & Activate $5/mo Hosting'}
-                </span>
+                <Check className="w-3.5 h-3.5" />
+                Yes, perfect
+              </button>
+              <button 
+                onClick={() => setNeedsRevision(true)}
+                className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold transition-colors flex items-center justify-center gap-2 ${needsRevision === true ? 'bg-amber-500/20 text-amber-400 border border-amber-500/50' : 'bg-zinc-900 text-zinc-400 border border-zinc-800 hover:border-zinc-700'}`}
+              >
+                <X className="w-3.5 h-3.5" />
+                Needs Tweaks
+              </button>
+            </div>
+
+            {/* CONDITIONAL TEXT BOX: Only shows if they hit "Needs Tweaks" */}
+            {needsRevision === true && (
+              <div className="mt-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                <textarea
+                  value={note}
+                  onChange={(e) => onUpdateNote(e.target.value)}
+                  placeholder="What should we adjust?"
+                  className="w-full bg-black border border-zinc-800 rounded-lg p-3 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-amber-500/50 resize-none h-24"
+                />
+              </div>
+            )}
+            
+            {/* SUCCESS INDICATOR: Shows if they hit "Yes, perfect" */}
+            {needsRevision === false && (
+                <div className="mt-2 flex items-center gap-2 text-emerald-500 bg-emerald-500/10 p-3 rounded-lg border border-emerald-500/20 animate-in fade-in duration-300">
+                    <CheckCircle2 className="w-4 h-4 shrink-0" />
+                    <span className="text-xs font-medium">Marked as approved.</span>
+                </div>
+            )}
+
+          </div>
+
+          {/* NAVIGATION FOOTER */}
+          <div className="flex items-center justify-between pt-2 border-t border-zinc-800 mt-2">
+            <button 
+              onClick={onPrev}
+              disabled={currentStepIndex === 0}
+              className="text-xs text-zinc-500 font-mono uppercase tracking-widest hover:text-white transition-colors disabled:opacity-30 disabled:pointer-events-none"
+            >
+              Back
+            </button>
+            
+            {currentStepIndex < totalSteps - 1 ? (
+              <button 
+                onClick={() => {
+                  setNeedsRevision(null); // Reset toggle for next view
+                  onNext();
+                }}
+                className="flex items-center gap-2 text-xs text-cyan-400 font-mono font-bold uppercase tracking-widest hover:text-cyan-300 transition-colors"
+              >
+                Next
+                <ArrowRight className="w-3.5 h-3.5" />
               </button>
             ) : (
-              <button
-                onClick={() => onSubmitAudit('CHANGES_REQUESTED')}
+              <button 
+                onClick={onSubmit}
                 disabled={isSubmitting}
-                className="w-full font-black text-xs uppercase tracking-widest py-4 rounded-xl transition-all flex items-center justify-center gap-2 bg-fuchsia-600 hover:bg-fuchsia-500 text-white shadow-[0_0_20px_rgba(192,38,213,0.3)] cursor-pointer hover:scale-[1.02] disabled:opacity-50"
+                className="flex items-center gap-2 bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold py-1.5 px-4 rounded transition-colors disabled:opacity-50"
               >
-                <Send className="w-4 h-4" />
-                <span>
-                  {isSubmitting
-                    ? 'Sending Feedback...'
-                    : 'Submit Adjustments & Feedback'}
-                </span>
-              </button>
-            )}
-
-            {hasPrevStep && (
-              <button
-                onClick={onPrevStep}
-                disabled={isSubmitting}
-                className="w-full py-2 text-zinc-500 hover:text-zinc-300 text-[10px] font-mono uppercase tracking-widest transition-colors flex items-center justify-center gap-1 cursor-pointer"
-              >
-                <ArrowLeft className="w-3 h-3" />
-                <span>Back to previous section</span>
+                {isSubmitting ? 'SENDING...' : 'FINISH AUDIT'}
               </button>
             )}
           </div>
-        )}
-      </div>
-
-      {/* FOOTER */}
-      <div className="bg-zinc-950 border-t border-zinc-900 px-5 py-2.5 flex items-center justify-between text-[10px] font-mono text-zinc-600">
-        <span>Powered by Alternative Solutions</span>
-        <span className="text-cyan-500/70">Interactive QA Engine v1.0</span>
-      </div>
+        </div>
+      )}
     </div>
   );
 }
