@@ -1,4 +1,3 @@
-// src/components/portfolio/staging-review/StagingReviewOverlay.tsx
 'use client';
 
 import React, { useState } from 'react';
@@ -7,28 +6,41 @@ import { CheckCircle2 } from 'lucide-react';
 import type { ReviewStep } from './types';
 import StagingAuditCard from './StagingAuditCard';
 
-const REVIEW_STEPS: ReviewStep[] = [
-  { 
-    id: 'hero', 
-    title: 'First Impression', 
-    description: 'This is the first thing your customers will see. Check the main image, colors, and headline.', 
-    targetId: 'hero' 
-  },
-  { 
-    id: 'about', 
-    title: 'The Story', 
-    description: 'Read through the About section. Does the vibe and text feel accurate to your brand?', 
-    targetId: 'about' 
-  },
-  { 
-    id: 'portfolio', 
-    title: 'The Work', 
-    description: 'Review your services or gallery. Make sure the layout showcases what you do best.', 
-    targetId: 'portfolio' 
-  }
-];
+interface OverlayProps {
+  storefrontId: string;
+  contactEmail: string;
+}
 
-export default function StagingReviewOverlay({ storefrontId }: { storefrontId: string }) {
+export default function StagingReviewOverlay({ storefrontId, contactEmail }: OverlayProps) {
+  
+  // We moved the steps inside so we can dynamically inject their actual email address
+  const REVIEW_STEPS: ReviewStep[] = [
+    { 
+      id: 'hero', 
+      title: 'First Impression', 
+      description: 'This is the first thing your customers will see. Check the main image, colors, and headline.', 
+      targetId: 'hero' 
+    },
+    { 
+      id: 'about', 
+      title: 'The Story', 
+      description: 'Read through the About section. Does the vibe and text feel accurate to your brand?', 
+      targetId: 'about' 
+    },
+    { 
+      id: 'portfolio', 
+      title: 'The Work', 
+      description: 'Review your services or gallery. Make sure the layout showcases what you do best.', 
+      targetId: 'portfolio' 
+    },
+    {
+      id: 'routing',
+      title: 'Lead Routing',
+      description: `Currently, customer inquiries will be sent to: ${contactEmail}. Is this the correct email address? If not, let us know where to send them.`,
+      targetId: 'contact' // Scrolls to the bottom/contact form
+    }
+  ];
+
   const [currentStep, setCurrentStep] = useState(0);
   const [notes, setNotes] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -49,7 +61,6 @@ export default function StagingReviewOverlay({ storefrontId }: { storefrontId: s
 
       const existingNotes = storeData?.audit_notes || [];
 
-      // Safe filtering that prevents unused variable warnings
       const newNotes = Object.entries(notes)
         .filter((entry) => entry[1].trim() !== '') 
         .map(([stepId, text]) => ({
