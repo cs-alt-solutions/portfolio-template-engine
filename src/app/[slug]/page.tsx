@@ -354,11 +354,8 @@ export default async function DynamicStorefront({ params }: { params: Promise<{ 
 
       {/* 🚀 STAGING QA OVERLAY: Only renders when project is IN_REVIEW and NOT a template! */}
       {!store.is_template && store.status?.toUpperCase() === 'IN REVIEW' && (
-  <StagingReviewOverlay 
-    storefrontId={store.id} 
-    clientName={store.business_name || 'Client'} 
-  />
-)}
+        <StagingReviewOverlay storefrontId={store.id} />
+      )}
       
     </main>
   );

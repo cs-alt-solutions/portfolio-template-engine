@@ -12,8 +12,6 @@ export interface StorefrontAuditData {
   [key: string]: unknown;
 }
 
-// Added: The specific interface required by StagingAuditCard 
-// to handle the UI state and the DOM auto-scrolling target.
 export interface ReviewStep {
   id: string;
   title: string;
