@@ -1,19 +1,24 @@
 'use client';
 
 import React, { useState } from 'react';
-import { supabase } from '@/utils/supabase';
 import { CheckCircle2 } from 'lucide-react';
 import type { ReviewStep } from './types';
 import StagingAuditCard from './StagingAuditCard';
+import { submitStagingAudit } from '@/actions/submitStagingAudit';
 
-interface OverlayProps {
-  storefrontId: string;
-  contactEmail: string;
+// FIXED: Strict typing interface to replace 'any'
+export interface StorefrontData {
+  slug: string;
+  business_name?: string;
+  contact_email?: string;
+  is_template?: boolean;
+  status?: string;
+  [key: string]: unknown; // Safely allows other db columns without throwing errors
 }
 
-export default function StagingReviewOverlay({ storefrontId, contactEmail }: OverlayProps) {
-  
-  // We moved the steps inside so we can dynamically inject their actual email address
+export default function StagingReviewOverlay({ store }: { store: StorefrontData }) {
+  const contactEmail = (store.contact_email as string) || 'No email provided';
+
   const REVIEW_STEPS: ReviewStep[] = [
     { 
       id: 'hero', 
@@ -36,8 +41,8 @@ export default function StagingReviewOverlay({ storefrontId, contactEmail }: Ove
     {
       id: 'routing',
       title: 'Lead Routing',
-      description: `Currently, customer inquiries will be sent to: ${contactEmail}. Is this the correct email address? If not, let us know where to send them.`,
-      targetId: 'contact' // Scrolls to the bottom/contact form
+      description: `Customer inquiries will currently be sent to: ${contactEmail}. Is this correct? If not, let us know where to send them.`,
+      targetId: 'contact'
     }
   ];
 
@@ -53,41 +58,33 @@ export default function StagingReviewOverlay({ storefrontId, contactEmail }: Ove
   const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
-      const { data: storeData } = await supabase
-        .from('storefronts')
-        .select('audit_notes')
-        .eq('id', storefrontId)
-        .single();
-
-      const existingNotes = storeData?.audit_notes || [];
-
-      const newNotes = Object.entries(notes)
-        .filter((entry) => entry[1].trim() !== '') 
-        .map(([stepId, text]) => ({
-          id: crypto.randomUUID(),
-          section: REVIEW_STEPS.find(s => s.id === stepId)?.title || stepId,
-          note: text.trim(),
-          status: 'pending',
-          timestamp: new Date().toISOString(),
-        }));
-
-      const newStatus = newNotes.length > 0 ? 'REVISIONS_REQUESTED' : 'APPROVED';
-
-      const { error } = await supabase
-        .from('storefronts')
-        .update({ 
-          audit_notes: [...existingNotes, ...newNotes],
-          status: newStatus 
-        })
-        .eq('id', storefrontId);
-
-      if (error) throw error;
+      const sectionNotes: Record<number, string> = {};
+      const completedSteps: number[] = [];
       
+      REVIEW_STEPS.forEach((step, index) => {
+        completedSteps.push(index);
+        if (notes[step.id] && notes[step.id].trim() !== '') {
+          sectionNotes[index] = notes[step.id].trim();
+        }
+      });
+
+      const newStatus = Object.keys(sectionNotes).length > 0 ? 'CHANGES_REQUESTED' : 'APPROVED';
+
+      const response = await submitStagingAudit({
+        storefrontSlug: store.slug,
+        businessName: (store.business_name as string) || 'Client',
+        contactEmail: contactEmail,
+        sectionNotes: sectionNotes,
+        completedSteps: completedSteps,
+        status: newStatus
+      });
+
+      if (!response.success) throw new Error(response.error);
       setIsFinished(true);
 
     } catch (error) {
       console.error('Failed to submit review:', error);
-      alert('Something went wrong. Please try again.');
+      alert('Transmission failed. Please ensure your connection is stable and try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -97,9 +94,9 @@ export default function StagingReviewOverlay({ storefrontId, contactEmail }: Ove
     return (
       <div className="fixed bottom-6 right-6 z-50 bg-zinc-950 border border-emerald-500/30 p-6 rounded-xl shadow-2xl flex flex-col items-center gap-3 w-[320px]">
         <CheckCircle2 className="w-10 h-10 text-emerald-500" />
-        <h3 className="text-white font-bold">Review Complete</h3>
-        <p className="text-zinc-400 text-sm text-center">
-          Thanks! We&apos;ve logged your feedback and will get to work. You can close this window.
+        <h3 className="text-white font-bold tracking-wide">Walkthrough Complete</h3>
+        <p className="text-zinc-400 text-sm text-center font-light leading-relaxed">
+          Your feedback has been securely transmitted to the architect. You can now close this window.
         </p>
       </div>
     );
