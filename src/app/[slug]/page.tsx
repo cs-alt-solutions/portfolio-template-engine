@@ -3,11 +3,13 @@ import React, { SVGProps } from 'react';
 import { notFound } from 'next/navigation';
 import { supabase } from '@/utils/supabase';
 import { THEME_REGISTRY } from '@/utils/themes';
-import { STOREFRONT_DEFAULTS } from '@/utils/glossary'; 
+import { STOREFRONT_DEFAULTS } from '@/utils/glossary';
+
 import AboutSection from '@/components/portfolio/AboutSection';
 import ContentEngine from '@/components/portfolio/content-engine';
 import PrototypeTourGuide from '@/components/portfolio/PrototypeTourGuide';
-import StorefrontClientActions from '../../components/portfolio/StorefrontClientActions'; 
+import StorefrontClientActions from '../../components/portfolio/StorefrontClientActions';
+
 import StagingReviewOverlay from '@/components/portfolio/staging-review/StagingReviewOverlay';
 import { Send } from 'lucide-react';
 
@@ -74,10 +76,21 @@ const SOCIAL_META: Record<string, { base: string; icon: React.ElementType }> = {
   telegram: { base: 'https://t.me/', icon: Send },
 };
 
-export default async function DynamicStorefront({ params }: { params: Promise<{ slug: string }> }) {
+// FIXED: Now accepting searchParams so we can detect the Canvas mode globally
+export default async function DynamicStorefront({ 
+  params,
+  searchParams,
+}: { 
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
   const resolvedParams = await params;
   const slug = resolvedParams.slug;
-  
+
+  // 1. Establish the Global Kill Switch for overlays
+  const resolvedSearchParams = await searchParams;
+  const isCanvasMode = resolvedSearchParams?.mode === 'canvas';
+
   const { data: store, error } = await supabase
     .from('storefronts')
     .select('*')
@@ -94,12 +107,12 @@ export default async function DynamicStorefront({ params }: { params: Promise<{ 
   const accentColorClass = theme.useBrandAccent ? `text-${brandColor}` : '';
   const buttonBgClass = theme.useBrandAccent ? `bg-${brandColor} text-zinc-950 hover:opacity-80 border-none` : `bg-${brandColor} text-zinc-950`;
   const lineAccent = theme.useBrandAccent ? `bg-${brandColor}` : 'bg-current';
-  const exploreLink = '#portfolio';
   
+  const exploreLink = '#portfolio';
   const hasAbout = !!store.about_bio || !!store.about_image || !!store.about_heading;
   const galleryTitle = store.gallery_heading || STOREFRONT_DEFAULTS.GALLERY_HEADING || "Featured Work";
   const heroButtonText = `View ${galleryTitle}`;
-  
+
   const rawSocialLinks = store.social_links || {};
   const activeSocials: SocialPlatform[] = Object.entries(rawSocialLinks)
     .filter((entry) => !!entry[1]) 
@@ -142,6 +155,7 @@ export default async function DynamicStorefront({ params }: { params: Promise<{ 
           
           {theme.useBrandTint && <div className={`absolute inset-0 z-0 opacity-20 bg-${brandColor} mix-blend-color`} />}
           <div className={`absolute inset-0 z-0 bg-linear-to-b ${theme.overlayFade}`} />
+
           <div className="container mx-auto px-4 relative z-10 flex flex-col items-center mt-12">
             <div className={`w-full max-w-4xl text-center p-8 md:p-16 relative overflow-hidden group ${theme.cardStyle}`}>
               {theme.useBrandAccent && <div className={`absolute top-0 left-0 w-full h-1.5 ${lineAccent}`} />}
@@ -280,7 +294,8 @@ export default async function DynamicStorefront({ params }: { params: Promise<{ 
               <a href={exploreLink} className={`px-10 py-4 font-bold uppercase tracking-widest text-xs transition-all duration-300 shadow-xl bg-${brandColor} text-black hover:scale-105 ${theme.buttonStyle}`}>
                 {heroButtonText}
               </a>
-            </div>           
+            </div>
+            
           </div>
         </section>
       )}
@@ -322,7 +337,7 @@ export default async function DynamicStorefront({ params }: { params: Promise<{ 
         store={store} 
         brandColor={brandColor} 
         isLightMode={theme.isLightMode}
-        themeStyle={store.theme_style} 
+        themeStyle={store.theme_style}
       />
 
       {/* RESTORED: POWERED BY ALTERNATIVE SOLUTIONS BAR */}
@@ -343,20 +358,30 @@ export default async function DynamicStorefront({ params }: { params: Promise<{ 
         </div>
       </footer>
 
-      {/* --- PROTOTYPE INTERACTIVE TOUR GUIDE (ONLY FOR TEMPLATES) --- */}
-      {store.is_template && (
-        <PrototypeTourGuide 
-          vibe={store.theme_style || 'industrial'} 
-          heroLayout={HERO_NAMES[layout] || layout} 
-          journeyLayout={FLOW_NAMES[store.content_layout || 'classic'] || store.content_layout} 
-        />
+      {/* ============================================================== */}
+      {/* THE GLOBAL "NO FLY ZONE" FOR THE CANVAS EDITOR OVERLAYS */}
+      {/* Any pop-up, modal, or floating element goes strictly down here. */}
+      {/* ============================================================== */}
+      {!isCanvasMode && (
+        <>
+          {/* PROTOTYPE INTERACTIVE TOUR GUIDE */}
+          {store.is_template && (
+            <PrototypeTourGuide 
+              vibe={store.theme_style || 'industrial'} 
+              heroLayout={HERO_NAMES[layout] || layout} 
+              journeyLayout={FLOW_NAMES[store.content_layout || 'classic'] || store.content_layout} 
+            />
+          )}
+
+          {/* STAGING QA OVERLAY */}
+          {!store.is_template && store.status?.toUpperCase() === 'IN REVIEW' && (
+            <StagingReviewOverlay store={store} />
+          )}
+
+          {/* FUTURE POP-UPS GO HERE! */}
+        </>
       )}
 
-      {/* 🚀 STAGING QA OVERLAY: Only renders when project is IN_REVIEW and NOT a template! */}
-      {!store.is_template && store.status?.toUpperCase() === 'IN REVIEW' && (
-        <StagingReviewOverlay store={store} />
-      )}
-      
     </main>
   );
 }
