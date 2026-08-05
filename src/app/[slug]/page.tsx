@@ -76,7 +76,6 @@ const SOCIAL_META: Record<string, { base: string; icon: React.ElementType }> = {
   telegram: { base: 'https://t.me/', icon: Send },
 };
 
-// FIXED: Now accepting searchParams so we can detect the Canvas mode globally
 export default async function DynamicStorefront({ 
   params,
   searchParams,
@@ -87,7 +86,6 @@ export default async function DynamicStorefront({
   const resolvedParams = await params;
   const slug = resolvedParams.slug;
 
-  // 1. Establish the Global Kill Switch for overlays
   const resolvedSearchParams = await searchParams;
   const isCanvasMode = resolvedSearchParams?.mode === 'canvas';
 
@@ -100,6 +98,9 @@ export default async function DynamicStorefront({
   if (error || !store) {
     notFound();
   }
+
+  // ✅ Retrieve the fixed hero boolean (defaults to false if null)
+  const isHeroFixed = store.is_hero_fixed === true;
 
   const theme = THEME_REGISTRY[store.theme_style] || THEME_REGISTRY['industrial'];
   const layout = store.hero_layout || 'center';
@@ -149,8 +150,17 @@ export default async function DynamicStorefront({
       {layout === 'center' && (
         <section id="hero" className="relative min-h-[95vh] w-full flex items-center justify-center overflow-hidden">
           <div className="absolute inset-0 z-0">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={store.hero_image} alt={store.business_name} className="w-full h-full object-cover object-center scale-105 opacity-50" />
+            {isHeroFixed ? (
+              <div 
+                className="w-full h-full bg-cover bg-center bg-fixed scale-105 opacity-50"
+                style={{ backgroundImage: `url('${store.hero_image}')` }}
+              />
+            ) : (
+              <>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={store.hero_image} alt={store.business_name} className="w-full h-full object-cover object-center scale-105 opacity-50" />
+              </>
+            )}
           </div>
           
           {theme.useBrandTint && <div className={`absolute inset-0 z-0 opacity-20 bg-${brandColor} mix-blend-color`} />}
@@ -200,8 +210,17 @@ export default async function DynamicStorefront({
             </div>
           </div>
           <div className="w-full md:w-1/2 h-[50vh] md:h-auto relative overflow-hidden">
-             {/* eslint-disable-next-line @next/next/no-img-element */}
-             <img src={store.hero_image} alt={store.business_name} className="absolute inset-0 w-full h-full object-cover object-center" />
+             {isHeroFixed ? (
+               <div 
+                 className="absolute inset-0 w-full h-full bg-cover bg-center bg-fixed"
+                 style={{ backgroundImage: `url('${store.hero_image}')` }}
+               />
+             ) : (
+               <>
+                 {/* eslint-disable-next-line @next/next/no-img-element */}
+                 <img src={store.hero_image} alt={store.business_name} className="absolute inset-0 w-full h-full object-cover object-center" />
+               </>
+             )}
              <div className={`absolute inset-0 bg-linear-to-r from-${theme.pageBg.replace('bg-', '')} via-transparent to-transparent opacity-50 hidden md:block`} />
           </div>
         </section>
@@ -230,8 +249,17 @@ export default async function DynamicStorefront({
             </div>
           </div>
           <div className="w-full md:w-1/2 h-[50vh] md:h-auto relative overflow-hidden">
-             {/* eslint-disable-next-line @next/next/no-img-element */}
-             <img src={store.hero_image} alt={store.business_name} className="absolute inset-0 w-full h-full object-cover object-center" />
+             {isHeroFixed ? (
+               <div 
+                 className="absolute inset-0 w-full h-full bg-cover bg-center bg-fixed"
+                 style={{ backgroundImage: `url('${store.hero_image}')` }}
+               />
+             ) : (
+               <>
+                 {/* eslint-disable-next-line @next/next/no-img-element */}
+                 <img src={store.hero_image} alt={store.business_name} className="absolute inset-0 w-full h-full object-cover object-center" />
+               </>
+             )}
              <div className={`absolute inset-0 bg-linear-to-l from-${theme.pageBg.replace('bg-', '')} via-transparent to-transparent opacity-50 hidden md:block`} />
           </div>
         </section>
@@ -241,8 +269,17 @@ export default async function DynamicStorefront({
       {layout === 'cinematic' && (
         <section id="hero" className="relative min-h-screen w-full flex items-end justify-start overflow-hidden pb-20">
           <div className="absolute inset-0 z-0">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={store.hero_image} alt={store.business_name} className="w-full h-full object-cover object-center scale-105" />
+            {isHeroFixed ? (
+              <div 
+                className="w-full h-full bg-cover bg-center bg-fixed scale-105"
+                style={{ backgroundImage: `url('${store.hero_image}')` }}
+              />
+            ) : (
+              <>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={store.hero_image} alt={store.business_name} className="w-full h-full object-cover object-center scale-105" />
+              </>
+            )}
             <div className="absolute inset-0 bg-linear-to-t from-black via-black/50 to-transparent opacity-90" />
           </div>
           <div className="container mx-auto px-6 relative z-10">
@@ -270,12 +307,21 @@ export default async function DynamicStorefront({
         <section id="hero" className="relative w-full min-h-[90vh] flex items-center justify-center p-6 md:p-12 overflow-hidden bg-zinc-950">
           <div className="absolute inset-0 z-0">
             {store.hero_image ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img 
-                src={store.hero_image} 
-                alt={store.business_name || 'Background'}
-                className="w-full h-full object-cover opacity-80"
-              />
+              isHeroFixed ? (
+                <div 
+                  className="w-full h-full bg-cover bg-center bg-fixed opacity-80"
+                  style={{ backgroundImage: `url('${store.hero_image}')` }}
+                />
+              ) : (
+                <>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img 
+                    src={store.hero_image} 
+                    alt={store.business_name || 'Background'}
+                    className="w-full h-full object-cover opacity-80"
+                  />
+                </>
+              )
             ) : (
               <div className="w-full h-full bg-zinc-900 bg-[url('/grid.svg')] opacity-20" />
             )}
