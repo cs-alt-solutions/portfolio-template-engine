@@ -99,7 +99,6 @@ export default async function DynamicStorefront({
     notFound();
   }
 
-  // ✅ Retrieve the fixed hero boolean (defaults to false if null)
   const isHeroFixed = store.is_hero_fixed === true;
 
   const theme = THEME_REGISTRY[store.theme_style] || THEME_REGISTRY['industrial'];
@@ -152,7 +151,7 @@ export default async function DynamicStorefront({
           <div className="absolute inset-0 z-0">
             {isHeroFixed ? (
               <div 
-                className="w-full h-full bg-cover bg-center bg-fixed scale-105 opacity-50"
+                className="w-full h-full bg-cover bg-center bg-fixed opacity-50"
                 style={{ backgroundImage: `url('${store.hero_image}')` }}
               />
             ) : (
@@ -271,7 +270,7 @@ export default async function DynamicStorefront({
           <div className="absolute inset-0 z-0">
             {isHeroFixed ? (
               <div 
-                className="w-full h-full bg-cover bg-center bg-fixed scale-105"
+                className="w-full h-full bg-cover bg-center bg-fixed"
                 style={{ backgroundImage: `url('${store.hero_image}')` }}
               />
             ) : (
