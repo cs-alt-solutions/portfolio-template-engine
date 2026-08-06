@@ -32,7 +32,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
   if (!store) return { title: 'Not Found' };
 
-  const hasLogo = store.brand_logo && store.brand_logo.trim() !== '';
+  // Bulletproof check to ensure the logo is a valid string before injecting it
+  const hasLogo = typeof store.brand_logo === 'string' && store.brand_logo.trim() !== '';
 
   return {
     title: `${store.business_name} | ${store.tagline || 'Custom Solutions'}`,
@@ -128,7 +129,9 @@ export default async function DynamicStorefront({
   }
 
   const isHeroFixed = store.is_hero_fixed === true;
-  const hasValidLogo = store.brand_logo && store.brand_logo.trim() !== '';
+  
+  // Safe validation for the logo string
+  const hasValidLogo = typeof store.brand_logo === 'string' && store.brand_logo.trim() !== '';
 
   const theme = THEME_REGISTRY[store.theme_style] || THEME_REGISTRY['industrial'];
   const layout = store.hero_layout || 'center';
@@ -137,6 +140,14 @@ export default async function DynamicStorefront({
   const buttonBgClass = theme.useBrandAccent ? `bg-${brandColor} text-zinc-950 hover:opacity-80 border-none` : `bg-${brandColor} text-zinc-950`;
   const lineAccent = theme.useBrandAccent ? `bg-${brandColor}` : 'bg-current';
   
+  // Cleanly compute the Cinematic Card style strings BEFORE the return block to prevent parser crashes
+  const cinematicBorderClass = theme.useBrandAccent ? 'border-' + brandColor : 'border-white';
+  
+  // Increased top padding (pt-24 md:pt-28) to give the newly enlarged logo proper clearance
+  const cinematicCardClass = theme.cardStyle === 'bg-transparent border-none shadow-none'
+    ? 'relative z-10'
+    : 'p-8 pt-24 md:pt-32 backdrop-blur-md bg-black/40 border-l-4 shadow-2xl relative z-10 ' + cinematicBorderClass;
+
   const exploreLink = '#portfolio';
   const hasAbout = !!store.about_bio || !!store.about_image || !!store.about_heading;
   const galleryTitle = store.gallery_heading || STOREFRONT_DEFAULTS.GALLERY_HEADING || "Featured Work";
@@ -333,25 +344,23 @@ export default async function DynamicStorefront({
           
           <div className="container mx-auto px-6 relative z-10">
             
-            {/* The Master Container that holds both the floating logo and the card */}
             <div className="relative max-w-3xl mt-32"> 
               
-              {/* THE STAMPED LOGO: Broken out of the flow, positioned absolutely over the border */}
+              {/* THE ENLARGED STAMPED LOGO */}
               {hasValidLogo && (
-                <div className="absolute -top-16 md:-top-24 left-4 md:left-8 z-20 pointer-events-none">
+                <div className="absolute -top-20 md:-top-32 left-4 md:left-8 z-20 pointer-events-none">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img 
                     src={store.brand_logo} 
                     alt={store.business_name} 
-                    className="h-28 md:h-40 w-auto object-contain drop-shadow-[0_15px_15px_rgba(0,0,0,0.8)] origin-bottom-left" 
+                    className="h-32 md:h-56 w-auto object-contain drop-shadow-2xl origin-bottom-left" 
                   />
                 </div>
               )}
 
-              {/* THE TEXT CARD: Added extra top padding (pt-12) to make room for the overlap */}
-              <div className={`${theme.cardStyle === 'bg-transparent border-none shadow-none' ? '' : `p-8 pt-16 md:pt-20 backdrop-blur-md bg-black/40 border-l-4 ${theme.useBrandAccent ? `border-${brandColor}` : 'border-white'} shadow-2xl`} relative z-10`}>
+              {/* THE TEXT CARD: Utilizing the pre-computed string from above to prevent compiler crashes */}
+              <div className={cinematicCardClass}>
                 
-                {/* Fallback Text if there is no logo uploaded */}
                 {!hasValidLogo && (
                   <h2 className={`${theme.accentText} ${accentColorClass} mb-4`}>
                     {theme.prefix}{store.business_name}
