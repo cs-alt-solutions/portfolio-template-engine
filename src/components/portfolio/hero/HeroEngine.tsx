@@ -68,7 +68,7 @@ export default function HeroEngine({
               {hasValidLogo ? (
                 <>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={store.brand_logo} alt={store.business_name} className="h-20 md:h-32 w-auto object-contain mx-auto mb-6 drop-shadow-2xl" />
+                  <img src={store.brand_logo} alt={store.business_name} className="h-32 md:h-48 lg:h-56 w-auto max-w-full object-contain mx-auto mb-8 drop-shadow-2xl" />
                 </>
               ) : (
                 <h2 className={`${theme.accentText} ${accentColorClass} mb-6 drop-shadow-md`}>{theme.prefix}{store.business_name}</h2>
@@ -89,7 +89,7 @@ export default function HeroEngine({
               {hasValidLogo ? (
                 <>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={store.brand_logo} alt={store.business_name} className="h-16 md:h-24 w-auto object-contain mb-6 drop-shadow-xl" />
+                  <img src={store.brand_logo} alt={store.business_name} className="h-28 md:h-40 lg:h-48 w-auto max-w-full object-contain mb-8 drop-shadow-2xl origin-left" />
                 </>
               ) : (
                 <h2 className={`${theme.accentText} ${accentColorClass} mb-4 flex items-center gap-4`}>
@@ -123,7 +123,7 @@ export default function HeroEngine({
               {hasValidLogo ? (
                 <>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={store.brand_logo} alt={store.business_name} className="h-16 md:h-24 w-auto object-contain mb-6 drop-shadow-xl" />
+                  <img src={store.brand_logo} alt={store.business_name} className="h-28 md:h-40 lg:h-48 w-auto max-w-full object-contain mb-8 drop-shadow-2xl origin-left" />
                 </>
               ) : (
                 <h2 className={`${theme.accentText} ${accentColorClass} mb-4 flex items-center gap-4`}>
@@ -206,7 +206,7 @@ export default function HeroEngine({
             {hasValidLogo && (
               <>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={store.brand_logo} alt={store.business_name} className="h-24 md:h-36 w-auto object-contain mx-auto mb-6 drop-shadow-2xl" />
+                <img src={store.brand_logo} alt={store.business_name} className="h-32 md:h-48 lg:h-56 w-auto max-w-full object-contain mx-auto mb-8 drop-shadow-2xl" />
               </>
             )}
             <h1 className={`${theme.primaryText} text-4xl md:text-6xl lg:text-7xl mb-6 text-white drop-shadow-lg max-w-4xl mx-auto`}>{store.tagline || store.business_name}</h1>
