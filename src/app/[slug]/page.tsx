@@ -1,5 +1,6 @@
 // src/app/[slug]/page.tsx
 import React, { SVGProps } from 'react';
+import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { supabase } from '@/utils/supabase';
 import { THEME_REGISTRY } from '@/utils/themes';
@@ -16,6 +17,35 @@ import { Send } from 'lucide-react';
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 export const fetchCache = 'force-no-store';
+
+// ============================================================================
+// DYNAMIC METADATA (BROWSER TAB & SEO)
+// Automatically injects the brand logo into the browser tab if it exists
+// ============================================================================
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const resolvedParams = await params;
+  
+  const { data: store } = await supabase
+    .from('storefronts')
+    .select('business_name, tagline, brand_logo')
+    .eq('slug', resolvedParams.slug)
+    .single();
+
+  if (!store) return { title: 'Not Found' };
+
+  // Ensure we don't pass an empty string to the icons array
+  const hasLogo = store.brand_logo && store.brand_logo.trim() !== '';
+
+  return {
+    title: `${store.business_name} | ${store.tagline || 'Custom Solutions'}`,
+    description: store.tagline,
+    icons: hasLogo ? {
+      icon: store.brand_logo,
+      shortcut: store.brand_logo,
+      apple: store.brand_logo,
+    } : undefined,
+  };
+}
 
 export interface SocialPlatform {
   name: string;
@@ -100,6 +130,8 @@ export default async function DynamicStorefront({
   }
 
   const isHeroFixed = store.is_hero_fixed === true;
+  // Robust check for the logo to prevent empty strings from breaking the UI
+  const hasValidLogo = store.brand_logo && store.brand_logo.trim() !== '';
 
   const theme = THEME_REGISTRY[store.theme_style] || THEME_REGISTRY['industrial'];
   const layout = store.hero_layout || 'center';
@@ -169,9 +201,15 @@ export default async function DynamicStorefront({
             <div className={`w-full max-w-4xl text-center p-8 md:p-16 relative overflow-hidden group ${theme.cardStyle}`}>
               {theme.useBrandAccent && <div className={`absolute top-0 left-0 w-full h-1.5 ${lineAccent}`} />}
               
-              <h2 className={`${theme.accentText} ${accentColorClass} mb-6 drop-shadow-md`}>
-                {theme.prefix}{store.business_name}
-              </h2>
+              {hasValidLogo ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={store.brand_logo} alt={store.business_name} className="h-20 md:h-32 w-auto object-contain mx-auto mb-6 drop-shadow-2xl" />
+              ) : (
+                <h2 className={`${theme.accentText} ${accentColorClass} mb-6 drop-shadow-md`}>
+                  {theme.prefix}{store.business_name}
+                </h2>
+              )}
+
               <h1 className={`${theme.primaryText} text-5xl md:text-7xl lg:text-8xl mb-8 drop-shadow-sm max-w-5xl mx-auto`}>
                 {store.tagline}
               </h1>
@@ -191,10 +229,17 @@ export default async function DynamicStorefront({
         <section id="hero" className={`relative min-h-[90vh] w-full flex flex-col md:flex-row ${theme.pageBg}`}>
           <div className="w-full md:w-1/2 flex items-center justify-center p-8 md:p-16 lg:p-24 relative z-10">
             <div className="w-full max-w-xl text-left">
-              <h2 className={`${theme.accentText} ${accentColorClass} mb-4 flex items-center gap-4`}>
-                <div className={`h-px w-12 ${lineAccent}`} /> 
-                {theme.prefix}{store.business_name}
-              </h2>
+              
+              {hasValidLogo ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={store.brand_logo} alt={store.business_name} className="h-16 md:h-24 w-auto object-contain mb-6 drop-shadow-xl" />
+              ) : (
+                <h2 className={`${theme.accentText} ${accentColorClass} mb-4 flex items-center gap-4`}>
+                  <div className={`h-px w-12 ${lineAccent}`} /> 
+                  {theme.prefix}{store.business_name}
+                </h2>
+              )}
+
               <h1 className={`${theme.primaryText} text-5xl md:text-6xl lg:text-7xl mb-6`}>
                 {store.tagline}
               </h1>
@@ -230,10 +275,17 @@ export default async function DynamicStorefront({
         <section id="hero" className={`relative min-h-[90vh] w-full flex flex-col md:flex-row-reverse ${theme.pageBg}`}>
           <div className="w-full md:w-1/2 flex items-center justify-center p-8 md:p-16 lg:p-24 relative z-10">
             <div className="w-full max-w-xl text-left">
-              <h2 className={`${theme.accentText} ${accentColorClass} mb-4 flex items-center gap-4`}>
-                <div className={`h-px w-12 ${lineAccent}`} /> 
-                {theme.prefix}{store.business_name}
-              </h2>
+              
+              {hasValidLogo ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={store.brand_logo} alt={store.business_name} className="h-16 md:h-24 w-auto object-contain mb-6 drop-shadow-xl" />
+              ) : (
+                <h2 className={`${theme.accentText} ${accentColorClass} mb-4 flex items-center gap-4`}>
+                  <div className={`h-px w-12 ${lineAccent}`} /> 
+                  {theme.prefix}{store.business_name}
+                </h2>
+              )}
+
               <h1 className={`${theme.primaryText} text-5xl md:text-6xl lg:text-7xl mb-6`}>
                 {store.tagline}
               </h1>
@@ -283,9 +335,16 @@ export default async function DynamicStorefront({
           </div>
           <div className="container mx-auto px-6 relative z-10">
             <div className={`max-w-3xl ${theme.cardStyle === 'bg-transparent border-none shadow-none' ? '' : `p-8 backdrop-blur-sm bg-black/20 border-l-4 ${theme.useBrandAccent ? `border-${brandColor}` : 'border-white'}`}`}>
-              <h2 className={`${theme.accentText} ${accentColorClass} mb-4`}>
-                {theme.prefix}{store.business_name}
-              </h2>
+              
+              {hasValidLogo ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={store.brand_logo} alt={store.business_name} className="h-20 md:h-28 w-auto object-contain mb-6 drop-shadow-2xl" />
+              ) : (
+                <h2 className={`${theme.accentText} ${accentColorClass} mb-4`}>
+                  {theme.prefix}{store.business_name}
+                </h2>
+              )}
+
               <h1 className={`${theme.primaryText} text-white text-5xl md:text-7xl mb-6`}>
                 {store.tagline}
               </h1>
@@ -328,6 +387,12 @@ export default async function DynamicStorefront({
           </div>
           
           <div className="relative z-10 w-full max-w-5xl mx-auto p-10 md:p-16 bg-white/5 backdrop-blur-2xl border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)] flex flex-col items-center justify-center text-center rounded-4xl">
+            
+            {hasValidLogo && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={store.brand_logo} alt={store.business_name} className="h-24 md:h-36 w-auto object-contain mx-auto mb-6 drop-shadow-2xl" />
+            )}
+
             <h1 className={`${theme.primaryText} text-4xl md:text-6xl lg:text-7xl mb-6 text-white drop-shadow-lg max-w-4xl mx-auto`}>
               {store.tagline || store.business_name}
             </h1>
@@ -385,11 +450,19 @@ export default async function DynamicStorefront({
         themeStyle={store.theme_style}
       />
 
-      {/* RESTORED: POWERED BY ALTERNATIVE SOLUTIONS BAR */}
-      <footer className="w-full py-8 px-6 border-t border-white/10 bg-zinc-950 text-[11px] font-mono text-zinc-500 uppercase tracking-widest flex flex-col sm:flex-row items-center justify-between gap-4 relative z-20">
-        <div>
-          &copy; {new Date().getFullYear()} {store.business_name || 'All Rights Reserved'}.
+      {/* POWERED BY ALTERNATIVE SOLUTIONS BAR */}
+      <footer className="w-full py-8 px-6 border-t border-white/10 bg-zinc-950 text-[11px] font-mono text-zinc-500 uppercase tracking-widest flex flex-col md:flex-row items-center justify-between gap-6 relative z-20">
+        
+        <div className="flex items-center gap-4">
+          {hasValidLogo && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={store.brand_logo} alt="Brand Icon" className="h-6 w-auto object-contain opacity-50 grayscale" />
+          )}
+          <span>
+            &copy; {new Date().getFullYear()} {store.business_name || 'All Rights Reserved'}.
+          </span>
         </div>
+
         <div className="flex items-center gap-1.5">
           <span>Powered by</span>
           <a 
@@ -403,10 +476,6 @@ export default async function DynamicStorefront({
         </div>
       </footer>
 
-      {/* ============================================================== */}
-      {/* THE GLOBAL "NO FLY ZONE" FOR THE CANVAS EDITOR OVERLAYS */}
-      {/* Any pop-up, modal, or floating element goes strictly down here. */}
-      {/* ============================================================== */}
       {!isCanvasMode && (
         <>
           {/* PROTOTYPE INTERACTIVE TOUR GUIDE */}
@@ -422,8 +491,6 @@ export default async function DynamicStorefront({
           {!store.is_template && store.status?.toUpperCase() === 'IN REVIEW' && (
             <StagingReviewOverlay store={store} />
           )}
-
-          {/* FUTURE POP-UPS GO HERE! */}
         </>
       )}
 
