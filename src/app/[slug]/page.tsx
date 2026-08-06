@@ -455,6 +455,20 @@ export default async function DynamicStorefront({
         </div>
       )}
 
+      {/* --- CINEMATIC PARALLAX WINDOW --- */}
+      {/* Conditionally renders only if they have a background image and it is locked/fixed */}
+      {isHeroFixed && store.hero_image && (
+        <div className="relative w-full h-[30vh] md:h-[40vh] border-y border-white/10 overflow-hidden shadow-[inset_0_0_100px_rgba(0,0,0,0.8)]">
+          <div
+            className="absolute inset-0 w-full h-full bg-cover bg-center bg-fixed opacity-50"
+            style={{ backgroundImage: `url('${store.hero_image}')` }}
+          />
+          {theme.useBrandAccent && (
+            <div className={`absolute top-0 left-0 w-full h-1 ${lineAccent} opacity-50`} />
+          )}
+        </div>
+      )}
+
       {/* --- THE CONTENT ENGINE --- */}
       <div id="portfolio">
         <ContentEngine 
