@@ -130,7 +130,6 @@ export default async function DynamicStorefront({
 
   const isHeroFixed = store.is_hero_fixed === true;
   
-  // Safe validation for the logo string
   const hasValidLogo = typeof store.brand_logo === 'string' && store.brand_logo.trim() !== '';
 
   const theme = THEME_REGISTRY[store.theme_style] || THEME_REGISTRY['industrial'];
@@ -140,13 +139,14 @@ export default async function DynamicStorefront({
   const buttonBgClass = theme.useBrandAccent ? `bg-${brandColor} text-zinc-950 hover:opacity-80 border-none` : `bg-${brandColor} text-zinc-950`;
   const lineAccent = theme.useBrandAccent ? `bg-${brandColor}` : 'bg-current';
   
-  // Cleanly compute the Cinematic Card style strings BEFORE the return block to prevent parser crashes
   const cinematicBorderClass = theme.useBrandAccent ? 'border-' + brandColor : 'border-white';
   
-  // Increased top padding (pt-24 md:pt-32) to give the newly enlarged logo proper clearance
+  // Re-engineered for the Gradient Fade
+  // Removed: backdrop-blur-md, bg-black/40, shadow-2xl
+  // Added: bg-gradient-to-r from-black/95 via-black/50 to-transparent, md:pr-24 (to pad text from the fade)
   const cinematicCardClass = theme.cardStyle === 'bg-transparent border-none shadow-none'
     ? 'relative z-10'
-    : 'p-8 pt-24 md:pt-32 backdrop-blur-md bg-black/40 border-l-4 shadow-2xl relative z-10 ' + cinematicBorderClass;
+    : 'p-8 pt-24 md:pt-32 md:pr-24 bg-gradient-to-r from-black/95 via-black/60 to-transparent border-l-4 relative z-10 ' + cinematicBorderClass;
 
   const exploreLink = '#portfolio';
   const hasAbout = !!store.about_bio || !!store.about_image || !!store.about_heading;
@@ -324,7 +324,7 @@ export default async function DynamicStorefront({
         </section>
       )}
 
-      {/* LAYOUT 4: CINEMATIC (RE-ENGINEERED TYPOGRAPHY) */}
+      {/* LAYOUT 4: CINEMATIC (RE-ENGINEERED OVERLAY) */}
       {layout === 'cinematic' && (
         <section id="hero" className="relative min-h-screen w-full flex items-end justify-start overflow-hidden pb-20">
           <div className="absolute inset-0 z-0">
@@ -344,7 +344,7 @@ export default async function DynamicStorefront({
           
           <div className="container mx-auto px-6 relative z-10">
             
-            <div className="relative max-w-3xl mt-32"> 
+            <div className="relative max-w-4xl mt-32"> 
               
               {/* THE ENLARGED STAMPED LOGO */}
               {hasValidLogo && (
@@ -358,7 +358,7 @@ export default async function DynamicStorefront({
                 </div>
               )}
 
-              {/* THE TEXT CARD: Refined Typography Flow */}
+              {/* THE TEXT CARD: Soft Fade Gradient */}
               <div className={cinematicCardClass}>
                 
                 {!hasValidLogo && (
@@ -367,17 +367,15 @@ export default async function DynamicStorefront({
                   </h2>
                 )}
 
-                {/* Sized down to 5xl, tightened margin to mb-4 */}
-                <h1 className={`${theme.primaryText} text-white text-3xl md:text-5xl mb-4 leading-tight`}>
+                <h1 className={`${theme.primaryText} text-white text-3xl md:text-5xl mb-4 leading-tight relative z-10`}>
                   {store.tagline}
                 </h1>
                 
-                {/* Sized down to text-base/lg, shifted color to zinc-400 for background feel */}
-                <p className="text-base md:text-lg mb-8 leading-relaxed font-light text-zinc-400 max-w-lg">
+                <p className="text-base md:text-lg mb-8 leading-relaxed font-light text-zinc-300 max-w-lg relative z-10">
                   {store.subtext}
                 </p>
                 
-                <a href={exploreLink} className={`inline-block ${theme.buttonStyle}`}>
+                <a href={exploreLink} className={`inline-block relative z-10 ${theme.buttonStyle}`}>
                   {heroButtonText}
                 </a>
               </div>
@@ -456,7 +454,6 @@ export default async function DynamicStorefront({
       )}
 
       {/* --- CINEMATIC PARALLAX WINDOW --- */}
-      {/* Conditionally renders only if they have a background image and it is locked/fixed */}
       {isHeroFixed && store.hero_image && (
         <div className="relative w-full h-[30vh] md:h-[40vh] border-y border-white/10 overflow-hidden shadow-[inset_0_0_100px_rgba(0,0,0,0.8)]">
           <div
