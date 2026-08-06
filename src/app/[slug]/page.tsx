@@ -143,7 +143,7 @@ export default async function DynamicStorefront({
   // Cleanly compute the Cinematic Card style strings BEFORE the return block to prevent parser crashes
   const cinematicBorderClass = theme.useBrandAccent ? 'border-' + brandColor : 'border-white';
   
-  // Increased top padding (pt-24 md:pt-28) to give the newly enlarged logo proper clearance
+  // Increased top padding (pt-24 md:pt-32) to give the newly enlarged logo proper clearance
   const cinematicCardClass = theme.cardStyle === 'bg-transparent border-none shadow-none'
     ? 'relative z-10'
     : 'p-8 pt-24 md:pt-32 backdrop-blur-md bg-black/40 border-l-4 shadow-2xl relative z-10 ' + cinematicBorderClass;
@@ -324,7 +324,7 @@ export default async function DynamicStorefront({
         </section>
       )}
 
-      {/* LAYOUT 4: CINEMATIC (RE-ENGINEERED FOR THE STAMP EFFECT) */}
+      {/* LAYOUT 4: CINEMATIC (RE-ENGINEERED TYPOGRAPHY) */}
       {layout === 'cinematic' && (
         <section id="hero" className="relative min-h-screen w-full flex items-end justify-start overflow-hidden pb-20">
           <div className="absolute inset-0 z-0">
@@ -358,19 +358,22 @@ export default async function DynamicStorefront({
                 </div>
               )}
 
-              {/* THE TEXT CARD: Utilizing the pre-computed string from above to prevent compiler crashes */}
+              {/* THE TEXT CARD: Refined Typography Flow */}
               <div className={cinematicCardClass}>
                 
                 {!hasValidLogo && (
-                  <h2 className={`${theme.accentText} ${accentColorClass} mb-4`}>
+                  <h2 className={`${theme.accentText} ${accentColorClass} mb-3`}>
                     {theme.prefix}{store.business_name}
                   </h2>
                 )}
 
-                <h1 className={`${theme.primaryText} text-white text-5xl md:text-7xl mb-6`}>
+                {/* Sized down to 5xl, tightened margin to mb-4 */}
+                <h1 className={`${theme.primaryText} text-white text-3xl md:text-5xl mb-4 leading-tight`}>
                   {store.tagline}
                 </h1>
-                <p className="text-xl mb-10 leading-relaxed font-light text-zinc-300 max-w-xl">
+                
+                {/* Sized down to text-base/lg, shifted color to zinc-400 for background feel */}
+                <p className="text-base md:text-lg mb-8 leading-relaxed font-light text-zinc-400 max-w-lg">
                   {store.subtext}
                 </p>
                 
