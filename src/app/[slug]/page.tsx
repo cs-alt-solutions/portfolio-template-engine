@@ -20,7 +20,6 @@ export const fetchCache = 'force-no-store';
 
 // ============================================================================
 // DYNAMIC METADATA (BROWSER TAB & SEO)
-// Automatically injects the brand logo into the browser tab if it exists
 // ============================================================================
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const resolvedParams = await params;
@@ -33,7 +32,6 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
   if (!store) return { title: 'Not Found' };
 
-  // Ensure we don't pass an empty string to the icons array
   const hasLogo = store.brand_logo && store.brand_logo.trim() !== '';
 
   return {
@@ -130,7 +128,6 @@ export default async function DynamicStorefront({
   }
 
   const isHeroFixed = store.is_hero_fixed === true;
-  // Robust check for the logo to prevent empty strings from breaking the UI
   const hasValidLogo = store.brand_logo && store.brand_logo.trim() !== '';
 
   const theme = THEME_REGISTRY[store.theme_style] || THEME_REGISTRY['industrial'];
@@ -316,7 +313,7 @@ export default async function DynamicStorefront({
         </section>
       )}
 
-      {/* LAYOUT 4: CINEMATIC */}
+      {/* LAYOUT 4: CINEMATIC (RE-ENGINEERED FOR THE STAMP EFFECT) */}
       {layout === 'cinematic' && (
         <section id="hero" className="relative min-h-screen w-full flex items-end justify-start overflow-hidden pb-20">
           <div className="absolute inset-0 z-0">
@@ -333,28 +330,46 @@ export default async function DynamicStorefront({
             )}
             <div className="absolute inset-0 bg-linear-to-t from-black via-black/50 to-transparent opacity-90" />
           </div>
+          
           <div className="container mx-auto px-6 relative z-10">
-            <div className={`max-w-3xl ${theme.cardStyle === 'bg-transparent border-none shadow-none' ? '' : `p-8 backdrop-blur-sm bg-black/20 border-l-4 ${theme.useBrandAccent ? `border-${brandColor}` : 'border-white'}`}`}>
+            
+            {/* The Master Container that holds both the floating logo and the card */}
+            <div className="relative max-w-3xl mt-32"> 
               
-              {hasValidLogo ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={store.brand_logo} alt={store.business_name} className="h-20 md:h-28 w-auto object-contain mb-6 drop-shadow-2xl" />
-              ) : (
-                <h2 className={`${theme.accentText} ${accentColorClass} mb-4`}>
-                  {theme.prefix}{store.business_name}
-                </h2>
+              {/* THE STAMPED LOGO: Broken out of the flow, positioned absolutely over the border */}
+              {hasValidLogo && (
+                <div className="absolute -top-16 md:-top-24 left-4 md:left-8 z-20 pointer-events-none">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img 
+                    src={store.brand_logo} 
+                    alt={store.business_name} 
+                    className="h-28 md:h-40 w-auto object-contain drop-shadow-[0_15px_15px_rgba(0,0,0,0.8)] origin-bottom-left" 
+                  />
+                </div>
               )}
 
-              <h1 className={`${theme.primaryText} text-white text-5xl md:text-7xl mb-6`}>
-                {store.tagline}
-              </h1>
-              <p className="text-xl mb-10 leading-relaxed font-light text-zinc-300 max-w-xl">
-                {store.subtext}
-              </p>
-              
-              <a href={exploreLink} className={`inline-block ${theme.buttonStyle}`}>
-                {heroButtonText}
-              </a>
+              {/* THE TEXT CARD: Added extra top padding (pt-12) to make room for the overlap */}
+              <div className={`${theme.cardStyle === 'bg-transparent border-none shadow-none' ? '' : `p-8 pt-16 md:pt-20 backdrop-blur-md bg-black/40 border-l-4 ${theme.useBrandAccent ? `border-${brandColor}` : 'border-white'} shadow-2xl`} relative z-10`}>
+                
+                {/* Fallback Text if there is no logo uploaded */}
+                {!hasValidLogo && (
+                  <h2 className={`${theme.accentText} ${accentColorClass} mb-4`}>
+                    {theme.prefix}{store.business_name}
+                  </h2>
+                )}
+
+                <h1 className={`${theme.primaryText} text-white text-5xl md:text-7xl mb-6`}>
+                  {store.tagline}
+                </h1>
+                <p className="text-xl mb-10 leading-relaxed font-light text-zinc-300 max-w-xl">
+                  {store.subtext}
+                </p>
+                
+                <a href={exploreLink} className={`inline-block ${theme.buttonStyle}`}>
+                  {heroButtonText}
+                </a>
+              </div>
+
             </div>
           </div>
         </section>
