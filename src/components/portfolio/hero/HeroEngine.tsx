@@ -26,6 +26,21 @@ export interface HeroEngineProps {
   lineAccent: string;
 }
 
+// Utility to parse the raw hex color from our Theme Definition strings
+// This allows us to generate a perfect fade no matter what vibe is selected
+const getRawBgColor = (pageBg: string, isLightMode: boolean) => {
+  if (pageBg.includes('#')) {
+    const match = pageBg.match(/#([0-9a-fA-F]{3,6})/);
+    return match ? match[0] : (isLightMode ? '#ffffff' : '#000000');
+  }
+  if (pageBg.includes('zinc-950')) return '#09090b';
+  if (pageBg.includes('zinc-50')) return '#fafafa';
+  if (pageBg.includes('yellow-400')) return '#facc15';
+  if (pageBg.includes('black')) return '#000000';
+  if (pageBg.includes('white')) return '#ffffff';
+  return isLightMode ? '#ffffff' : '#000000';
+};
+
 export default function HeroEngine({
   layout,
   store,
@@ -45,11 +60,9 @@ export default function HeroEngine({
     ? 'relative z-10'
     : 'p-8 pt-20 md:pt-24 md:pr-24 bg-gradient-to-r from-black/95 via-black/60 to-transparent border-l-4 relative z-10 ' + cinematicBorderClass;
 
-  const splitPanelClass = isHeroFixed
-    ? 'w-full md:w-1/2 flex items-center justify-center p-8 md:p-16 lg:p-24 relative z-10 bg-black/75 backdrop-blur-xl border-r border-white/10 shadow-2xl'
-    : `w-full md:w-1/2 flex items-center justify-center p-8 md:p-16 lg:p-24 relative z-10 ${theme.pageBg}`;
+  const rawBgColor = getRawBgColor(theme.pageBg, theme.isLightMode);
 
-  // NEW LOGIC: Dynamic Logo Size Mapper
+  // Dynamic Logo Size Mapper
   const getLogoClasses = (size: string | undefined, isSplit: boolean) => {
     const base = "w-auto max-w-full object-contain drop-shadow-2xl transition-all duration-300";
     const placement = isSplit ? "mb-6 origin-left" : "mx-auto mb-8";
@@ -95,7 +108,6 @@ export default function HeroEngine({
                 <h2 className={`${theme.accentText} ${accentColorClass} mb-6 drop-shadow-md`}>{theme.prefix}{store.business_name}</h2>
               )}
               
-              {/* THE FIX: Reeled the H1 size down from 7xl/8xl to a refined 5xl/6xl */}
               <h1 className={`${theme.primaryText} text-4xl md:text-5xl lg:text-6xl mb-6 drop-shadow-sm max-w-4xl mx-auto`}>{store.tagline}</h1>
               <p className={`text-lg md:text-xl mb-10 max-w-2xl mx-auto opacity-90 ${theme.bodyText}`}>{store.subtext}</p>
               <a href={exploreLink} className={`inline-block ${theme.buttonStyle} ${buttonBgClass}`}>{heroButtonText}</a>
@@ -107,9 +119,20 @@ export default function HeroEngine({
       {/* LAYOUT 2: SPLIT-LEFT */}
       {layout === 'split-left' && (
         <section id="hero" className={`relative min-h-[90vh] w-full flex flex-col md:flex-row ${theme.pageBg}`}>
-          <div className={splitPanelClass}>
+          
+          {isHeroFixed && (
+            <>
+              {/* Full screen locked image */}
+              <div className="absolute inset-0 z-0 w-full h-full bg-cover bg-center bg-fixed" style={{ backgroundImage: `url('${store.hero_image}')` }} />
+              {/* Dynamic seamless fade gradient over the image */}
+              <div className="absolute inset-0 z-0 pointer-events-none hidden md:block" style={{ background: `linear-gradient(to right, ${rawBgColor} 0%, ${rawBgColor}F2 40%, transparent 65%)` }} />
+              {/* Mobile text-fade anchor */}
+              <div className="absolute inset-0 z-0 pointer-events-none md:hidden" style={{ background: `linear-gradient(to bottom, ${rawBgColor} 0%, ${rawBgColor}F2 65%, transparent 100%)` }} />
+            </>
+          )}
+
+          <div className={isHeroFixed ? "w-full md:w-1/2 lg:w-5/12 flex items-center p-8 md:p-16 lg:p-24 relative z-10" : `w-full md:w-1/2 flex items-center justify-center p-8 md:p-16 lg:p-24 relative z-10 ${theme.pageBg}`}>
             <div className="w-full max-w-xl text-left">
-              
               {hasValidLogo ? (
                 <>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -126,26 +149,34 @@ export default function HeroEngine({
               <a href={exploreLink} className={`inline-block ${theme.buttonStyle} ${buttonBgClass}`}>{heroButtonText}</a>
             </div>
           </div>
-          <div className="w-full md:w-1/2 h-[50vh] md:h-auto relative overflow-hidden">
-             {isHeroFixed ? (
-               <div className="absolute inset-0 w-full h-full bg-cover bg-center bg-fixed" style={{ backgroundImage: `url('${store.hero_image}')` }} />
-             ) : (
-               <>
-                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                 <img src={store.hero_image} alt={store.business_name} className="absolute inset-0 w-full h-full object-cover object-center" />
-               </>
-             )}
-             {!isHeroFixed && <div className={`absolute inset-0 bg-linear-to-r from-${theme.pageBg.replace('bg-', '')} via-transparent to-transparent opacity-50 hidden md:block`} />}
-          </div>
+
+          {!isHeroFixed && (
+            <div className="w-full md:w-1/2 h-[50vh] md:h-auto relative overflow-hidden">
+               {/* eslint-disable-next-line @next/next/no-img-element */}
+               <img src={store.hero_image} alt={store.business_name} className="absolute inset-0 w-full h-full object-cover object-center" />
+               <div className="absolute inset-0 pointer-events-none hidden md:block" style={{ background: `linear-gradient(to right, ${rawBgColor} 0%, transparent 20%)` }} />
+            </div>
+          )}
         </section>
       )}
 
       {/* LAYOUT 3: SPLIT-RIGHT */}
       {layout === 'split-right' && (
         <section id="hero" className={`relative min-h-[90vh] w-full flex flex-col md:flex-row-reverse ${theme.pageBg}`}>
-          <div className={splitPanelClass}>
+          
+          {isHeroFixed && (
+            <>
+              {/* Full screen locked image */}
+              <div className="absolute inset-0 z-0 w-full h-full bg-cover bg-center bg-fixed" style={{ backgroundImage: `url('${store.hero_image}')` }} />
+              {/* Dynamic seamless fade gradient over the image (from right to left) */}
+              <div className="absolute inset-0 z-0 pointer-events-none hidden md:block" style={{ background: `linear-gradient(to left, ${rawBgColor} 0%, ${rawBgColor}F2 40%, transparent 65%)` }} />
+              {/* Mobile text-fade anchor */}
+              <div className="absolute inset-0 z-0 pointer-events-none md:hidden" style={{ background: `linear-gradient(to bottom, ${rawBgColor} 0%, ${rawBgColor}F2 65%, transparent 100%)` }} />
+            </>
+          )}
+
+          <div className={isHeroFixed ? "w-full md:w-1/2 lg:w-5/12 flex items-center p-8 md:p-16 lg:p-24 relative z-10" : `w-full md:w-1/2 flex items-center justify-center p-8 md:p-16 lg:p-24 relative z-10 ${theme.pageBg}`}>
             <div className="w-full max-w-xl text-left">
-              
               {hasValidLogo ? (
                 <>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -162,17 +193,14 @@ export default function HeroEngine({
               <a href={exploreLink} className={`inline-block ${theme.buttonStyle} ${buttonBgClass}`}>{heroButtonText}</a>
             </div>
           </div>
-          <div className="w-full md:w-1/2 h-[50vh] md:h-auto relative overflow-hidden">
-             {isHeroFixed ? (
-               <div className="absolute inset-0 w-full h-full bg-cover bg-center bg-fixed" style={{ backgroundImage: `url('${store.hero_image}')` }} />
-             ) : (
-               <>
-                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                 <img src={store.hero_image} alt={store.business_name} className="absolute inset-0 w-full h-full object-cover object-center" />
-               </>
-             )}
-             {!isHeroFixed && <div className={`absolute inset-0 bg-linear-to-l from-${theme.pageBg.replace('bg-', '')} via-transparent to-transparent opacity-50 hidden md:block`} />}
-          </div>
+
+          {!isHeroFixed && (
+            <div className="w-full md:w-1/2 h-[50vh] md:h-auto relative overflow-hidden">
+               {/* eslint-disable-next-line @next/next/no-img-element */}
+               <img src={store.hero_image} alt={store.business_name} className="absolute inset-0 w-full h-full object-cover object-center" />
+               <div className="absolute inset-0 pointer-events-none hidden md:block" style={{ background: `linear-gradient(to left, ${rawBgColor} 0%, transparent 20%)` }} />
+            </div>
+          )}
         </section>
       )}
 
