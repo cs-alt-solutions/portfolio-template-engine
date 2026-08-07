@@ -26,8 +26,6 @@ export interface HeroEngineProps {
   lineAccent: string;
 }
 
-// Utility to parse the raw hex color from our Theme Definition strings
-// This allows us to generate a perfect fade no matter what vibe is selected
 const getRawBgColor = (pageBg: string, isLightMode: boolean) => {
   if (pageBg.includes('#')) {
     const match = pageBg.match(/#([0-9a-fA-F]{3,6})/);
@@ -62,7 +60,6 @@ export default function HeroEngine({
 
   const rawBgColor = getRawBgColor(theme.pageBg, theme.isLightMode);
 
-  // Dynamic Logo Size Mapper
   const getLogoClasses = (size: string | undefined, isSplit: boolean) => {
     const base = "w-auto max-w-full object-contain drop-shadow-2xl transition-all duration-300";
     const placement = isSplit ? "mb-6 origin-left" : "mx-auto mb-8";
@@ -108,8 +105,13 @@ export default function HeroEngine({
                 <h2 className={`${theme.accentText} ${accentColorClass} mb-6 drop-shadow-md`}>{theme.prefix}{store.business_name}</h2>
               )}
               
-              <h1 className={`${theme.primaryText} text-4xl md:text-5xl lg:text-6xl mb-6 drop-shadow-sm max-w-4xl mx-auto`}>{store.tagline}</h1>
-              <p className={`text-lg md:text-xl mb-10 max-w-2xl mx-auto opacity-90 ${theme.bodyText}`}>{store.subtext}</p>
+              {/* THE FIX: Shrunk text-4xl/5xl and added text-balance */}
+              <h1 className={`${theme.primaryText} text-3xl md:text-4xl lg:text-5xl mb-6 drop-shadow-sm max-w-3xl mx-auto text-balance`}>
+                {store.tagline}
+              </h1>
+              <p className={`text-lg md:text-xl mb-10 max-w-2xl mx-auto opacity-90 text-balance ${theme.bodyText}`}>
+                {store.subtext}
+              </p>
               <a href={exploreLink} className={`inline-block ${theme.buttonStyle} ${buttonBgClass}`}>{heroButtonText}</a>
             </div>
           </div>
@@ -122,11 +124,8 @@ export default function HeroEngine({
           
           {isHeroFixed && (
             <>
-              {/* Full screen locked image */}
               <div className="absolute inset-0 z-0 w-full h-full bg-cover bg-center bg-fixed" style={{ backgroundImage: `url('${store.hero_image}')` }} />
-              {/* Dynamic seamless fade gradient over the image */}
               <div className="absolute inset-0 z-0 pointer-events-none hidden md:block" style={{ background: `linear-gradient(to right, ${rawBgColor} 0%, ${rawBgColor}F2 40%, transparent 65%)` }} />
-              {/* Mobile text-fade anchor */}
               <div className="absolute inset-0 z-0 pointer-events-none md:hidden" style={{ background: `linear-gradient(to bottom, ${rawBgColor} 0%, ${rawBgColor}F2 65%, transparent 100%)` }} />
             </>
           )}
@@ -144,8 +143,12 @@ export default function HeroEngine({
                 </h2>
               )}
               
-              <h1 className={`${theme.primaryText} text-4xl md:text-5xl lg:text-6xl mb-6`}>{store.tagline}</h1>
-              <p className={`text-lg mb-10 ${theme.bodyText}`}>{store.subtext}</p>
+              <h1 className={`${theme.primaryText} text-3xl md:text-4xl lg:text-5xl mb-6 text-balance`}>
+                {store.tagline}
+              </h1>
+              <p className={`text-base md:text-lg mb-10 text-balance ${theme.bodyText}`}>
+                {store.subtext}
+              </p>
               <a href={exploreLink} className={`inline-block ${theme.buttonStyle} ${buttonBgClass}`}>{heroButtonText}</a>
             </div>
           </div>
@@ -166,11 +169,8 @@ export default function HeroEngine({
           
           {isHeroFixed && (
             <>
-              {/* Full screen locked image */}
               <div className="absolute inset-0 z-0 w-full h-full bg-cover bg-center bg-fixed" style={{ backgroundImage: `url('${store.hero_image}')` }} />
-              {/* Dynamic seamless fade gradient over the image (from right to left) */}
               <div className="absolute inset-0 z-0 pointer-events-none hidden md:block" style={{ background: `linear-gradient(to left, ${rawBgColor} 0%, ${rawBgColor}F2 40%, transparent 65%)` }} />
-              {/* Mobile text-fade anchor */}
               <div className="absolute inset-0 z-0 pointer-events-none md:hidden" style={{ background: `linear-gradient(to bottom, ${rawBgColor} 0%, ${rawBgColor}F2 65%, transparent 100%)` }} />
             </>
           )}
@@ -188,8 +188,12 @@ export default function HeroEngine({
                 </h2>
               )}
               
-              <h1 className={`${theme.primaryText} text-4xl md:text-5xl lg:text-6xl mb-6`}>{store.tagline}</h1>
-              <p className={`text-lg mb-10 ${theme.bodyText}`}>{store.subtext}</p>
+              <h1 className={`${theme.primaryText} text-3xl md:text-4xl lg:text-5xl mb-6 text-balance`}>
+                {store.tagline}
+              </h1>
+              <p className={`text-base md:text-lg mb-10 text-balance ${theme.bodyText}`}>
+                {store.subtext}
+              </p>
               <a href={exploreLink} className={`inline-block ${theme.buttonStyle} ${buttonBgClass}`}>{heroButtonText}</a>
             </div>
           </div>
@@ -232,8 +236,13 @@ export default function HeroEngine({
                 {!hasValidLogo && (
                   <h2 className={`${theme.accentText} ${accentColorClass} mb-3`}>{theme.prefix}{store.business_name}</h2>
                 )}
-                <h1 className={`${theme.primaryText} text-white text-3xl md:text-4xl lg:text-5xl mb-4 leading-tight relative z-10`}>{store.tagline}</h1>
-                <p className="text-base md:text-lg mb-8 leading-relaxed font-light text-zinc-300 max-w-lg relative z-10">{store.subtext}</p>
+                
+                <h1 className={`${theme.primaryText} text-white text-2xl md:text-3xl lg:text-4xl mb-4 leading-tight relative z-10 text-balance`}>
+                  {store.tagline}
+                </h1>
+                <p className="text-base md:text-lg mb-8 leading-relaxed font-light text-zinc-300 max-w-lg relative z-10 text-balance">
+                  {store.subtext}
+                </p>
                 <a href={exploreLink} className={`inline-block relative z-10 ${theme.buttonStyle}`}>{heroButtonText}</a>
               </div>
             </div>
@@ -268,8 +277,12 @@ export default function HeroEngine({
               </>
             )}
             
-            <h1 className={`${theme.primaryText} text-4xl md:text-5xl lg:text-6xl mb-6 text-white drop-shadow-lg max-w-4xl mx-auto`}>{store.tagline || store.business_name}</h1>
-            <p className="text-base md:text-xl text-zinc-200 max-w-2xl mb-10 drop-shadow-md leading-relaxed font-light">{store.subtext}</p>
+            <h1 className={`${theme.primaryText} text-3xl md:text-4xl lg:text-5xl mb-6 text-white drop-shadow-lg max-w-3xl mx-auto text-balance`}>
+              {store.tagline || store.business_name}
+            </h1>
+            <p className="text-base md:text-xl text-zinc-200 max-w-2xl mb-10 drop-shadow-md leading-relaxed font-light text-balance">
+              {store.subtext}
+            </p>
             <div className="flex flex-col sm:flex-row gap-5 w-full justify-center">
               <a href={exploreLink} className={`px-10 py-4 font-bold uppercase tracking-widest text-xs transition-all duration-300 shadow-xl bg-${brandColor} text-black hover:scale-105 ${theme.buttonStyle}`}>{heroButtonText}</a>
             </div>

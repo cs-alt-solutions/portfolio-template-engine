@@ -37,11 +37,12 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   return {
     title: `${store.business_name} | ${store.tagline || 'Custom Solutions'}`,
     description: store.tagline,
-    icons: hasLogo ? {
-      icon: store.brand_logo,
-      shortcut: store.brand_logo,
-      apple: store.brand_logo,
-    } : undefined,
+    // EXPLICIT ICON OVERRIDE: Forcing Next.js to use the uploaded logo
+    icons: hasLogo ? [
+      { rel: 'icon', url: store.brand_logo },
+      { rel: 'apple-touch-icon', url: store.brand_logo },
+      { rel: 'shortcut icon', url: store.brand_logo }
+    ] : undefined,
   };
 }
 
@@ -123,7 +124,6 @@ export default async function DynamicStorefront({
   return (
     <main className={`min-h-screen flex flex-col selection:bg-cyan-500/30 ${theme.pageBg} relative`}>
       
-      {/* THE ARCHITECTURAL WIN: The Hero Engine is fully isolated */}
       <HeroEngine 
         layout={layout}
         store={store}
@@ -138,7 +138,6 @@ export default async function DynamicStorefront({
         lineAccent={lineAccent}
       />
 
-      {/* --- ABOUT SECTION --- */}
       {hasAbout && (
         <div id="about" className="container mx-auto px-6 py-20">
           <AboutSection 
@@ -156,7 +155,6 @@ export default async function DynamicStorefront({
         </div>
       )}
 
-      {/* --- CINEMATIC PARALLAX WINDOW --- */}
       {isHeroFixed && store.hero_image && (
         <div className="relative w-full h-[30vh] md:h-[40vh] border-y border-white/10 overflow-hidden shadow-[inset_0_0_100px_rgba(0,0,0,0.8)]">
           <div className="absolute inset-0 w-full h-full bg-cover bg-center bg-fixed opacity-50" style={{ backgroundImage: `url('${store.hero_image}')` }} />
@@ -164,7 +162,6 @@ export default async function DynamicStorefront({
         </div>
       )}
 
-      {/* --- THE CONTENT ENGINE --- */}
       <div id="portfolio">
         <ContentEngine 
           layout={store.content_layout || 'classic'}
@@ -180,7 +177,6 @@ export default async function DynamicStorefront({
 
       <StorefrontClientActions store={store} brandColor={brandColor} isLightMode={theme.isLightMode} themeStyle={store.theme_style} />
 
-      {/* POWERED BY ALTERNATIVE SOLUTIONS BAR */}
       <footer className="w-full py-8 px-6 border-t border-white/10 bg-zinc-950 text-[11px] font-mono text-zinc-500 uppercase tracking-widest flex flex-col md:flex-row items-center justify-between gap-6 relative z-20">
         <div className="flex items-center gap-4">
           {hasValidLogo && (
