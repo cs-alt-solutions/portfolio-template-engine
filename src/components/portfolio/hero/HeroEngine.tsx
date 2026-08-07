@@ -8,6 +8,7 @@ export interface StorefrontHeroData {
   subtext?: string;
   hero_image?: string;
   brand_logo?: string;
+  logo_size?: string;
   [key: string]: unknown;
 }
 
@@ -39,11 +40,30 @@ export default function HeroEngine({
   lineAccent
 }: HeroEngineProps) {
   
-  // The refined Cinematic gradient logic isolated safely in the Engine
   const cinematicBorderClass = theme.useBrandAccent ? 'border-' + brandColor : 'border-white';
   const cinematicCardClass = theme.cardStyle === 'bg-transparent border-none shadow-none'
     ? 'relative z-10'
-    : 'p-8 pt-24 md:pt-32 md:pr-24 bg-gradient-to-r from-black/95 via-black/60 to-transparent border-l-4 relative z-10 ' + cinematicBorderClass;
+    : 'p-8 pt-20 md:pt-24 md:pr-24 bg-gradient-to-r from-black/95 via-black/60 to-transparent border-l-4 relative z-10 ' + cinematicBorderClass;
+
+  const splitPanelClass = isHeroFixed
+    ? 'w-full md:w-1/2 flex items-center justify-center p-8 md:p-16 lg:p-24 relative z-10 bg-black/75 backdrop-blur-xl border-r border-white/10 shadow-2xl'
+    : `w-full md:w-1/2 flex items-center justify-center p-8 md:p-16 lg:p-24 relative z-10 ${theme.pageBg}`;
+
+  // NEW LOGIC: Dynamic Logo Size Mapper
+  const getLogoClasses = (size: string | undefined, isSplit: boolean) => {
+    const base = "w-auto max-w-full object-contain drop-shadow-2xl transition-all duration-300";
+    const placement = isSplit ? "mb-6 origin-left" : "mx-auto mb-8";
+    
+    switch(size) {
+      case 'small': return `h-12 md:h-16 lg:h-20 ${base} ${placement}`;
+      case 'medium': return `h-16 md:h-24 lg:h-32 ${base} ${placement}`;
+      case 'massive': return `h-32 md:h-56 lg:h-72 ${base} ${placement}`;
+      case 'large':
+      default: return `h-24 md:h-40 lg:h-48 ${base} ${placement}`;
+    }
+  };
+
+  const logoSizePref = store.logo_size || 'large';
 
   return (
     <>
@@ -65,16 +85,19 @@ export default function HeroEngine({
           <div className="container mx-auto px-4 relative z-10 flex flex-col items-center mt-12">
             <div className={`w-full max-w-4xl text-center p-8 md:p-16 relative overflow-hidden group ${theme.cardStyle}`}>
               {theme.useBrandAccent && <div className={`absolute top-0 left-0 w-full h-1.5 ${lineAccent}`} />}
+              
               {hasValidLogo ? (
                 <>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={store.brand_logo} alt={store.business_name} className="h-32 md:h-48 lg:h-56 w-auto max-w-full object-contain mx-auto mb-8 drop-shadow-2xl" />
+                  <img src={store.brand_logo} alt={store.business_name} className={getLogoClasses(logoSizePref, false)} />
                 </>
               ) : (
                 <h2 className={`${theme.accentText} ${accentColorClass} mb-6 drop-shadow-md`}>{theme.prefix}{store.business_name}</h2>
               )}
-              <h1 className={`${theme.primaryText} text-5xl md:text-7xl lg:text-8xl mb-8 drop-shadow-sm max-w-5xl mx-auto`}>{store.tagline}</h1>
-              <p className={`text-lg md:text-xl mb-12 max-w-2xl mx-auto opacity-90 ${theme.bodyText}`}>{store.subtext}</p>
+              
+              {/* THE FIX: Reeled the H1 size down from 7xl/8xl to a refined 5xl/6xl */}
+              <h1 className={`${theme.primaryText} text-4xl md:text-5xl lg:text-6xl mb-6 drop-shadow-sm max-w-4xl mx-auto`}>{store.tagline}</h1>
+              <p className={`text-lg md:text-xl mb-10 max-w-2xl mx-auto opacity-90 ${theme.bodyText}`}>{store.subtext}</p>
               <a href={exploreLink} className={`inline-block ${theme.buttonStyle} ${buttonBgClass}`}>{heroButtonText}</a>
             </div>
           </div>
@@ -84,19 +107,21 @@ export default function HeroEngine({
       {/* LAYOUT 2: SPLIT-LEFT */}
       {layout === 'split-left' && (
         <section id="hero" className={`relative min-h-[90vh] w-full flex flex-col md:flex-row ${theme.pageBg}`}>
-          <div className="w-full md:w-1/2 flex items-center justify-center p-8 md:p-16 lg:p-24 relative z-10">
+          <div className={splitPanelClass}>
             <div className="w-full max-w-xl text-left">
+              
               {hasValidLogo ? (
                 <>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={store.brand_logo} alt={store.business_name} className="h-28 md:h-40 lg:h-48 w-auto max-w-full object-contain mb-8 drop-shadow-2xl origin-left" />
+                  <img src={store.brand_logo} alt={store.business_name} className={getLogoClasses(logoSizePref, true)} />
                 </>
               ) : (
                 <h2 className={`${theme.accentText} ${accentColorClass} mb-4 flex items-center gap-4`}>
                   <div className={`h-px w-12 ${lineAccent}`} /> {theme.prefix}{store.business_name}
                 </h2>
               )}
-              <h1 className={`${theme.primaryText} text-5xl md:text-6xl lg:text-7xl mb-6`}>{store.tagline}</h1>
+              
+              <h1 className={`${theme.primaryText} text-4xl md:text-5xl lg:text-6xl mb-6`}>{store.tagline}</h1>
               <p className={`text-lg mb-10 ${theme.bodyText}`}>{store.subtext}</p>
               <a href={exploreLink} className={`inline-block ${theme.buttonStyle} ${buttonBgClass}`}>{heroButtonText}</a>
             </div>
@@ -110,7 +135,7 @@ export default function HeroEngine({
                  <img src={store.hero_image} alt={store.business_name} className="absolute inset-0 w-full h-full object-cover object-center" />
                </>
              )}
-             <div className={`absolute inset-0 bg-linear-to-r from-${theme.pageBg.replace('bg-', '')} via-transparent to-transparent opacity-50 hidden md:block`} />
+             {!isHeroFixed && <div className={`absolute inset-0 bg-linear-to-r from-${theme.pageBg.replace('bg-', '')} via-transparent to-transparent opacity-50 hidden md:block`} />}
           </div>
         </section>
       )}
@@ -118,19 +143,21 @@ export default function HeroEngine({
       {/* LAYOUT 3: SPLIT-RIGHT */}
       {layout === 'split-right' && (
         <section id="hero" className={`relative min-h-[90vh] w-full flex flex-col md:flex-row-reverse ${theme.pageBg}`}>
-          <div className="w-full md:w-1/2 flex items-center justify-center p-8 md:p-16 lg:p-24 relative z-10">
+          <div className={splitPanelClass}>
             <div className="w-full max-w-xl text-left">
+              
               {hasValidLogo ? (
                 <>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={store.brand_logo} alt={store.business_name} className="h-28 md:h-40 lg:h-48 w-auto max-w-full object-contain mb-8 drop-shadow-2xl origin-left" />
+                  <img src={store.brand_logo} alt={store.business_name} className={getLogoClasses(logoSizePref, true)} />
                 </>
               ) : (
                 <h2 className={`${theme.accentText} ${accentColorClass} mb-4 flex items-center gap-4`}>
                   <div className={`h-px w-12 ${lineAccent}`} /> {theme.prefix}{store.business_name}
                 </h2>
               )}
-              <h1 className={`${theme.primaryText} text-5xl md:text-6xl lg:text-7xl mb-6`}>{store.tagline}</h1>
+              
+              <h1 className={`${theme.primaryText} text-4xl md:text-5xl lg:text-6xl mb-6`}>{store.tagline}</h1>
               <p className={`text-lg mb-10 ${theme.bodyText}`}>{store.subtext}</p>
               <a href={exploreLink} className={`inline-block ${theme.buttonStyle} ${buttonBgClass}`}>{heroButtonText}</a>
             </div>
@@ -144,7 +171,7 @@ export default function HeroEngine({
                  <img src={store.hero_image} alt={store.business_name} className="absolute inset-0 w-full h-full object-cover object-center" />
                </>
              )}
-             <div className={`absolute inset-0 bg-linear-to-l from-${theme.pageBg.replace('bg-', '')} via-transparent to-transparent opacity-50 hidden md:block`} />
+             {!isHeroFixed && <div className={`absolute inset-0 bg-linear-to-l from-${theme.pageBg.replace('bg-', '')} via-transparent to-transparent opacity-50 hidden md:block`} />}
           </div>
         </section>
       )}
@@ -165,17 +192,19 @@ export default function HeroEngine({
           </div>
           <div className="container mx-auto px-6 relative z-10">
             <div className="relative max-w-4xl mt-32"> 
+              
               {hasValidLogo && (
-                <div className="absolute -top-20 md:-top-32 left-4 md:left-8 z-20 pointer-events-none">
+                <div className="absolute -top-16 md:-top-24 left-4 md:left-8 z-20 pointer-events-none">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={store.brand_logo} alt={store.business_name} className="h-32 md:h-56 w-auto object-contain drop-shadow-2xl origin-bottom-left" />
+                  <img src={store.brand_logo} alt={store.business_name} className={`${getLogoClasses(logoSizePref, true).replace('mb-6', 'mb-0')} origin-bottom-left`} />
                 </div>
               )}
+              
               <div className={cinematicCardClass}>
                 {!hasValidLogo && (
                   <h2 className={`${theme.accentText} ${accentColorClass} mb-3`}>{theme.prefix}{store.business_name}</h2>
                 )}
-                <h1 className={`${theme.primaryText} text-white text-3xl md:text-5xl mb-4 leading-tight relative z-10`}>{store.tagline}</h1>
+                <h1 className={`${theme.primaryText} text-white text-3xl md:text-4xl lg:text-5xl mb-4 leading-tight relative z-10`}>{store.tagline}</h1>
                 <p className="text-base md:text-lg mb-8 leading-relaxed font-light text-zinc-300 max-w-lg relative z-10">{store.subtext}</p>
                 <a href={exploreLink} className={`inline-block relative z-10 ${theme.buttonStyle}`}>{heroButtonText}</a>
               </div>
@@ -203,13 +232,15 @@ export default function HeroEngine({
             <div className="absolute inset-0 bg-zinc-950/40" />
           </div>
           <div className="relative z-10 w-full max-w-5xl mx-auto p-10 md:p-16 bg-white/5 backdrop-blur-2xl border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)] flex flex-col items-center justify-center text-center rounded-4xl">
+            
             {hasValidLogo && (
               <>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={store.brand_logo} alt={store.business_name} className="h-32 md:h-48 lg:h-56 w-auto max-w-full object-contain mx-auto mb-8 drop-shadow-2xl" />
+                <img src={store.brand_logo} alt={store.business_name} className={getLogoClasses(logoSizePref, false)} />
               </>
             )}
-            <h1 className={`${theme.primaryText} text-4xl md:text-6xl lg:text-7xl mb-6 text-white drop-shadow-lg max-w-4xl mx-auto`}>{store.tagline || store.business_name}</h1>
+            
+            <h1 className={`${theme.primaryText} text-4xl md:text-5xl lg:text-6xl mb-6 text-white drop-shadow-lg max-w-4xl mx-auto`}>{store.tagline || store.business_name}</h1>
             <p className="text-base md:text-xl text-zinc-200 max-w-2xl mb-10 drop-shadow-md leading-relaxed font-light">{store.subtext}</p>
             <div className="flex flex-col sm:flex-row gap-5 w-full justify-center">
               <a href={exploreLink} className={`px-10 py-4 font-bold uppercase tracking-widest text-xs transition-all duration-300 shadow-xl bg-${brandColor} text-black hover:scale-105 ${theme.buttonStyle}`}>{heroButtonText}</a>
