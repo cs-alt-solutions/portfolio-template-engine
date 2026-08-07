@@ -9,6 +9,7 @@ export interface StorefrontHeroData {
   hero_image?: string;
   brand_logo?: string;
   logo_size?: string;
+  hero_position?: string; 
   [key: string]: unknown;
 }
 
@@ -60,12 +61,10 @@ export default function HeroEngine({
 
   const rawBgColor = getRawBgColor(theme.pageBg, theme.isLightMode);
 
-  // THE FIX: Layout-aware logo spacing to tighten the gap between logo and H1
   const getLogoClasses = (size: string | undefined, layoutType: string) => {
     const base = "w-auto max-w-full object-contain drop-shadow-2xl transition-all duration-300";
     let placement = "";
 
-    // Drastically tightened bottom margins (mb) so the tagline hugs the brand mark
     if (layoutType === 'center' || layoutType === 'glass') {
       placement = "mx-auto mb-2 md:mb-3"; 
     } else if (layoutType === 'cinematic') {
@@ -85,18 +84,36 @@ export default function HeroEngine({
 
   const logoSizePref = store.logo_size || 'large';
 
+  const positionClassMap: Record<string, string> = {
+    'top': 'object-top',
+    'center': 'object-center',
+    'bottom': 'object-bottom',
+    'left': 'object-left',
+    'right': 'object-right',
+  };
+
+  const bgPositionMap: Record<string, string> = {
+    'top': 'top center',
+    'center': 'center center',
+    'bottom': 'bottom center',
+    'left': 'center left',
+    'right': 'center right',
+  };
+
+  const activePosition = positionClassMap[store.hero_position || 'center'];
+  const activeBgPosition = bgPositionMap[store.hero_position || 'center'];
+
   return (
     <>
-      {/* LAYOUT 1: CENTERED */}
       {layout === 'center' && (
         <section id="hero" className="relative min-h-[95vh] w-full flex items-center justify-center overflow-hidden">
           <div className="absolute inset-0 z-0">
             {isHeroFixed ? (
-              <div className="w-full h-full bg-cover bg-center bg-fixed opacity-50" style={{ backgroundImage: `url('${store.hero_image}')` }} />
+              <div className="w-full h-full bg-cover bg-fixed opacity-50" style={{ backgroundImage: `url('${store.hero_image}')`, backgroundPosition: activeBgPosition }} />
             ) : (
               <>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={store.hero_image} alt={store.business_name} className="w-full h-full object-cover object-center scale-105 opacity-50" />
+                <img src={store.hero_image} alt={store.business_name} className={`w-full h-full object-cover scale-105 opacity-50 ${activePosition}`} />
               </>
             )}
           </div>
@@ -127,13 +144,12 @@ export default function HeroEngine({
         </section>
       )}
 
-      {/* LAYOUT 2: SPLIT-LEFT */}
       {layout === 'split-left' && (
         <section id="hero" className={`relative min-h-[90vh] w-full flex flex-col md:flex-row ${theme.pageBg}`}>
           
           {isHeroFixed && (
             <>
-              <div className="absolute inset-0 z-0 w-full h-full bg-cover bg-center bg-fixed" style={{ backgroundImage: `url('${store.hero_image}')` }} />
+              <div className="absolute inset-0 z-0 w-full h-full bg-cover bg-fixed" style={{ backgroundImage: `url('${store.hero_image}')`, backgroundPosition: activeBgPosition }} />
               <div className="absolute inset-0 z-0 pointer-events-none hidden md:block" style={{ background: `linear-gradient(to right, ${rawBgColor} 0%, ${rawBgColor}F2 40%, transparent 65%)` }} />
               <div className="absolute inset-0 z-0 pointer-events-none md:hidden" style={{ background: `linear-gradient(to bottom, ${rawBgColor} 0%, ${rawBgColor}F2 65%, transparent 100%)` }} />
             </>
@@ -165,20 +181,19 @@ export default function HeroEngine({
           {!isHeroFixed && (
             <div className="w-full md:w-1/2 h-[50vh] md:h-auto relative overflow-hidden">
                {/* eslint-disable-next-line @next/next/no-img-element */}
-               <img src={store.hero_image} alt={store.business_name} className="absolute inset-0 w-full h-full object-cover object-center" />
+               <img src={store.hero_image} alt={store.business_name} className={`absolute inset-0 w-full h-full object-cover ${activePosition}`} />
                <div className="absolute inset-0 pointer-events-none hidden md:block" style={{ background: `linear-gradient(to right, ${rawBgColor} 0%, transparent 20%)` }} />
             </div>
           )}
         </section>
       )}
 
-      {/* LAYOUT 3: SPLIT-RIGHT */}
       {layout === 'split-right' && (
         <section id="hero" className={`relative min-h-[90vh] w-full flex flex-col md:flex-row-reverse ${theme.pageBg}`}>
           
           {isHeroFixed && (
             <>
-              <div className="absolute inset-0 z-0 w-full h-full bg-cover bg-center bg-fixed" style={{ backgroundImage: `url('${store.hero_image}')` }} />
+              <div className="absolute inset-0 z-0 w-full h-full bg-cover bg-fixed" style={{ backgroundImage: `url('${store.hero_image}')`, backgroundPosition: activeBgPosition }} />
               <div className="absolute inset-0 z-0 pointer-events-none hidden md:block" style={{ background: `linear-gradient(to left, ${rawBgColor} 0%, ${rawBgColor}F2 40%, transparent 65%)` }} />
               <div className="absolute inset-0 z-0 pointer-events-none md:hidden" style={{ background: `linear-gradient(to bottom, ${rawBgColor} 0%, ${rawBgColor}F2 65%, transparent 100%)` }} />
             </>
@@ -210,23 +225,22 @@ export default function HeroEngine({
           {!isHeroFixed && (
             <div className="w-full md:w-1/2 h-[50vh] md:h-auto relative overflow-hidden">
                {/* eslint-disable-next-line @next/next/no-img-element */}
-               <img src={store.hero_image} alt={store.business_name} className="absolute inset-0 w-full h-full object-cover object-center" />
+               <img src={store.hero_image} alt={store.business_name} className={`absolute inset-0 w-full h-full object-cover ${activePosition}`} />
                <div className="absolute inset-0 pointer-events-none hidden md:block" style={{ background: `linear-gradient(to left, ${rawBgColor} 0%, transparent 20%)` }} />
             </div>
           )}
         </section>
       )}
 
-      {/* LAYOUT 4: CINEMATIC */}
       {layout === 'cinematic' && (
         <section id="hero" className="relative min-h-screen w-full flex items-end justify-start overflow-hidden pb-20">
           <div className="absolute inset-0 z-0">
             {isHeroFixed ? (
-              <div className="w-full h-full bg-cover bg-center bg-fixed" style={{ backgroundImage: `url('${store.hero_image}')` }} />
+              <div className="w-full h-full bg-cover bg-fixed" style={{ backgroundImage: `url('${store.hero_image}')`, backgroundPosition: activeBgPosition }} />
             ) : (
               <>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={store.hero_image} alt={store.business_name} className="w-full h-full object-cover object-center scale-105" />
+                <img src={store.hero_image} alt={store.business_name} className={`w-full h-full object-cover scale-105 ${activePosition}`} />
               </>
             )}
             <div className="absolute inset-0 bg-linear-to-t from-black via-black/50 to-transparent opacity-90" />
@@ -259,17 +273,16 @@ export default function HeroEngine({
         </section>
       )}
 
-      {/* LAYOUT 5: GLASS CENTER */}
       {layout === 'glass' && (
         <section id="hero" className="relative w-full min-h-[90vh] flex items-center justify-center p-6 md:p-12 overflow-hidden bg-zinc-950">
           <div className="absolute inset-0 z-0">
             {store.hero_image ? (
               isHeroFixed ? (
-                <div className="w-full h-full bg-cover bg-center bg-fixed opacity-80" style={{ backgroundImage: `url('${store.hero_image}')` }} />
+                <div className="w-full h-full bg-cover bg-fixed opacity-80" style={{ backgroundImage: `url('${store.hero_image}')`, backgroundPosition: activeBgPosition }} />
               ) : (
                 <>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={store.hero_image} alt={store.business_name || 'Background'} className="w-full h-full object-cover opacity-80" />
+                  <img src={store.hero_image} alt={store.business_name || 'Background'} className={`w-full h-full object-cover opacity-80 ${activePosition}`} />
                 </>
               )
             ) : (

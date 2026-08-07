@@ -37,7 +37,6 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   return {
     title: `${store.business_name} | ${store.tagline || 'Custom Solutions'}`,
     description: store.tagline,
-    // EXPLICIT ICON OVERRIDE: Forcing Next.js to use the uploaded logo
     icons: hasLogo ? [
       { rel: 'icon', url: store.brand_logo },
       { rel: 'apple-touch-icon', url: store.brand_logo },
@@ -99,7 +98,8 @@ export default async function DynamicStorefront({
   const buttonBgClass = theme.useBrandAccent ? `bg-${brandColor} text-zinc-950 hover:opacity-80 border-none` : `bg-${brandColor} text-zinc-950`;
   const lineAccent = theme.useBrandAccent ? `bg-${brandColor}` : 'bg-current';
 
-  const exploreLink = '#gallery';
+  // THE FIX: Changed from '#portfolio' to '#gallery'
+  const exploreLink = '#gallery'; 
   const hasAbout = !!store.about_bio || !!store.about_image || !!store.about_heading;
   const galleryTitle = store.gallery_heading || STOREFRONT_DEFAULTS.GALLERY_HEADING || "Featured Work";
   const heroButtonText = `View ${galleryTitle}`;
