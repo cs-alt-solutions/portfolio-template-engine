@@ -60,9 +60,19 @@ export default function HeroEngine({
 
   const rawBgColor = getRawBgColor(theme.pageBg, theme.isLightMode);
 
-  const getLogoClasses = (size: string | undefined, isSplit: boolean) => {
+  // THE FIX: Layout-aware logo spacing to tighten the gap between logo and H1
+  const getLogoClasses = (size: string | undefined, layoutType: string) => {
     const base = "w-auto max-w-full object-contain drop-shadow-2xl transition-all duration-300";
-    const placement = isSplit ? "mb-6 origin-left" : "mx-auto mb-8";
+    let placement = "";
+
+    // Drastically tightened bottom margins (mb) so the tagline hugs the brand mark
+    if (layoutType === 'center' || layoutType === 'glass') {
+      placement = "mx-auto mb-2 md:mb-3"; 
+    } else if (layoutType === 'cinematic') {
+      placement = "mb-0 origin-bottom-left";
+    } else {
+      placement = "mb-3 md:mb-4 origin-left"; 
+    }
     
     switch(size) {
       case 'small': return `h-12 md:h-16 lg:h-20 ${base} ${placement}`;
@@ -99,13 +109,12 @@ export default function HeroEngine({
               {hasValidLogo ? (
                 <>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={store.brand_logo} alt={store.business_name} className={getLogoClasses(logoSizePref, false)} />
+                  <img src={store.brand_logo} alt={store.business_name} className={getLogoClasses(logoSizePref, 'center')} />
                 </>
               ) : (
                 <h2 className={`${theme.accentText} ${accentColorClass} mb-6 drop-shadow-md`}>{theme.prefix}{store.business_name}</h2>
               )}
               
-              {/* THE FIX: Shrunk text-4xl/5xl and added text-balance */}
               <h1 className={`${theme.primaryText} text-3xl md:text-4xl lg:text-5xl mb-6 drop-shadow-sm max-w-3xl mx-auto text-balance`}>
                 {store.tagline}
               </h1>
@@ -135,7 +144,7 @@ export default function HeroEngine({
               {hasValidLogo ? (
                 <>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={store.brand_logo} alt={store.business_name} className={getLogoClasses(logoSizePref, true)} />
+                  <img src={store.brand_logo} alt={store.business_name} className={getLogoClasses(logoSizePref, 'split')} />
                 </>
               ) : (
                 <h2 className={`${theme.accentText} ${accentColorClass} mb-4 flex items-center gap-4`}>
@@ -180,7 +189,7 @@ export default function HeroEngine({
               {hasValidLogo ? (
                 <>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={store.brand_logo} alt={store.business_name} className={getLogoClasses(logoSizePref, true)} />
+                  <img src={store.brand_logo} alt={store.business_name} className={getLogoClasses(logoSizePref, 'split')} />
                 </>
               ) : (
                 <h2 className={`${theme.accentText} ${accentColorClass} mb-4 flex items-center gap-4`}>
@@ -228,7 +237,7 @@ export default function HeroEngine({
               {hasValidLogo && (
                 <div className="absolute -top-16 md:-top-24 left-4 md:left-8 z-20 pointer-events-none">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={store.brand_logo} alt={store.business_name} className={`${getLogoClasses(logoSizePref, true).replace('mb-6', 'mb-0')} origin-bottom-left`} />
+                  <img src={store.brand_logo} alt={store.business_name} className={getLogoClasses(logoSizePref, 'cinematic')} />
                 </div>
               )}
               
@@ -273,7 +282,7 @@ export default function HeroEngine({
             {hasValidLogo && (
               <>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={store.brand_logo} alt={store.business_name} className={getLogoClasses(logoSizePref, false)} />
+                <img src={store.brand_logo} alt={store.business_name} className={getLogoClasses(logoSizePref, 'glass')} />
               </>
             )}
             
