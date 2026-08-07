@@ -99,7 +99,7 @@ export default async function DynamicStorefront({
   const buttonBgClass = theme.useBrandAccent ? `bg-${brandColor} text-zinc-950 hover:opacity-80 border-none` : `bg-${brandColor} text-zinc-950`;
   const lineAccent = theme.useBrandAccent ? `bg-${brandColor}` : 'bg-current';
 
-  const exploreLink = '#portfolio';
+  const exploreLink = '#gallery';
   const hasAbout = !!store.about_bio || !!store.about_image || !!store.about_heading;
   const galleryTitle = store.gallery_heading || STOREFRONT_DEFAULTS.GALLERY_HEADING || "Featured Work";
   const heroButtonText = `View ${galleryTitle}`;
