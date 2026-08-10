@@ -55,6 +55,7 @@ export default function StagingReviewOverlay({ store }: { store: StorefrontData 
   const [notes, setNotes] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
+  const [isApproved, setIsApproved] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
 
   const handleUpdateNote = (note: string) => {
@@ -76,43 +77,67 @@ export default function StagingReviewOverlay({ store }: { store: StorefrontData 
       });
 
       const hasNotes = Object.keys(sectionNotes).length > 0;
+      const clientApproved = !hasNotes;
+      setIsApproved(clientApproved);
 
-      // 🚨 THE OMNI-CHANNEL TELEPORT 🚨
-      // If the client submitted zero notes, they are approving the site!
-      if (!hasNotes) {
-        const storeId = store.id || store.slug;
-        const targetUrl = process.env.NODE_ENV === 'development' 
-            ? `http://localhost:3000/api/storefronts/approve?id=${storeId}`
-            : `https://alternativesolutions.io/api/storefronts/approve?id=${storeId}`;
-            
-        window.location.href = targetUrl;
-        return; // Halt execution so the browser can redirect
-      }
-
-      // If they left notes, we submit the audit ledger for you to review
+      // 1. ALWAYS submit the audit ledger first so we have legal proof of sign-off
       const response = await submitStagingAudit({
         storefrontSlug: store.slug,
         businessName: (store.business_name as string) || 'Client',
         contactEmail: contactEmail,
         sectionNotes: sectionNotes,
         completedSteps: completedSteps,
-        status: 'CHANGES_REQUESTED'
+        status: clientApproved ? 'APPROVED' : 'CHANGES_REQUESTED',
+        planTier: store.plan_tier || store.selected_plan
       });
 
       if (!response.success) throw new Error(response.error);
 
+      // 2. THE OMNI-CHANNEL TELEPORT (If Approved)
+      if (clientApproved) {
+        setIsFinished(true); // Triggers the "Approving Architecture" loading UI
+        
+        const storeId = store.id || store.slug;
+        const targetUrl = process.env.NODE_ENV === 'development' 
+            ? `http://localhost:3000/api/storefronts/approve?id=${storeId}`
+            : `https://alternativesolutions.io/api/storefronts/approve?id=${storeId}`;
+            
+        // We leave isSubmitting as true so the loader keeps spinning while Stripe thinks
+        window.location.href = targetUrl;
+        return; 
+      }
+
+      // 3. If they left notes, show the standard "Changes Requested" UI
       setIsFinished(true);
+      setIsSubmitting(false);
+
     } catch (error) {
       console.error('Failed to submit review:', error);
       alert('Transmission failed. Please ensure your connection is stable and try again.');
-    } finally {
       setIsSubmitting(false);
-    }
+    } 
   };
 
-  // --- THE "CHANGES REQUESTED" UI ---
-  // (Only triggers if they actually submitted revision notes)
+  // --- FINISHED STATES UI ---
   if (isFinished) {
+    // STATE A: They Approved it (Waiting for Stripe)
+    if (isApproved) {
+       return (
+         <div className="fixed bottom-6 right-6 z-50 bg-zinc-950 border border-emerald-500/50 p-6 rounded-2xl shadow-2xl flex flex-col gap-4 w-[320px] animate-in fade-in slide-in-from-bottom-4">
+           <div className="flex items-center gap-3">
+             <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center border border-emerald-500/30">
+               <CheckCircle2 className="w-4 h-4 text-emerald-500 animate-pulse" />
+             </div>
+             <h3 className="text-white font-black uppercase tracking-widest text-sm">Approving Layout...</h3>
+           </div>
+           <p className="text-zinc-400 text-xs font-light leading-relaxed">
+             Legal sign-off recorded. Generating your secure Stripe checkout link. Please wait...
+           </p>
+         </div>
+       );
+    }
+
+    // STATE B: They Requested Changes (Minimized state)
     if (isMinimized) {
       return (
         <button 
@@ -125,10 +150,10 @@ export default function StagingReviewOverlay({ store }: { store: StorefrontData 
       );
     }
 
+    // STATE C: They Requested Changes (Expanded state)
     return (
-      <div className="fixed bottom-6 right-6 z-50 bg-zinc-950 border border-zinc-800 p-6 rounded-2xl shadow-2xl flex flex-col gap-5 w-85 animate-in fade-in slide-in-from-bottom-4">
+      <div className="fixed bottom-6 right-6 z-50 bg-zinc-950 border border-zinc-800 p-6 rounded-2xl shadow-2xl flex flex-col gap-5 w-[320px] animate-in fade-in slide-in-from-bottom-4">
         
-        {/* Header */}
         <div className="flex justify-between items-start">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-full bg-fuchsia-500/20 flex items-center justify-center border border-fuchsia-500/30">
@@ -141,7 +166,6 @@ export default function StagingReviewOverlay({ store }: { store: StorefrontData 
           </button>
         </div>
         
-        {/* Clean, punchy body */}
         <div className="space-y-3">
           <p className="text-zinc-400 text-sm font-light">
             Your requested adjustments have been securely logged to the engineering bay.
@@ -154,7 +178,6 @@ export default function StagingReviewOverlay({ store }: { store: StorefrontData 
           </div>
         </div>
 
-        {/* Action Buttons */}
         <div className="flex flex-col gap-2 pt-2">
           <button 
             onClick={() => setIsMinimized(true)}
@@ -167,6 +190,7 @@ export default function StagingReviewOverlay({ store }: { store: StorefrontData 
     );
   }
 
+  // --- DEFAULT WIDGET UI ---
   return (
     <div className="fixed bottom-6 right-6 z-50">
       <StagingAuditCard
