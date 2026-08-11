@@ -123,7 +123,7 @@ export default function StagingReviewOverlay({ store }: { store: StorefrontData 
     // STATE A: They Approved it (Waiting for Stripe)
     if (isApproved) {
        return (
-         <div className="fixed bottom-6 right-6 z-50 bg-zinc-950 border border-emerald-500/50 p-6 rounded-2xl shadow-2xl flex flex-col gap-4 w-[320px] animate-in fade-in slide-in-from-bottom-4">
+         <div className="fixed bottom-6 right-6 z-50 bg-zinc-950 border border-emerald-500/50 p-6 rounded-2xl shadow-2xl flex flex-col gap-4 w-80 animate-in fade-in slide-in-from-bottom-4">
            <div className="flex items-center gap-3">
              <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center border border-emerald-500/30">
                <CheckCircle2 className="w-4 h-4 text-emerald-500 animate-pulse" />
@@ -152,7 +152,7 @@ export default function StagingReviewOverlay({ store }: { store: StorefrontData 
 
     // STATE C: They Requested Changes (Expanded state)
     return (
-      <div className="fixed bottom-6 right-6 z-50 bg-zinc-950 border border-zinc-800 p-6 rounded-2xl shadow-2xl flex flex-col gap-5 w-[320px] animate-in fade-in slide-in-from-bottom-4">
+      <div className="fixed bottom-6 right-6 z-50 bg-zinc-950 border border-zinc-800 p-6 rounded-2xl shadow-2xl flex flex-col gap-5 w-80 animate-in fade-in slide-in-from-bottom-4">
         
         <div className="flex justify-between items-start">
           <div className="flex items-center gap-3">
@@ -192,7 +192,27 @@ export default function StagingReviewOverlay({ store }: { store: StorefrontData 
 
   // --- DEFAULT WIDGET UI ---
   return (
-    <div className="fixed bottom-6 right-6 z-50">
+    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-4">
+      
+      {/* NEW: Dynamic Sign-Off Disclaimer that only appears on the very last step! */}
+      {currentStep === REVIEW_STEPS.length - 1 && (
+        <div className="bg-cyan-500/10 border border-cyan-500/30 rounded-xl p-6 shadow-2xl backdrop-blur-md animate-in fade-in slide-in-from-bottom-4 w-80 sm:w-100">
+          <div className="flex items-start gap-4">
+            <div className="p-2 bg-cyan-500/20 rounded-lg shrink-0">
+              <CheckCircle2 className="w-5 h-5 text-cyan-400" />
+            </div>
+            <div>
+              <h4 className="text-cyan-400 font-bold tracking-widest text-sm uppercase mb-1">
+                Architecture Sign-Off
+              </h4>
+              <p className="text-zinc-300 text-xs leading-relaxed">
+                By clicking &quot;Finish Review&quot;, you are officially signing off on this build. You will be securely routed to Stripe to activate your <strong>$5/mo hosting &amp; infrastructure subscription</strong>. Once activated, we will flip the switch and your site will be live.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <StagingAuditCard
         step={REVIEW_STEPS[currentStep]}
         currentStepIndex={currentStep}
