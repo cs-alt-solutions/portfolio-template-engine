@@ -1,4 +1,3 @@
-// src/app/[slug]/page.tsx
 import React, { SVGProps } from 'react';
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
@@ -98,7 +97,7 @@ export default async function DynamicStorefront({
   const buttonBgClass = theme.useBrandAccent ? `bg-${brandColor} text-zinc-950 hover:opacity-80 border-none` : `bg-${brandColor} text-zinc-950`;
   const lineAccent = theme.useBrandAccent ? `bg-${brandColor}` : 'bg-current';
 
-  // THE FIX: Changed from '#portfolio' to '#gallery'
+  // THE FIX: Anchors perfectly to the gallery div below
   const exploreLink = '#gallery'; 
   const hasAbout = !!store.about_bio || !!store.about_image || !!store.about_heading;
   const galleryTitle = store.gallery_heading || STOREFRONT_DEFAULTS.GALLERY_HEADING || "Featured Work";
@@ -162,7 +161,8 @@ export default async function DynamicStorefront({
         </div>
       )}
 
-      <div id="portfolio">
+      {/* THE FIX: ID perfectly matches the exploreLink! */}
+      <div id="gallery">
         <ContentEngine 
           layout={store.content_layout || 'classic'}
           themeStyle={store.theme_style}

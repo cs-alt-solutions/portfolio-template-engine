@@ -1,4 +1,3 @@
-// src/actions/submitStagingAudit.ts (PORTFOLIO-TEMPLATE-ENGINE REPO)
 'use server';
 
 import { supabase } from '@/utils/supabase';
@@ -14,7 +13,6 @@ export interface StagingAuditPayload {
   planTier?: string;
 }
 
-// ⚡ Add explicit response typing so StagingReviewOverlay knows 'warning' is valid!
 export interface StagingAuditResponse {
   success: boolean;
   auditId?: string | number;
@@ -39,7 +37,12 @@ export async function submitStagingAudit(payload: StagingAuditPayload): Promise<
       plan_tier: payload.planTier || 'Standard Starter'
     };
 
-    // 1. Drop the audit payload into our Supabase Ledger
+    // THE FIX: Combine the notes into a clean string for the Repo A webhook to read!
+    const combinedNotes = isApproved 
+      ? null 
+      : Object.values(payload.sectionNotes).join("\n\n");
+
+    // 1. Drop the audit payload into our Supabase Ledger WITH the exact webhook fields
     const { data, error: dbError } = await supabase
       .from('storefront_audits')
       .insert([
@@ -47,6 +50,9 @@ export async function submitStagingAudit(payload: StagingAuditPayload): Promise<
           storefront_slug: payload.storefrontSlug,
           business_name: payload.businessName,
           client_email: payload.contactEmail,
+          client_name: payload.contactName || 'Founder', 
+          plan_tier: payload.planTier || 'Standard Starter', 
+          notes: combinedNotes, // <-- The Webhook can now read this!
           audit_notes: JSON.stringify(historicalAuditTrail, null, 2),
           status: isApproved ? 'APPROVED_PENDING_BILLING' : 'CHANGES_REQUESTED',
         },
