@@ -15,7 +15,6 @@ export default function MarketplaceDirectory() {
         <img 
           src="/logo.png" 
           alt="Alternative Solutions Background"
-          // FIX: Shrunk from 150vw to 80vw on mobile, and capped at max-w-2xl so it never gets absurdly huge
           className="w-[80vw] md:w-[40vw] max-w-2xl object-contain grayscale mix-blend-screen opacity-10"
         />
       </div>
@@ -29,12 +28,13 @@ export default function MarketplaceDirectory() {
 
       <div className="relative z-10 pt-32 pb-24">
         {/* Welcome Header */}
-        <div className="text-center max-w-4xl mx-auto px-6 mb-20">
+        <div className="text-center max-w-5xl mx-auto px-6 mb-20">
           
-          <h1 className="text-5xl sm:text-7xl lg:text-9xl font-black uppercase tracking-tight leading-none drop-shadow-[0_0_25px_rgba(34,211,238,0.15)] mb-6">
-            {/* FIX: Wrapped in a span with pb-4 (padding-bottom) so the tail of the 'P' doesn't get chopped off by the bg-clip */}
-            <span className="text-transparent bg-clip-text bg-linear-to-r from-cyan-400 to-fuchsia-400 inline-block pb-4">
-              Marketplace
+          {/* FIX: Used flex justify-center to guarantee perfect centering */}
+          {/* Adjusted text sizing (text-4xl to 7xl) to accommodate the longer "Digital Storefronts" phrase */}
+          <h1 className="flex justify-center text-4xl sm:text-6xl lg:text-8xl font-black uppercase tracking-tight leading-none drop-shadow-[0_0_25px_rgba(34,211,238,0.15)] mb-6">
+            <span className="text-transparent bg-clip-text bg-linear-to-r from-cyan-400 to-fuchsia-400 pb-4 px-2">
+              Digital Storefronts
             </span>
           </h1>
           
