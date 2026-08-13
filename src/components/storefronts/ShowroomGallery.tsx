@@ -4,7 +4,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { StorefrontData } from './LiveRoster';
-import { Sparkles, BriefcaseBusiness } from 'lucide-react'; // Removed Mail icon
+import { Sparkles, BriefcaseBusiness } from 'lucide-react';
 
 export default function ShowroomGallery({ sites }: { sites: StorefrontData[] }) {
   const [activeFilter, setActiveFilter] = useState('All Builds');
@@ -24,7 +24,6 @@ export default function ShowroomGallery({ sites }: { sites: StorefrontData[] }) 
     );
   }
 
-  // Fallback to production engine if local env var is missing
   const engineUrl = process.env.NEXT_PUBLIC_ENGINE_URL || 'https://storefronts.alternativesolutions.io';
 
   return (
@@ -62,66 +61,67 @@ export default function ShowroomGallery({ sites }: { sites: StorefrontData[] }) 
             const rawServices = (site.capabilities as { title?: string; description?: string }[]) || [];
             const servicesToShow = Array.isArray(rawServices) ? rawServices.slice(0, 4) : [];
             
-            // Determine the absolute URL to bounce them to Repo B (or their custom domain)
             const targetUrl = site.custom_domain 
               ? `https://${site.custom_domain}` 
               : `${engineUrl}/${site.slug}`;
 
-            // Clean up the URL just for the visual display on the card
             const displayUrl = site.custom_domain 
               ? (site.custom_domain as string)
               : `${engineUrl.replace('https://', '')}/${site.slug}`;
 
-            const mediaContent = hasLogo ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={site.brand_logo as string} alt={site.business_name as string} className="max-w-[70%] max-h-[70%] object-contain filter drop-shadow-2xl transition-transform duration-700 group-hover:scale-110" />
-            ) : hasHero ? (
-              <div className="absolute inset-0 w-full h-full">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={site.hero_image as string} alt={site.business_name as string} className="w-full h-full object-cover opacity-60" />
-              </div>
-            ) : (
-              <div className="text-9xl font-black text-zinc-800/50"> {initial} </div>
-            );
-
             return (
               <div key={site.id as string} className="group relative h-88 w-full rounded-2xl">
                 
-                {/* 3D Rotation Wrapper */}
                 <div className="relative w-full h-full transition-transform duration-700 transform-3d group-hover:transform-[rotateY(180deg)]">
                   
                   {/* --- FRONT FACE --- */}
+                  {/* FIX: Removed the outer p-6 so the image has full bounds */}
                   <a 
                     href={targetUrl} 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="absolute inset-0 w-full h-full rounded-2xl overflow-hidden border border-zinc-800/50 bg-[#0a0a0c] p-6 flex flex-col justify-between backface-hidden cursor-pointer"
+                    className="absolute inset-0 w-full h-full rounded-2xl overflow-hidden border border-zinc-800/50 bg-[#0a0a0c] backface-hidden cursor-pointer"
                   >
                     <div className="absolute top-4 right-4 z-30 flex items-center gap-2 bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/5">
                       <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: pulseColor, boxShadow: `0 0 12px ${pulseColor}` }} />
                       <span className="text-[10px] font-bold tracking-widest text-zinc-300 uppercase">Live</span>
                     </div>
 
-                    <div className="absolute inset-0 flex items-center justify-center p-8 overflow-hidden z-10">
-                      {mediaContent}
-                    </div>
+                    {/* --- DYNAMIC MEDIA LAYER --- */}
+                    {hasLogo ? (
+                      // FIX: Shrunk to 60% and pushed UP (pb-16) so the bottom gradient never covers it
+                      <div className="absolute inset-0 flex items-center justify-center px-6 pb-16 z-10">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={site.brand_logo as string} alt={site.business_name as string} className="max-w-[60%] max-h-[60%] object-contain filter drop-shadow-2xl transition-transform duration-700 group-hover:scale-105" />
+                      </div>
+                    ) : hasHero ? (
+                      <div className="absolute inset-0 w-full h-full z-10">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={site.hero_image as string} alt={site.business_name as string} className="w-full h-full object-cover opacity-60 transition-transform duration-700 group-hover:scale-105" />
+                      </div>
+                    ) : (
+                      <div className="absolute inset-0 flex items-center justify-center pb-16 z-10">
+                        <div className="text-8xl font-black text-zinc-800/50 transition-colors duration-500 group-hover:text-zinc-700"> {initial} </div>
+                      </div>
+                    )}
 
-                    <div className="absolute inset-x-0 bottom-0 p-6 bg-linear-to-t from-[#050505] via-black/90 to-transparent z-20">
-                      <h3 className="text-xl font-bold text-white mb-1">
+                    {/* FIX: Tighter gradient and slightly smaller font to let the image shine */}
+                    <div className="absolute inset-x-0 bottom-0 p-5 pt-16 bg-linear-to-t from-[#050505] via-[#050505]/90 to-transparent z-20">
+                      <h3 className="text-lg font-bold text-white mb-0.5">
                         {site.business_name as string}
                       </h3>
-                      <p className="text-sm text-zinc-300 line-clamp-2">
+                      <p className="text-xs text-zinc-300 line-clamp-2">
                         {site.tagline as string || "View Live Storefront"}
                       </p>
                       {site.industry_tag && (
-                        <span className="inline-block mt-3 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-zinc-400 bg-zinc-800/50 rounded border border-zinc-700/50">
+                        <span className="inline-block mt-2 px-2 py-1 text-[9px] font-bold uppercase tracking-wider text-zinc-400 bg-zinc-800/50 rounded border border-zinc-700/50">
                           {site.industry_tag as string}
                         </span>
                       )}
                     </div>
                   </a>
 
-                  {/* --- BACK FACE (The Real Business Card) --- */}
+                  {/* --- BACK FACE --- */}
                   <div className="absolute inset-0 w-full h-full rounded-2xl border border-zinc-800 bg-[#0c0d10] p-7 flex flex-col justify-between backface-hidden transform-[rotateY(180deg)] shadow-xl shadow-cyan-500/5">
                     
                     <div className="flex items-center gap-3">
@@ -134,7 +134,6 @@ export default function ShowroomGallery({ sites }: { sites: StorefrontData[] }) 
                       </div>
                     </div>
 
-                    {/* --- THE REAL CAPABILITIES --- */}
                     <div className="flex-1 pt-6 pb-4 overflow-hidden">
                       <p className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest mb-3 flex items-center gap-2">
                         <Sparkles className="w-3.5 h-3.5" style={{ color: pulseColor }} />
@@ -157,7 +156,6 @@ export default function ShowroomGallery({ sites }: { sites: StorefrontData[] }) 
                       </div>
                     </div>
 
-                    {/* --- CENTERED VISIT SITE BUTTON --- */}
                     <div className="border-t border-zinc-800/80 pt-4 flex justify-center">
                       <a 
                         href={targetUrl}

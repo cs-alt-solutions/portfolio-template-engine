@@ -17,7 +17,7 @@ export interface StorefrontData {
   brand_color?: string;
   brand_logo?: string;
   tagline?: string;
-  industry_tag?: string; // Ensured our new column is perfectly typed
+  industry_tag?: string; 
   [key: string]: unknown;
 }
 
@@ -36,7 +36,8 @@ export default async function LiveRoster() {
   const liveSites = storefrontsData || [];
 
   return (
-    <section className="py-24 relative overflow-hidden bg-[#050505]">
+    // FIX: Removed bg-[#050505] and overflow-hidden so the watermark shines through
+    <section className="py-24 relative">
       {/* Deep Space Ambient Glows */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-200 h-200 bg-indigo-500/5 rounded-full blur-[120px] pointer-events-none mix-blend-screen" />
       <div className="absolute top-1/4 right-1/4 w-150 h-150 bg-fuchsia-500/5 rounded-full blur-[100px] pointer-events-none mix-blend-screen" />
