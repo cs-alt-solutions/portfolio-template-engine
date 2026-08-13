@@ -25,8 +25,8 @@ export default function MarketplaceDirectory() {
               Marketplace
             </span>
           </h1>
-          <p className="text-lg md:text-xl text-zinc-400 font-light leading-relaxed max-w-2xl mx-auto">
-            Explore live digital storefronts crafted for everyday visionaries, makers, and local businesses running on the Alternative Solutions grid.
+          <p className="text-lg md:text-xl text-zinc-400 font-light leading-relaxed max-w-3xl mx-auto">
+            Explore live digital storefronts crafted by visionaries, makers, and local businesses. A sanctuary for independent creators—from holistic wellness guides to construction and candle making. Discover the authentic stories and services powering our community.
           </p>
         </div>
 
