@@ -93,13 +93,9 @@ export default function ShowroomCard({ site }: { site: StorefrontData }) {
         </p>
 
         {/* Interaction Footer */}
-        <div className="flex items-center justify-between border-t border-white/5 pt-5 mt-auto">
-          <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest">
-            {site.theme_style || 'CUSTOM'}
-          </span>
-          
+        <div className="flex items-center justify-end border-t border-white/5 pt-5 mt-auto">
           <div className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider transition-colors duration-300" style={{ color: 'var(--brand-color)' }}>
-            Inspect
+            Visit Site
             <ArrowRight className="w-4 h-4 transform group-hover:translate-x-1.5 transition-transform duration-300" />
           </div>
         </div>
