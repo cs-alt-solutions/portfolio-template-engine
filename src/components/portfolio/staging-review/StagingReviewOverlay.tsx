@@ -8,7 +8,7 @@ import { submitStagingAudit } from '@/actions/submitStagingAudit';
 
 // Strict typing interface to replace 'any'
 export interface StorefrontData {
-  id?: string; // Required for the approval API trigger!
+  id?: string;
   slug: string;
   business_name?: string;
   contact_email?: string;
@@ -41,7 +41,7 @@ export default function StagingReviewOverlay({ store }: { store: StorefrontData 
        id: 'portfolio',
        title: 'The Work',
        description: 'Review your services or gallery. Make sure the layout showcases what you do best.',
-       targetId: 'portfolio'
+       targetId: 'gallery' // 🚨 THE FIX: Changed from 'portfolio' to 'gallery' so the smooth scroll finds it!
      },
     {
       id: 'routing',
@@ -80,7 +80,6 @@ export default function StagingReviewOverlay({ store }: { store: StorefrontData 
       const clientApproved = !hasNotes;
       setIsApproved(clientApproved);
 
-      // 1. ALWAYS submit the audit ledger first so we have legal proof of sign-off
       const response = await submitStagingAudit({
         storefrontSlug: store.slug,
         businessName: (store.business_name as string) || 'Client',
@@ -94,21 +93,18 @@ export default function StagingReviewOverlay({ store }: { store: StorefrontData 
 
       if (!response.success) throw new Error(response.error);
 
-      // 2. THE OMNI-CHANNEL TELEPORT (If Approved)
       if (clientApproved) {
-        setIsFinished(true); // Triggers the loading UI
+        setIsFinished(true); 
         
         const storeId = store.id || store.slug;
         const targetUrl = process.env.NODE_ENV === 'development' 
             ? `http://localhost:3000/api/storefronts/approve?id=${storeId}`
             : `https://alternativesolutions.io/api/storefronts/approve?id=${storeId}`;
             
-        // We leave isSubmitting as true so the loader keeps spinning while Stripe thinks
         window.location.href = targetUrl;
         return; 
       }
 
-      // 3. If they left notes, show the standard "Changes Requested" UI
       setIsFinished(true);
       setIsSubmitting(false);
 
@@ -119,12 +115,10 @@ export default function StagingReviewOverlay({ store }: { store: StorefrontData 
     } 
   };
 
-  // --- FINISHED STATES UI ---
   if (isFinished) {
-    // STATE A: They Approved it (Waiting for Stripe)
     if (isApproved) {
        return (
-         <div className="fixed bottom-6 right-6 z-50 bg-zinc-950 border border-emerald-500/50 p-6 rounded-2xl shadow-2xl flex flex-col gap-4 w-80 animate-in fade-in slide-in-from-bottom-4">
+         <div className="fixed bottom-6 right-6 z-50 bg-zinc-950 border border-emerald-500/50 p-6 rounded-2xl shadow-2xl flex flex-col gap-4 w-[320px] animate-in fade-in slide-in-from-bottom-4">
            <div className="flex items-center gap-3">
              <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center border border-emerald-500/30">
                <CheckCircle2 className="w-4 h-4 text-emerald-500 animate-pulse" />
@@ -138,7 +132,6 @@ export default function StagingReviewOverlay({ store }: { store: StorefrontData 
        );
     }
 
-    // STATE B: They Requested Changes (Minimized state)
     if (isMinimized) {
       return (
         <button 
@@ -151,10 +144,8 @@ export default function StagingReviewOverlay({ store }: { store: StorefrontData 
       );
     }
 
-    // STATE C: They Requested Changes (Expanded state)
     return (
-      <div className="fixed bottom-6 right-6 z-50 bg-zinc-950 border border-zinc-800 p-6 rounded-2xl shadow-2xl flex flex-col gap-5 w-80 animate-in fade-in slide-in-from-bottom-4">
-        
+      <div className="fixed bottom-6 right-6 z-50 bg-zinc-950 border border-zinc-800 p-6 rounded-2xl shadow-2xl flex flex-col gap-5 w-[320px] animate-in fade-in slide-in-from-bottom-4">
         <div className="flex justify-between items-start">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-full bg-fuchsia-500/20 flex items-center justify-center border border-fuchsia-500/30">
@@ -166,19 +157,16 @@ export default function StagingReviewOverlay({ store }: { store: StorefrontData 
             <Minus size={16} />
           </button>
         </div>
-        
         <div className="space-y-3">
           <p className="text-zinc-400 text-sm font-light">
             Your requested adjustments have been securely logged to the engineering bay.
           </p>
-          
           <div className="p-3 bg-zinc-900 border border-zinc-800 rounded-xl">
             <p className="text-[11px] text-fuchsia-400 font-mono leading-relaxed">
               <strong>NEXT STEPS:</strong> Courtney will review these tweaks, execute the updates, and dispatch a fresh review link to your inbox shortly.
             </p>
           </div>
         </div>
-
         <div className="flex flex-col gap-2 pt-2">
           <button 
             onClick={() => setIsMinimized(true)}
@@ -191,29 +179,8 @@ export default function StagingReviewOverlay({ store }: { store: StorefrontData 
     );
   }
 
-  // --- DEFAULT WIDGET UI ---
   return (
     <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-4">
-      
-      {/* Dynamic Sign-Off Disclaimer that only appears on the very last step! */}
-      {currentStep === REVIEW_STEPS.length - 1 && (
-        <div className="bg-cyan-500/10 border border-cyan-500/30 rounded-xl p-6 shadow-2xl backdrop-blur-md animate-in fade-in slide-in-from-bottom-4 w-80 sm:w-100">
-          <div className="flex items-start gap-4">
-            <div className="p-2 bg-cyan-500/20 rounded-lg shrink-0">
-              <CheckCircle2 className="w-5 h-5 text-cyan-400" />
-            </div>
-            <div>
-              <h4 className="text-cyan-400 font-bold tracking-widest text-sm uppercase mb-1">
-                Checkout & Portal Access
-              </h4>
-              <p className="text-zinc-300 text-xs leading-relaxed">
-                Clicking &quot;Finish Review&quot; will seamlessly route you over to grab your subscription. Once your payment clears, you&apos;ll instantly unlock your private client portal so we can collaborate and finalize everything.
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-
       <StagingAuditCard
         step={REVIEW_STEPS[currentStep]}
         currentStepIndex={currentStep}
@@ -221,7 +188,7 @@ export default function StagingReviewOverlay({ store }: { store: StorefrontData 
         note={notes[REVIEW_STEPS[currentStep].id] || ''}
         onUpdateNote={handleUpdateNote}
         onNext={() => setCurrentStep(prev => Math.min(prev + 1, REVIEW_STEPS.length - 1))}
-        onPrev={() => setCurrentStep(prev => Math.max(prev - 0, 0))}
+        onPrev={() => setCurrentStep(prev => Math.max(prev - 1, 0))} // 🚨 THE FIX: Changed from - 0 to - 1 so the back button actually goes back
         onSubmit={handleSubmit}
         isSubmitting={isSubmitting}
       />
