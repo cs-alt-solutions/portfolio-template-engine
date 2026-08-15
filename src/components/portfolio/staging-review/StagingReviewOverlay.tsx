@@ -12,7 +12,7 @@ export interface StorefrontData {
   slug: string;
   business_name?: string;
   contact_email?: string;
-  contact_name?: string; // 🚨 ADDED: So we can pull the human's name
+  contact_name?: string; 
   is_template?: boolean;
   status?: string;
   stripe_payment_url?: string;
@@ -85,7 +85,7 @@ export default function StagingReviewOverlay({ store }: { store: StorefrontData 
         storefrontSlug: store.slug,
         businessName: (store.business_name as string) || 'Client',
         contactEmail: contactEmail,
-        contactName: (store.contact_name as string) || 'Client', // 🚨 ADDED: Passes the human name to the DB
+        contactName: (store.contact_name as string) || 'Client', 
         sectionNotes: sectionNotes,
         completedSteps: completedSteps,
         status: clientApproved ? 'APPROVED' : 'CHANGES_REQUESTED',
@@ -96,7 +96,7 @@ export default function StagingReviewOverlay({ store }: { store: StorefrontData 
 
       // 2. THE OMNI-CHANNEL TELEPORT (If Approved)
       if (clientApproved) {
-        setIsFinished(true); // Triggers the "Approving Architecture" loading UI
+        setIsFinished(true); // Triggers the loading UI
         
         const storeId = store.id || store.slug;
         const targetUrl = process.env.NODE_ENV === 'development' 
@@ -129,10 +129,10 @@ export default function StagingReviewOverlay({ store }: { store: StorefrontData 
              <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center border border-emerald-500/30">
                <CheckCircle2 className="w-4 h-4 text-emerald-500 animate-pulse" />
              </div>
-             <h3 className="text-white font-black uppercase tracking-widest text-sm">Approving Layout...</h3>
+             <h3 className="text-white font-black uppercase tracking-widest text-sm">Routing to Checkout...</h3>
            </div>
            <p className="text-zinc-400 text-xs font-light leading-relaxed">
-             Legal sign-off recorded. Generating your secure Stripe checkout link. Please wait...
+             Review saved! Generating your secure subscription link and spinning up your portal access...
            </p>
          </div>
        );
@@ -204,10 +204,10 @@ export default function StagingReviewOverlay({ store }: { store: StorefrontData 
             </div>
             <div>
               <h4 className="text-cyan-400 font-bold tracking-widest text-sm uppercase mb-1">
-                Architecture Sign-Off
+                Checkout & Portal Access
               </h4>
               <p className="text-zinc-300 text-xs leading-relaxed">
-                By clicking &quot;Finish Review&quot;, you are officially signing off on this build. You will be securely routed to Stripe to activate your <strong>$5/mo hosting &amp; infrastructure subscription</strong>. Once activated, we will flip the switch and your site will be live.
+                Clicking &quot;Finish Review&quot; will seamlessly route you over to grab your subscription. Once your payment clears, you&apos;ll instantly unlock your private client portal so we can collaborate and finalize everything.
               </p>
             </div>
           </div>
