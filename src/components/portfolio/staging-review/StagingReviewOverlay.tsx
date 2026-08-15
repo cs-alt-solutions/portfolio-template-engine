@@ -1,4 +1,3 @@
-// src/components/staging-review/StagingReviewOverlay.tsx
 'use client';
 
 import React, { useState } from 'react';
@@ -13,6 +12,7 @@ export interface StorefrontData {
   slug: string;
   business_name?: string;
   contact_email?: string;
+  contact_name?: string; // 🚨 ADDED: So we can pull the human's name
   is_template?: boolean;
   status?: string;
   stripe_payment_url?: string;
@@ -85,10 +85,11 @@ export default function StagingReviewOverlay({ store }: { store: StorefrontData 
         storefrontSlug: store.slug,
         businessName: (store.business_name as string) || 'Client',
         contactEmail: contactEmail,
+        contactName: (store.contact_name as string) || 'Client', // 🚨 ADDED: Passes the human name to the DB
         sectionNotes: sectionNotes,
         completedSteps: completedSteps,
         status: clientApproved ? 'APPROVED' : 'CHANGES_REQUESTED',
-        planTier: store.plan_tier || store.selected_plan
+        planTier: (store.plan_tier as string) || (store.selected_plan as string)
       });
 
       if (!response.success) throw new Error(response.error);
@@ -194,7 +195,7 @@ export default function StagingReviewOverlay({ store }: { store: StorefrontData 
   return (
     <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-4">
       
-      {/* NEW: Dynamic Sign-Off Disclaimer that only appears on the very last step! */}
+      {/* Dynamic Sign-Off Disclaimer that only appears on the very last step! */}
       {currentStep === REVIEW_STEPS.length - 1 && (
         <div className="bg-cyan-500/10 border border-cyan-500/30 rounded-xl p-6 shadow-2xl backdrop-blur-md animate-in fade-in slide-in-from-bottom-4 w-80 sm:w-100">
           <div className="flex items-start gap-4">
