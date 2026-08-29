@@ -46,16 +46,22 @@ export const THEME_REGISTRY: Record<string, ThemeDefinition> = {
     radius: "rounded-none"
   },
 
+
   // --- NEO-BRUTALIST ---
   neo: {
     isLightMode: true,
     pageBg: "bg-yellow-400",
-    primaryText: "text-black font-black tracking-tighter leading-none",
-    accentText: "text-black font-black uppercase bg-white px-4 py-2 border-4 border-black inline-block text-xl md:text-3xl shadow-[4px_4px_0_0_#000]",
-    bodyText: "text-black font-medium leading-normal",
-    cardStyle: "bg-white border-4 border-black rounded-xl shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all",
+    // Simulates the outlined text: white fill, heavy black stroke, and a solid black drop shadow
+    primaryText: "text-white font-black tracking-tighter leading-none [text-shadow:-2px_-2px_0_#000,2px_-2px_0_#000,-2px_2px_0_#000,2px_2px_0_#000,6px_6px_0_#000]",
+    // Tilted sticker effect for the accent tag
+    accentText: "text-black font-black uppercase bg-white px-6 py-2 border-4 border-black inline-block text-xl md:text-3xl shadow-[6px_6px_0_0_#000] -rotate-2 mb-4",
+    // Forcing a clashing monospace font and a boxed-in look for the paragraph
+    bodyText: "text-black font-bold font-mono text-sm md:text-base leading-relaxed bg-white border-2 border-black p-4 mt-6 mx-auto inline-block",
+    // The Retro-OS Window Frame with adjusted top padding to accommodate the window bar
+    cardStyle: "bg-white border-4 border-black rounded-none shadow-[16px_16px_0px_0px_rgba(0,0,0,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transition-all duration-200 relative pt-16 md:pt-20 px-6 pb-10 before:content-[''] before:absolute before:top-0 before:left-0 before:w-full before:h-10 before:bg-black after:content-[''] after:absolute after:top-3 after:left-4 after:w-4 after:h-4 after:bg-white after:rounded-full after:shadow-[24px_0_0_0_#fff,48px_0_0_0_#fff]",
     overlayFade: "from-yellow-400/10 via-yellow-400/80 to-yellow-400",
-    buttonStyle: "font-black uppercase text-sm py-4 px-12 border-4 border-black rounded-none shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[0px_0px_0px_0px_rgba(0,0,0,1)] hover:translate-x-1 hover:translate-y-1 transition-all bg-white text-black",
+    // Thick bordered button to match the aesthetic, pushing it down slightly
+    buttonStyle: "font-black uppercase tracking-widest text-sm py-4 px-12 border-4 border-black rounded-none shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-2 hover:translate-y-2 transition-all duration-200 bg-white text-black mt-8",
     prefix: "",
     useBrandAccent: false,
     useBrandTint: false,

@@ -9,7 +9,7 @@ export interface StorefrontHeroData {
   hero_image?: string;
   brand_logo?: string;
   logo_size?: string;
-  hero_position?: string; 
+  hero_position?: string;
   [key: string]: unknown;
 }
 
@@ -53,12 +53,6 @@ export default function HeroEngine({
   buttonBgClass,
   lineAccent
 }: HeroEngineProps) {
-  
-  const cinematicBorderClass = theme.useBrandAccent ? 'border-' + brandColor : 'border-white';
-  const cinematicCardClass = theme.cardStyle === 'bg-transparent border-none shadow-none'
-    ? 'relative z-10'
-    : 'p-8 pt-20 md:pt-24 md:pr-24 bg-gradient-to-r from-black/95 via-black/60 to-transparent border-l-4 relative z-10 ' + cinematicBorderClass;
-
   const rawBgColor = getRawBgColor(theme.pageBg, theme.isLightMode);
 
   const getLogoClasses = (size: string | undefined, layoutType: string) => {
@@ -119,6 +113,7 @@ export default function HeroEngine({
           </div>
           {theme.useBrandTint && <div className={`absolute inset-0 z-0 opacity-20 bg-${brandColor} mix-blend-color`} />}
           <div className={`absolute inset-0 z-0 bg-linear-to-b ${theme.overlayFade}`} />
+
           <div className="container mx-auto px-4 relative z-10 flex flex-col items-center mt-12">
             <div className={`w-full max-w-4xl text-center p-8 md:p-16 relative overflow-hidden group ${theme.cardStyle}`}>
               {theme.useBrandAccent && <div className={`absolute top-0 left-0 w-full h-1.5 ${lineAccent}`} />}
@@ -233,7 +228,7 @@ export default function HeroEngine({
       )}
 
       {layout === 'cinematic' && (
-        <section id="hero" className="relative min-h-screen w-full flex items-end justify-start overflow-hidden pb-20">
+        <section id="hero" className="relative min-h-screen w-full flex items-end justify-start overflow-hidden pb-12 md:pb-24">
           <div className="absolute inset-0 z-0">
             {isHeroFixed ? (
               <div className="w-full h-full bg-cover bg-fixed" style={{ backgroundImage: `url('${store.hero_image}')`, backgroundPosition: activeBgPosition }} />
@@ -243,10 +238,12 @@ export default function HeroEngine({
                 <img src={store.hero_image} alt={store.business_name} className={`w-full h-full object-cover scale-105 ${activePosition}`} />
               </>
             )}
-            <div className="absolute inset-0 bg-linear-to-t from-black via-black/50 to-transparent opacity-90" />
+            {/* The Semi-Transparent Fade */}
+            <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/30 to-transparent opacity-90" />
           </div>
+
           <div className="container mx-auto px-6 relative z-10">
-            <div className="relative max-w-4xl mt-32"> 
+            <div className="relative max-w-4xl mt-32">
               
               {hasValidLogo && (
                 <div className="absolute -top-16 md:-top-24 left-4 md:left-8 z-20 pointer-events-none">
@@ -255,18 +252,24 @@ export default function HeroEngine({
                 </div>
               )}
               
-              <div className={cinematicCardClass}>
+              <div className="relative z-10 flex flex-col items-start pt-8 md:pt-12">
+                
+                {/* 🚨 THE GEOMETRIC ANCHOR: Injects the vibrant theme color into the dark cinematic wash */}
+                <div className={`w-20 md:w-32 h-2 md:h-3 mb-6 md:mb-8 bg-${brandColor} ${theme.radius === 'rounded-none' ? 'rounded-none' : 'rounded-full'}`} />
+
                 {!hasValidLogo && (
                   <h2 className={`${theme.accentText} ${accentColorClass} mb-3`}>{theme.prefix}{store.business_name}</h2>
                 )}
                 
-                <h1 className={`${theme.primaryText} text-white text-2xl md:text-3xl lg:text-4xl mb-4 leading-tight relative z-10 text-balance`}>
+                <h1 className={`${theme.primaryText} text-4xl md:text-5xl lg:text-7xl mb-6 leading-tight relative z-10 text-balance`}>
                   {store.tagline}
                 </h1>
-                <p className="text-base md:text-lg mb-8 leading-relaxed font-light text-zinc-300 max-w-lg relative z-10 text-balance">
+                
+                <p className={`text-lg md:text-xl mb-8 leading-relaxed relative z-10 text-balance max-w-2xl ${theme.bodyText.replace('mx-auto', 'mr-auto')}`}>
                   {store.subtext}
                 </p>
-                <a href={exploreLink} className={`inline-block relative z-10 ${theme.buttonStyle}`}>{heroButtonText}</a>
+                
+                <a href={exploreLink} className={`inline-block relative z-10 ${theme.buttonStyle} ${buttonBgClass}`}>{heroButtonText}</a>
               </div>
             </div>
           </div>
@@ -290,6 +293,7 @@ export default function HeroEngine({
             )}
             <div className="absolute inset-0 bg-zinc-950/40" />
           </div>
+
           <div className="relative z-10 w-full max-w-5xl mx-auto p-10 md:p-16 bg-white/5 backdrop-blur-2xl border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)] flex flex-col items-center justify-center text-center rounded-4xl">
             
             {hasValidLogo && (
