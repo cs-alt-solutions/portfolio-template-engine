@@ -45,22 +45,28 @@ export default function UniversalLeadModal({
     setIsSubmitting(true);
     setErrorMessage('');
 
-    const response = await submitStorefrontLead({
-      storefrontSlug,
-      businessName,
-      contactEmail,
-      name: formData.name,
-      email: formData.email,
-      phone: formData.phone,
-      details: formData.details,
-    });
+    try {
+      const response = await submitStorefrontLead({
+        storefrontSlug,
+        businessName,
+        contactEmail,
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        details: formData.details,
+      });
 
-    setIsSubmitting(false);
-
-    if (response.success) {
-      setIsSubmitted(true);
-    } else {
-      setErrorMessage(response.error || 'Failed to send request.');
+      if (response.success) {
+        setIsSubmitted(true);
+      } else {
+        setErrorMessage(response.error || 'Failed to send request.');
+      }
+    } catch (err) {
+      console.error("Network or Server Crash:", err);
+      setErrorMessage("System timeout. Please try again.");
+    } finally {
+      // THIS GUARANTEES THE BUTTON UN-FREEZES NO MATTER WHAT
+      setIsSubmitting(false);
     }
   };
 
