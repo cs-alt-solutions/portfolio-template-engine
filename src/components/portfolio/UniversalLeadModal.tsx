@@ -62,7 +62,7 @@ export default function UniversalLeadModal({
         setErrorMessage(response.error || 'Failed to send request.');
       }
     } catch (err) {
-      console.error("Network or Server Crash:", err);
+      console.error("Transmission Error:", err);
       setErrorMessage("System timeout. Please try again.");
     } finally {
       // THIS GUARANTEES THE BUTTON UN-FREEZES NO MATTER WHAT
@@ -75,7 +75,6 @@ export default function UniversalLeadModal({
   const isCyber = themeStyle === 'cyberpunk';
   const isMidnight = themeStyle === 'midnight';
 
-  // 🚀 THE FIX: Ensure Elegant modal and form fields inherit sharp rounded-sm corners!
   const radius = themeStyle === 'elegant' ? 'rounded-sm' : 
                  ['industrial', 'neo', 'cyberpunk', 'editorial'].includes(themeStyle) ? 'rounded-none' : 
                  themeStyle === 'minimal' ? 'rounded-3xl' : 'rounded-2xl';
