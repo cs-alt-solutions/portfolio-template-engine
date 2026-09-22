@@ -45,16 +45,13 @@ export async function submitStorefrontLead(payload: LeadPayload) {
     // 3. EMAIL DISPATCH
     const resend = new Resend(apiKey);
     
-    // Fallback recipient (Not used during sandbox mode, but good for when domain is verified)
-    const originalRecipient = payload.contactEmail || process.env.FALLBACK_LEADS_EMAIL || 'support@alternativesolutions.io';
+    // Dynamically route to the specific storefront owner
+    const recipientEmail = payload.contactEmail || process.env.FALLBACK_LEADS_EMAIL || 'support@alternativesolutions.io';
 
     const { error: mailError } = await resend.emails.send({
-      // THIS IS THE FIX: Using the Resend testing address bypasses strict DNS sender filters
-      from: 'onboarding@resend.dev', 
-      
-      // 🚀 CRITICAL FIX: You MUST hardcode this to your verified email address to bypass the 403 error
-      to: ['courtney@alternativesolutions.io'], 
-      
+      // 🚀 OFFICIAL PRODUCTION ROUTING
+      from: `${payload.businessName} Leads <leads@alternativesolutions.io>`, 
+      to: [recipientEmail], 
       replyTo: payload.email,
       subject: `New Inquiry: ${payload.name} - ${payload.businessName}`,
       html: `
@@ -80,12 +77,6 @@ export async function submitStorefrontLead(payload: LeadPayload) {
                       <p style="margin: 0 0 24px 0; color: #3f3f46; font-size: 15px; line-height: 1.6;">
                         You have received a new potential project lead via your storefront. Simply reply directly to this email to respond to the client.
                       </p>
-                      
-                      <div style="background-color: #fef08a; padding: 12px; border-radius: 6px; margin-bottom: 24px; border: 1px solid #facc15;">
-                        <p style="margin: 0; color: #854d0e; font-size: 12px; font-weight: bold;">
-                          Note: This lead was originally meant for ${originalRecipient}, but is routing to Courtney during testing.
-                        </p>
-                      </div>
 
                       <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 32px;">
                         <tr>
