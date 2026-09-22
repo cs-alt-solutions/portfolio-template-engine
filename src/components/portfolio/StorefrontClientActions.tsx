@@ -95,6 +95,7 @@ export default function StorefrontClientActions({
           </div>
         </div>
       </section>
+      
       <UniversalLeadModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
