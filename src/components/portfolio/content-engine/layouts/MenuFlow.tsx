@@ -101,7 +101,6 @@ export default function MenuFlow({
         })}
       </div>
 
-      {/* RE-USING THE PROOF MODAL FOR MENU PHOTOS */}
       <ServiceProofModal
         isOpen={!!activeModal}
         onClose={() => setActiveModal(null)}
