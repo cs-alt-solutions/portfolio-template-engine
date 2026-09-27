@@ -1,4 +1,4 @@
-// src/components/portfolio/hero/HeroEngine.tsx
+/* src/components/portfolio/hero/HeroEngine.tsx */
 import React from 'react';
 import { ThemeDefinition } from '@/utils/themes';
 
@@ -38,7 +38,7 @@ const getRawBgColor = (pageBg: string, isLightMode: boolean) => {
   if (pageBg.includes('black')) return '#000000';
   if (pageBg.includes('white')) return '#ffffff';
   return isLightMode ? '#ffffff' : '#000000';
-};
+}
 
 export default function HeroEngine({
   layout,
@@ -58,7 +58,6 @@ export default function HeroEngine({
   const getLogoClasses = (size: string | undefined, layoutType: string) => {
     const base = "w-auto max-w-full object-contain drop-shadow-2xl transition-all duration-300";
     let placement = "";
-
     if (layoutType === 'center' || layoutType === 'glass') {
       placement = "mx-auto mb-2 md:mb-3"; 
     } else if (layoutType === 'cinematic') {
@@ -101,28 +100,27 @@ export default function HeroEngine({
     <>
       {layout === 'center' && (
         <section id="hero" className="relative min-h-[95vh] w-full flex items-center justify-center overflow-hidden">
-          <div className="absolute inset-0 z-0">
+          
+          {/* 🚀 THE FIXED BACKGROUND CLIP-PATH HACK */}
+          <div className="absolute inset-0 z-0" style={{ clipPath: 'inset(0)' }}>
             {isHeroFixed ? (
-              <div className="w-full h-full bg-cover bg-fixed opacity-50" style={{ backgroundImage: `url('${store.hero_image}')`, backgroundPosition: activeBgPosition }} />
+              <div 
+                className="fixed inset-0 w-full h-full bg-cover opacity-50" 
+                style={{ backgroundImage: `url('${store.hero_image}')`, backgroundPosition: activeBgPosition, zIndex: -1 }} 
+              />
             ) : (
-              <>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={store.hero_image} alt={store.business_name} className={`w-full h-full object-cover scale-105 opacity-50 ${activePosition}`} />
-              </>
+              <img src={store.hero_image} alt={store.business_name} className={`w-full h-full object-cover scale-105 opacity-50 ${activePosition}`} />
             )}
+            {theme.useBrandTint && <div className={`absolute inset-0 opacity-20 bg-${brandColor} mix-blend-color`} />}
+            <div className={`absolute inset-0 bg-linear-to-b ${theme.overlayFade}`} />
           </div>
-          {theme.useBrandTint && <div className={`absolute inset-0 z-0 opacity-20 bg-${brandColor} mix-blend-color`} />}
-          <div className={`absolute inset-0 z-0 bg-linear-to-b ${theme.overlayFade}`} />
 
           <div className="container mx-auto px-4 relative z-10 flex flex-col items-center mt-12">
             <div className={`w-full max-w-4xl text-center p-8 md:p-16 relative overflow-hidden group ${theme.cardStyle}`}>
               {theme.useBrandAccent && <div className={`absolute top-0 left-0 w-full h-1.5 ${lineAccent}`} />}
               
               {hasValidLogo ? (
-                <>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={store.brand_logo} alt={store.business_name} className={getLogoClasses(logoSizePref, 'center')} />
-                </>
+                <img src={store.brand_logo} alt={store.business_name} className={getLogoClasses(logoSizePref, 'center')} />
               ) : (
                 <h2 className={`${theme.accentText} ${accentColorClass} mb-6 drop-shadow-md`}>{theme.prefix}{store.business_name}</h2>
               )}
@@ -142,21 +140,22 @@ export default function HeroEngine({
       {layout === 'split-left' && (
         <section id="hero" className={`relative min-h-[90vh] w-full flex flex-col md:flex-row ${theme.pageBg}`}>
           
+          {/* 🚀 FIXED CLIP-PATH HACK */}
           {isHeroFixed && (
-            <>
-              <div className="absolute inset-0 z-0 w-full h-full bg-cover bg-fixed" style={{ backgroundImage: `url('${store.hero_image}')`, backgroundPosition: activeBgPosition }} />
-              <div className="absolute inset-0 z-0 pointer-events-none hidden md:block" style={{ background: `linear-gradient(to right, ${rawBgColor} 0%, ${rawBgColor}F2 40%, transparent 65%)` }} />
-              <div className="absolute inset-0 z-0 pointer-events-none md:hidden" style={{ background: `linear-gradient(to bottom, ${rawBgColor} 0%, ${rawBgColor}F2 65%, transparent 100%)` }} />
-            </>
+            <div className="absolute inset-0 z-0" style={{ clipPath: 'inset(0)' }}>
+              <div 
+                className="fixed inset-0 w-full h-full bg-cover" 
+                style={{ backgroundImage: `url('${store.hero_image}')`, backgroundPosition: activeBgPosition, zIndex: -1 }} 
+              />
+              <div className="absolute inset-0 pointer-events-none hidden md:block" style={{ background: `linear-gradient(to right, ${rawBgColor} 0%, ${rawBgColor}F2 40%, transparent 65%)` }} />
+              <div className="absolute inset-0 pointer-events-none md:hidden" style={{ background: `linear-gradient(to bottom, ${rawBgColor} 0%, ${rawBgColor}F2 65%, transparent 100%)` }} />
+            </div>
           )}
 
           <div className={isHeroFixed ? "w-full md:w-1/2 lg:w-5/12 flex items-center p-8 md:p-16 lg:p-24 relative z-10" : `w-full md:w-1/2 flex items-center justify-center p-8 md:p-16 lg:p-24 relative z-10 ${theme.pageBg}`}>
             <div className="w-full max-w-xl text-left">
               {hasValidLogo ? (
-                <>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={store.brand_logo} alt={store.business_name} className={getLogoClasses(logoSizePref, 'split')} />
-                </>
+                <img src={store.brand_logo} alt={store.business_name} className={getLogoClasses(logoSizePref, 'split')} />
               ) : (
                 <h2 className={`${theme.accentText} ${accentColorClass} mb-4 flex items-center gap-4`}>
                   <div className={`h-px w-12 ${lineAccent}`} /> {theme.prefix}{store.business_name}
@@ -175,7 +174,6 @@ export default function HeroEngine({
 
           {!isHeroFixed && (
             <div className="w-full md:w-1/2 h-[50vh] md:h-auto relative overflow-hidden">
-               {/* eslint-disable-next-line @next/next/no-img-element */}
                <img src={store.hero_image} alt={store.business_name} className={`absolute inset-0 w-full h-full object-cover ${activePosition}`} />
                <div className="absolute inset-0 pointer-events-none hidden md:block" style={{ background: `linear-gradient(to right, ${rawBgColor} 0%, transparent 20%)` }} />
             </div>
@@ -186,21 +184,22 @@ export default function HeroEngine({
       {layout === 'split-right' && (
         <section id="hero" className={`relative min-h-[90vh] w-full flex flex-col md:flex-row-reverse ${theme.pageBg}`}>
           
+          {/* 🚀 FIXED CLIP-PATH HACK */}
           {isHeroFixed && (
-            <>
-              <div className="absolute inset-0 z-0 w-full h-full bg-cover bg-fixed" style={{ backgroundImage: `url('${store.hero_image}')`, backgroundPosition: activeBgPosition }} />
-              <div className="absolute inset-0 z-0 pointer-events-none hidden md:block" style={{ background: `linear-gradient(to left, ${rawBgColor} 0%, ${rawBgColor}F2 40%, transparent 65%)` }} />
-              <div className="absolute inset-0 z-0 pointer-events-none md:hidden" style={{ background: `linear-gradient(to bottom, ${rawBgColor} 0%, ${rawBgColor}F2 65%, transparent 100%)` }} />
-            </>
+            <div className="absolute inset-0 z-0" style={{ clipPath: 'inset(0)' }}>
+              <div 
+                className="fixed inset-0 w-full h-full bg-cover" 
+                style={{ backgroundImage: `url('${store.hero_image}')`, backgroundPosition: activeBgPosition, zIndex: -1 }} 
+              />
+              <div className="absolute inset-0 pointer-events-none hidden md:block" style={{ background: `linear-gradient(to left, ${rawBgColor} 0%, ${rawBgColor}F2 40%, transparent 65%)` }} />
+              <div className="absolute inset-0 pointer-events-none md:hidden" style={{ background: `linear-gradient(to bottom, ${rawBgColor} 0%, ${rawBgColor}F2 65%, transparent 100%)` }} />
+            </div>
           )}
 
           <div className={isHeroFixed ? "w-full md:w-1/2 lg:w-5/12 flex items-center p-8 md:p-16 lg:p-24 relative z-10" : `w-full md:w-1/2 flex items-center justify-center p-8 md:p-16 lg:p-24 relative z-10 ${theme.pageBg}`}>
             <div className="w-full max-w-xl text-left">
               {hasValidLogo ? (
-                <>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={store.brand_logo} alt={store.business_name} className={getLogoClasses(logoSizePref, 'split')} />
-                </>
+                <img src={store.brand_logo} alt={store.business_name} className={getLogoClasses(logoSizePref, 'split')} />
               ) : (
                 <h2 className={`${theme.accentText} ${accentColorClass} mb-4 flex items-center gap-4`}>
                   <div className={`h-px w-12 ${lineAccent}`} /> {theme.prefix}{store.business_name}
@@ -219,7 +218,6 @@ export default function HeroEngine({
 
           {!isHeroFixed && (
             <div className="w-full md:w-1/2 h-[50vh] md:h-auto relative overflow-hidden">
-               {/* eslint-disable-next-line @next/next/no-img-element */}
                <img src={store.hero_image} alt={store.business_name} className={`absolute inset-0 w-full h-full object-cover ${activePosition}`} />
                <div className="absolute inset-0 pointer-events-none hidden md:block" style={{ background: `linear-gradient(to left, ${rawBgColor} 0%, transparent 20%)` }} />
             </div>
@@ -229,16 +227,17 @@ export default function HeroEngine({
 
       {layout === 'cinematic' && (
         <section id="hero" className="relative min-h-screen w-full flex items-end justify-start overflow-hidden pb-12 md:pb-24">
-          <div className="absolute inset-0 z-0">
+          
+          {/* 🚀 FIXED CLIP-PATH HACK */}
+          <div className="absolute inset-0 z-0" style={{ clipPath: 'inset(0)' }}>
             {isHeroFixed ? (
-              <div className="w-full h-full bg-cover bg-fixed" style={{ backgroundImage: `url('${store.hero_image}')`, backgroundPosition: activeBgPosition }} />
+              <div 
+                className="fixed inset-0 w-full h-full bg-cover" 
+                style={{ backgroundImage: `url('${store.hero_image}')`, backgroundPosition: activeBgPosition, zIndex: -1 }} 
+              />
             ) : (
-              <>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={store.hero_image} alt={store.business_name} className={`w-full h-full object-cover scale-105 ${activePosition}`} />
-              </>
+              <img src={store.hero_image} alt={store.business_name} className={`w-full h-full object-cover scale-105 ${activePosition}`} />
             )}
-            {/* The Semi-Transparent Fade */}
             <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/30 to-transparent opacity-90" />
           </div>
 
@@ -247,16 +246,12 @@ export default function HeroEngine({
               
               {hasValidLogo && (
                 <div className="absolute -top-16 md:-top-24 left-4 md:left-8 z-20 pointer-events-none">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={store.brand_logo} alt={store.business_name} className={getLogoClasses(logoSizePref, 'cinematic')} />
                 </div>
               )}
               
               <div className="relative z-10 flex flex-col items-start pt-8 md:pt-12">
-                
-                {/* 🚨 THE GEOMETRIC ANCHOR: Injects the vibrant theme color into the dark cinematic wash */}
                 <div className={`w-20 md:w-32 h-2 md:h-3 mb-6 md:mb-8 bg-${brandColor} ${theme.radius === 'rounded-none' ? 'rounded-none' : 'rounded-full'}`} />
-
                 {!hasValidLogo && (
                   <h2 className={`${theme.accentText} ${accentColorClass} mb-3`}>{theme.prefix}{store.business_name}</h2>
                 )}
@@ -278,15 +273,17 @@ export default function HeroEngine({
 
       {layout === 'glass' && (
         <section id="hero" className="relative w-full min-h-[90vh] flex items-center justify-center p-6 md:p-12 overflow-hidden bg-zinc-950">
-          <div className="absolute inset-0 z-0">
+          
+          {/* 🚀 FIXED CLIP-PATH HACK */}
+          <div className="absolute inset-0 z-0" style={{ clipPath: 'inset(0)' }}>
             {store.hero_image ? (
               isHeroFixed ? (
-                <div className="w-full h-full bg-cover bg-fixed opacity-80" style={{ backgroundImage: `url('${store.hero_image}')`, backgroundPosition: activeBgPosition }} />
+                <div 
+                  className="fixed inset-0 w-full h-full bg-cover opacity-80" 
+                  style={{ backgroundImage: `url('${store.hero_image}')`, backgroundPosition: activeBgPosition, zIndex: -1 }} 
+                />
               ) : (
-                <>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={store.hero_image} alt={store.business_name || 'Background'} className={`w-full h-full object-cover opacity-80 ${activePosition}`} />
-                </>
+                <img src={store.hero_image} alt={store.business_name || 'Background'} className={`w-full h-full object-cover opacity-80 ${activePosition}`} />
               )
             ) : (
               <div className="w-full h-full bg-zinc-900 bg-[url('/grid.svg')] opacity-20" />
@@ -297,10 +294,7 @@ export default function HeroEngine({
           <div className="relative z-10 w-full max-w-5xl mx-auto p-10 md:p-16 bg-white/5 backdrop-blur-2xl border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)] flex flex-col items-center justify-center text-center rounded-4xl">
             
             {hasValidLogo && (
-              <>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={store.brand_logo} alt={store.business_name} className={getLogoClasses(logoSizePref, 'glass')} />
-              </>
+              <img src={store.brand_logo} alt={store.business_name} className={getLogoClasses(logoSizePref, 'glass')} />
             )}
             
             <h1 className={`${theme.primaryText} text-3xl md:text-4xl lg:text-5xl mb-6 text-white drop-shadow-lg max-w-3xl mx-auto text-balance`}>
