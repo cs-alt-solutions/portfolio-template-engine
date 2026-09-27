@@ -1,339 +1,212 @@
-/* src/components/portfolio/hero/HeroEngine.tsx */
-import React from 'react';
-import { ThemeDefinition } from '@/utils/themes';
+/* src/app/[slug]/page.tsx */
+import React, { SVGProps } from 'react';
+import { Metadata } from 'next';
+import { notFound } from 'next/navigation';
+import { supabase } from '@/utils/supabase';
+import { THEME_REGISTRY } from '@/utils/themes';
+import { STOREFRONT_DEFAULTS } from '@/utils/glossary';
 
-export interface StorefrontHeroData {
-  business_name?: string;
-  tagline?: string;
-  subtext?: string;
-  hero_image?: string;
-  brand_logo?: string;
-  logo_size?: string;
-  hero_position?: string;
-  [key: string]: unknown;
+import HeroEngine from '@/components/portfolio/hero/HeroEngine';
+import AboutSection from '@/components/portfolio/AboutSection';
+import ContentEngine from '@/components/portfolio/content-engine';
+import PrototypeTourGuide from '@/components/portfolio/PrototypeTourGuide';
+import StorefrontClientActions from '../../components/portfolio/StorefrontClientActions';
+import StagingReviewOverlay from '@/components/portfolio/staging-review/StagingReviewOverlay';
+import { Send } from 'lucide-react';
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+export const fetchCache = 'force-no-store';
+
+// ============================================================================
+// DYNAMIC METADATA (BROWSER TAB & SEO)
+// ============================================================================
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const resolvedParams = await params;
+  
+  const { data: store } = await supabase
+    .from('storefronts')
+    .select('business_name, tagline, brand_logo')
+    .eq('slug', resolvedParams.slug)
+    .single();
+
+  if (!store) return { title: 'Not Found' };
+
+  const hasLogo = typeof store.brand_logo === 'string' && store.brand_logo.trim() !== '';
+
+  return {
+    title: `${store.business_name || 'Workspace'} | ${store.tagline || 'Custom Solutions'}`,
+    description: store.tagline || '',
+    icons: hasLogo ? [
+      { rel: 'icon', url: store.brand_logo },
+      { rel: 'apple-touch-icon', url: store.brand_logo },
+      { rel: 'shortcut icon', url: store.brand_logo }
+    ] : undefined,
+  };
 }
 
-export interface HeroEngineProps {
-  layout: string;
-  store: StorefrontHeroData;
-  theme: ThemeDefinition;
-  brandColor: string;
-  isHeroFixed: boolean;
-  hasValidLogo: boolean;
-  exploreLink: string;
-  heroButtonText: string;
-  accentColorClass: string;
-  buttonBgClass: string;
-  lineAccent: string;
-}
+export interface SocialPlatform { name: string; url: string; Icon: React.ElementType; }
+interface CustomIconProps extends SVGProps<SVGSVGElement> { size?: number | string; }
+interface FormattedGalleryItem { id: string; imageUrl: string; title?: string; description?: string; category?: string; }
 
-const getRawBgColor = (pageBg: string, isLightMode: boolean) => {
-  if (pageBg.includes('#')) {
-    const match = pageBg.match(/#([0-9a-fA-F]{3,6})/);
-    return match ? match[0] : (isLightMode ? '#ffffff' : '#000000');
-  }
-  if (pageBg.includes('zinc-950')) return '#09090b';
-  if (pageBg.includes('zinc-50')) return '#fafafa';
-  if (pageBg.includes('yellow-400')) return '#facc15';
-  if (pageBg.includes('black')) return '#000000';
-  if (pageBg.includes('white')) return '#ffffff';
-  return isLightMode ? '#ffffff' : '#000000';
-}
+const HERO_NAMES: Record<string, string> = { 'center': "Centered Focus", 'split-left': "Split-Left Structure", 'split-right': "Split-Right Structure", 'cinematic': "Cinematic Frame Layout", 'glass': "Frosted Glass Overlay" };
+const FLOW_NAMES: Record<string, string> = { 'classic': "Classic Flow Layout", 'bento': "Bento Grid System", 'sticky': "Sticky Scroll Engine", 'editorial': "Editorial Hover Stack", 'accordion': "Interactive Accordion Flow" };
 
-export default function HeroEngine({
-  layout,
-  store,
-  theme,
-  brandColor,
-  isHeroFixed,
-  hasValidLogo,
-  exploreLink,
-  heroButtonText,
-  accentColorClass,
-  buttonBgClass,
-  lineAccent
-}: HeroEngineProps) {
-  const rawBgColor = getRawBgColor(theme.pageBg, theme.isLightMode);
+const InstagramIcon = ({ size = 24, ...props }: CustomIconProps) => ( <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg> );
+const FacebookIcon = ({ size = 24, ...props }: CustomIconProps) => ( <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg> );
+const TwitterIcon = ({ size = 24, ...props }: CustomIconProps) => ( <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"/></svg> );
+const LinkedinIcon = ({ size = 24, ...props }: CustomIconProps) => ( <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect width="4" height="12" x="2" y="9"/><circle cx="4" cy="4" r="2"/></svg> );
+const YoutubeIcon = ({ size = 24, ...props }: CustomIconProps) => ( <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M2.5 7.1C2.5 5.4 3.9 4 5.6 4h12.8c1.7 0 3.1 1.4 3.1 3.1v9.8c0 1.7-1.4 3.1-3.1 3.1H5.6C3.9 20 2.5 18.6 2.5 16.9V7.1z"/><path d="m10 15 5-3-5-3v6z"/></svg> );
 
-  const getLogoClasses = (size: string | undefined, layoutType: string) => {
-    // 🚀 THE FIX: Added 'block' to force the logo to push text down instead of overlapping it
-    const base = "block w-auto max-w-full object-contain drop-shadow-2xl transition-all duration-300";
-    let placement = "";
-    if (layoutType === 'center' || layoutType === 'glass') {
-      placement = "mx-auto mb-4 md:mb-6"; 
-    } else if (layoutType === 'cinematic') {
-      placement = "mb-0 origin-bottom-left";
-    } else {
-      placement = "mb-4 md:mb-6 origin-left"; 
-    }
-    
-    switch(size) {
-      case 'small': return `h-12 md:h-16 lg:h-20 ${base} ${placement}`;
-      case 'medium': return `h-16 md:h-24 lg:h-32 ${base} ${placement}`;
-      case 'massive': return `h-32 md:h-56 lg:h-72 ${base} ${placement}`;
-      case 'large':
-      default: return `h-24 md:h-40 lg:h-48 ${base} ${placement}`;
-    }
-  };
+const SOCIAL_META: Record<string, { base: string; icon: React.ElementType }> = {
+  instagram: { base: 'https://instagram.com/', icon: InstagramIcon },
+  facebook: { base: 'https://facebook.com/', icon: FacebookIcon },
+  twitter: { base: 'https://x.com/', icon: TwitterIcon },
+  linkedin: { base: 'https://linkedin.com/in/', icon: LinkedinIcon },
+  youtube: { base: 'https://youtube.com/@', icon: YoutubeIcon },
+  telegram: { base: 'https://t.me/', icon: Send },
+};
 
-  const logoSizePref = store.logo_size || 'large';
+export default async function DynamicStorefront({ 
+  params,
+  searchParams,
+}: { 
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  const resolvedParams = await params;
+  const slug = resolvedParams.slug;
+  const resolvedSearchParams = await searchParams;
+  const isCanvasMode = resolvedSearchParams?.mode === 'canvas';
 
-  const positionClassMap: Record<string, string> = {
-    'top': 'object-top',
-    'center': 'object-center',
-    'bottom': 'object-bottom',
-    'left': 'object-left',
-    'right': 'object-right',
-  };
+  const { data: store, error } = await supabase
+    .from('storefronts')
+    .select('*')
+    .eq('slug', slug)
+    .single();
 
-  const bgPositionMap: Record<string, string> = {
-    'top': 'top center',
-    'center': 'center center',
-    'bottom': 'bottom center',
-    'left': 'center left',
-    'right': 'center right',
-  };
+  if (error || !store) notFound();
 
-  const activePosition = positionClassMap[store.hero_position || 'center'];
-  const activeBgPosition = bgPositionMap[store.hero_position || 'center'];
+  const isHeroFixed = store.is_hero_fixed === true;
+  const hasValidLogo = typeof store.brand_logo === 'string' && store.brand_logo.trim() !== '';
+
+  // 🚀 Safe Fallback guarantees `theme` is never undefined
+  const theme = THEME_REGISTRY[store.theme_style || 'industrial'] || THEME_REGISTRY['industrial'];
+  const layout = store.hero_layout || 'center';
+  const brandColor = store.brand_color || 'cyan-500';
+  
+  const accentColorClass = theme.useBrandAccent ? `text-${brandColor}` : '';
+  const buttonBgClass = theme.useBrandAccent ? `bg-${brandColor} text-zinc-950 hover:opacity-80 border-none` : `bg-${brandColor} text-zinc-950`;
+  const lineAccent = theme.useBrandAccent ? `bg-${brandColor}` : 'bg-current';
+
+  // THE FIX: Anchors perfectly to the gallery div below
+  const exploreLink = '#gallery'; 
+  const hasAbout = !!store.about_bio || !!store.about_image || !!store.about_heading;
+  const galleryTitle = store.gallery_heading || STOREFRONT_DEFAULTS?.GALLERY_HEADING || "Featured Work";
+  const heroButtonText = `View ${galleryTitle}`;
+
+  const rawSocialLinks = store.social_links || {};
+  const activeSocials: SocialPlatform[] = Object.entries(rawSocialLinks)
+    .filter((entry) => !!entry[1]) 
+    .map(([platform, handle]) => {
+      const meta = SOCIAL_META[platform];
+      if (!meta) return null;
+      return { name: platform, url: `${meta.base}${handle}`, Icon: meta.icon };
+    })
+    .filter((item): item is SocialPlatform => item !== null);
+
+  const rawGallery = Array.isArray(store.gallery_items) ? store.gallery_items : [];
+  const formattedGalleryItems: FormattedGalleryItem[] = rawGallery.map((item: unknown, index: number) => {
+    if (typeof item === 'string') return { id: `gal-${index}`, imageUrl: item };
+    const obj = item as Record<string, string | undefined>;
+    return { id: obj.id || `gal-${index}`, imageUrl: obj.imageUrl || '', title: obj.title, description: obj.description || obj.category, category: obj.category };
+  }).filter((item: FormattedGalleryItem) => item.imageUrl !== ''); 
 
   return (
-    <>
-      {layout === 'center' && (
-        <section id="hero" className="relative min-h-[95vh] w-full flex items-center justify-center overflow-hidden">
-          
-          <div className="absolute inset-0 z-0" style={{ clipPath: 'inset(0)' }}>
-            {isHeroFixed ? (
-              <div 
-                className="fixed inset-0 w-full h-full bg-cover opacity-50" 
-                style={{ backgroundImage: `url('${store.hero_image}')`, backgroundPosition: activeBgPosition, zIndex: -1 }} 
-              />
-            ) : (
-              <img src={store.hero_image} alt={store.business_name} className={`w-full h-full object-cover scale-105 opacity-50 ${activePosition}`} />
-            )}
-            {theme.useBrandTint && <div className={`absolute inset-0 opacity-20 bg-${brandColor} mix-blend-color`} />}
-            <div className={`absolute inset-0 bg-linear-to-b ${theme.overlayFade}`} />
-          </div>
+    <main className={`min-h-screen flex flex-col selection:bg-cyan-500/30 ${theme.pageBg || 'bg-zinc-950'} relative`}>
+      
+      <HeroEngine 
+        layout={layout}
+        store={store}
+        theme={theme}
+        brandColor={brandColor}
+        isHeroFixed={isHeroFixed}
+        hasValidLogo={hasValidLogo}
+        exploreLink={exploreLink}
+        heroButtonText={heroButtonText}
+        accentColorClass={accentColorClass}
+        buttonBgClass={buttonBgClass}
+        lineAccent={lineAccent}
+      />
 
-          <div className="container mx-auto px-4 relative z-10 flex flex-col items-center mt-12">
-            <div className={`w-full max-w-4xl text-center p-8 md:p-16 relative overflow-hidden group ${theme.cardStyle}`}>
-              {theme.useBrandAccent && <div className={`absolute top-0 left-0 w-full h-1.5 ${lineAccent}`} />}
-              
-              {hasValidLogo ? (
-                <img src={store.brand_logo} alt={store.business_name} className={getLogoClasses(logoSizePref, 'center')} />
-              ) : (
-                <h2 className={`${theme.accentText} ${accentColorClass} mb-6 drop-shadow-md`}>{theme.prefix}{store.business_name}</h2>
-              )}
-              
-              {/* 🚀 THE FIX: Conditionally rendering text blocks so empty fields collapse perfectly */}
-              {store.tagline && (
-                <h1 className={`${theme.primaryText} text-3xl md:text-4xl lg:text-5xl mb-6 drop-shadow-sm max-w-3xl mx-auto text-balance`}>
-                  {store.tagline}
-                </h1>
-              )}
-              
-              {store.subtext && (
-                <p className={`text-lg md:text-xl mb-10 max-w-2xl mx-auto opacity-90 text-balance ${theme.bodyText}`}>
-                  {store.subtext}
-                </p>
-              )}
-
-              <a href={exploreLink} className={`inline-block ${theme.buttonStyle} ${buttonBgClass}`}>{heroButtonText}</a>
-            </div>
-          </div>
-        </section>
+      {hasAbout && (
+        <div id="about" className="container mx-auto px-6 py-20">
+          <AboutSection 
+            data={{
+              heading: store.about_heading || STOREFRONT_DEFAULTS?.ABOUT_HEADING || 'About Us', 
+              bio: store.about_bio,
+              imageUrl: store.about_image,
+              brandColor: store.brand_color,
+              socials: activeSocials, 
+              isLightMode: theme.isLightMode || false, 
+              themeStyle: store.theme_style || 'industrial',
+              aboutLayout: store.about_layout || 'split'
+            }} 
+          />
+        </div>
       )}
 
-      {layout === 'split-left' && (
-        <section id="hero" className={`relative min-h-[90vh] w-full flex flex-col md:flex-row ${theme.pageBg}`}>
-          
-          {isHeroFixed && (
-            <div className="absolute inset-0 z-0" style={{ clipPath: 'inset(0)' }}>
-              <div 
-                className="fixed inset-0 w-full h-full bg-cover" 
-                style={{ backgroundImage: `url('${store.hero_image}')`, backgroundPosition: activeBgPosition, zIndex: -1 }} 
-              />
-              <div className="absolute inset-0 pointer-events-none hidden md:block" style={{ background: `linear-gradient(to right, ${rawBgColor} 0%, ${rawBgColor}F2 40%, transparent 65%)` }} />
-              <div className="absolute inset-0 pointer-events-none md:hidden" style={{ background: `linear-gradient(to bottom, ${rawBgColor} 0%, ${rawBgColor}F2 65%, transparent 100%)` }} />
-            </div>
+      {/* 🚀 THE CLIP-PATH FIX FOR THE MID-PAGE BANNER */}
+      {isHeroFixed && store.hero_image && (
+        <div className="relative w-full h-[30vh] md:h-[40vh] border-y border-white/10 shadow-[inset_0_0_100px_rgba(0,0,0,0.8)]" style={{ clipPath: 'inset(0)' }}>
+          <div 
+            className="fixed inset-0 w-full h-full bg-cover bg-center opacity-50" 
+            style={{ backgroundImage: `url('${store.hero_image}')`, zIndex: -1 }} 
+          />
+          {theme.useBrandAccent && <div className={`absolute top-0 left-0 w-full h-1 ${lineAccent} opacity-50`} />}
+        </div>
+      )}
+
+      {/* THE FIX: ID perfectly matches the exploreLink! */}
+      <div id="gallery">
+        <ContentEngine 
+          layout={store.content_layout || 'classic'}
+          themeStyle={store.theme_style || 'industrial'}
+          brandColor={brandColor}
+          isLightMode={theme.isLightMode || false}
+          capabilitiesHeading={store.capabilities_heading || STOREFRONT_DEFAULTS?.CAPABILITIES_HEADING || "Services"} 
+          galleryHeading={store.gallery_heading || STOREFRONT_DEFAULTS?.GALLERY_HEADING || "Featured Work"} 
+          capabilities={store.capabilities || []}
+          galleryItems={formattedGalleryItems}
+        />
+      </div>
+
+      <StorefrontClientActions store={store} brandColor={brandColor} isLightMode={theme.isLightMode || false} themeStyle={store.theme_style || 'industrial'} />
+
+      <footer className="w-full py-8 px-6 border-t border-white/10 bg-zinc-950 text-[11px] font-mono text-zinc-500 uppercase tracking-widest flex flex-col md:flex-row items-center justify-between gap-6 relative z-20">
+        <div className="flex items-center gap-4">
+          {hasValidLogo && (
+            <>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={store.brand_logo} alt="Brand Icon" className="h-6 w-auto object-contain opacity-50 grayscale" />
+            </>
           )}
+          <span>&copy; {new Date().getFullYear()} {store.business_name || 'All Rights Reserved'}.</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span>Powered by</span>
+          <a href="https://alternativesolutions.io" target="_blank" rel="noopener noreferrer" className="text-zinc-300 hover:text-cyan-400 font-bold transition-colors underline decoration-cyan-500/50 underline-offset-4">
+            Alternative Solutions
+          </a>
+        </div>
+      </footer>
 
-          <div className={isHeroFixed ? "w-full md:w-1/2 lg:w-5/12 flex items-center p-8 md:p-16 lg:p-24 relative z-10" : `w-full md:w-1/2 flex items-center justify-center p-8 md:p-16 lg:p-24 relative z-10 ${theme.pageBg}`}>
-            <div className="w-full max-w-xl text-left">
-              {hasValidLogo ? (
-                <img src={store.brand_logo} alt={store.business_name} className={getLogoClasses(logoSizePref, 'split')} />
-              ) : (
-                <h2 className={`${theme.accentText} ${accentColorClass} mb-4 flex items-center gap-4`}>
-                  <div className={`h-px w-12 ${lineAccent}`} /> {theme.prefix}{store.business_name}
-                </h2>
-              )}
-              
-              {store.tagline && (
-                <h1 className={`${theme.primaryText} text-3xl md:text-4xl lg:text-5xl mb-6 text-balance`}>
-                  {store.tagline}
-                </h1>
-              )}
-              
-              {store.subtext && (
-                <p className={`text-base md:text-lg mb-10 text-balance ${theme.bodyText}`}>
-                  {store.subtext}
-                </p>
-              )}
-
-              <a href={exploreLink} className={`inline-block ${theme.buttonStyle} ${buttonBgClass}`}>{heroButtonText}</a>
-            </div>
-          </div>
-
-          {!isHeroFixed && (
-            <div className="w-full md:w-1/2 h-[50vh] md:h-auto relative overflow-hidden">
-               <img src={store.hero_image} alt={store.business_name} className={`absolute inset-0 w-full h-full object-cover ${activePosition}`} />
-               <div className="absolute inset-0 pointer-events-none hidden md:block" style={{ background: `linear-gradient(to right, ${rawBgColor} 0%, transparent 20%)` }} />
-            </div>
-          )}
-        </section>
+      {!isCanvasMode && (
+        <>
+          {store.is_template && <PrototypeTourGuide vibe={store.theme_style || 'industrial'} heroLayout={HERO_NAMES[layout] || layout} journeyLayout={FLOW_NAMES[store.content_layout || 'classic'] || store.content_layout} />}
+          {!store.is_template && store.status?.toUpperCase() === 'IN REVIEW' && <StagingReviewOverlay store={store} />}
+        </>
       )}
-
-      {layout === 'split-right' && (
-        <section id="hero" className={`relative min-h-[90vh] w-full flex flex-col md:flex-row-reverse ${theme.pageBg}`}>
-          
-          {isHeroFixed && (
-            <div className="absolute inset-0 z-0" style={{ clipPath: 'inset(0)' }}>
-              <div 
-                className="fixed inset-0 w-full h-full bg-cover" 
-                style={{ backgroundImage: `url('${store.hero_image}')`, backgroundPosition: activeBgPosition, zIndex: -1 }} 
-              />
-              <div className="absolute inset-0 pointer-events-none hidden md:block" style={{ background: `linear-gradient(to left, ${rawBgColor} 0%, ${rawBgColor}F2 40%, transparent 65%)` }} />
-              <div className="absolute inset-0 pointer-events-none md:hidden" style={{ background: `linear-gradient(to bottom, ${rawBgColor} 0%, ${rawBgColor}F2 65%, transparent 100%)` }} />
-            </div>
-          )}
-
-          <div className={isHeroFixed ? "w-full md:w-1/2 lg:w-5/12 flex items-center p-8 md:p-16 lg:p-24 relative z-10" : `w-full md:w-1/2 flex items-center justify-center p-8 md:p-16 lg:p-24 relative z-10 ${theme.pageBg}`}>
-            <div className="w-full max-w-xl text-left">
-              {hasValidLogo ? (
-                <img src={store.brand_logo} alt={store.business_name} className={getLogoClasses(logoSizePref, 'split')} />
-              ) : (
-                <h2 className={`${theme.accentText} ${accentColorClass} mb-4 flex items-center gap-4`}>
-                  <div className={`h-px w-12 ${lineAccent}`} /> {theme.prefix}{store.business_name}
-                </h2>
-              )}
-              
-              {store.tagline && (
-                <h1 className={`${theme.primaryText} text-3xl md:text-4xl lg:text-5xl mb-6 text-balance`}>
-                  {store.tagline}
-                </h1>
-              )}
-              
-              {store.subtext && (
-                <p className={`text-base md:text-lg mb-10 text-balance ${theme.bodyText}`}>
-                  {store.subtext}
-                </p>
-              )}
-
-              <a href={exploreLink} className={`inline-block ${theme.buttonStyle} ${buttonBgClass}`}>{heroButtonText}</a>
-            </div>
-          </div>
-
-          {!isHeroFixed && (
-            <div className="w-full md:w-1/2 h-[50vh] md:h-auto relative overflow-hidden">
-               <img src={store.hero_image} alt={store.business_name} className={`absolute inset-0 w-full h-full object-cover ${activePosition}`} />
-               <div className="absolute inset-0 pointer-events-none hidden md:block" style={{ background: `linear-gradient(to left, ${rawBgColor} 0%, transparent 20%)` }} />
-            </div>
-          )}
-        </section>
-      )}
-
-      {layout === 'cinematic' && (
-        <section id="hero" className="relative min-h-screen w-full flex items-end justify-start overflow-hidden pb-12 md:pb-24">
-          
-          <div className="absolute inset-0 z-0" style={{ clipPath: 'inset(0)' }}>
-            {isHeroFixed ? (
-              <div 
-                className="fixed inset-0 w-full h-full bg-cover" 
-                style={{ backgroundImage: `url('${store.hero_image}')`, backgroundPosition: activeBgPosition, zIndex: -1 }} 
-              />
-            ) : (
-              <img src={store.hero_image} alt={store.business_name} className={`w-full h-full object-cover scale-105 ${activePosition}`} />
-            )}
-            <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/30 to-transparent opacity-90" />
-          </div>
-
-          <div className="container mx-auto px-6 relative z-10">
-            <div className="relative max-w-4xl mt-32">
-              
-              {hasValidLogo && (
-                <div className="absolute -top-16 md:-top-24 left-4 md:left-8 z-20 pointer-events-none">
-                  <img src={store.brand_logo} alt={store.business_name} className={getLogoClasses(logoSizePref, 'cinematic')} />
-                </div>
-              )}
-              
-              <div className="relative z-10 flex flex-col items-start pt-8 md:pt-12">
-                <div className={`w-20 md:w-32 h-2 md:h-3 mb-6 md:mb-8 bg-${brandColor} ${theme.radius === 'rounded-none' ? 'rounded-none' : 'rounded-full'}`} />
-                {!hasValidLogo && (
-                  <h2 className={`${theme.accentText} ${accentColorClass} mb-3`}>{theme.prefix}{store.business_name}</h2>
-                )}
-                
-                {store.tagline && (
-                  <h1 className={`${theme.primaryText} text-4xl md:text-5xl lg:text-7xl mb-6 leading-tight relative z-10 text-balance`}>
-                    {store.tagline}
-                  </h1>
-                )}
-                
-                {store.subtext && (
-                  <p className={`text-lg md:text-xl mb-8 leading-relaxed relative z-10 text-balance max-w-2xl ${theme.bodyText.replace('mx-auto', 'mr-auto')}`}>
-                    {store.subtext}
-                  </p>
-                )}
-                
-                <a href={exploreLink} className={`inline-block relative z-10 ${theme.buttonStyle} ${buttonBgClass}`}>{heroButtonText}</a>
-              </div>
-            </div>
-          </div>
-        </section>
-      )}
-
-      {layout === 'glass' && (
-        <section id="hero" className="relative w-full min-h-[90vh] flex items-center justify-center p-6 md:p-12 overflow-hidden bg-zinc-950">
-          
-          <div className="absolute inset-0 z-0" style={{ clipPath: 'inset(0)' }}>
-            {store.hero_image ? (
-              isHeroFixed ? (
-                <div 
-                  className="fixed inset-0 w-full h-full bg-cover opacity-80" 
-                  style={{ backgroundImage: `url('${store.hero_image}')`, backgroundPosition: activeBgPosition, zIndex: -1 }} 
-                />
-              ) : (
-                <img src={store.hero_image} alt={store.business_name || 'Background'} className={`w-full h-full object-cover opacity-80 ${activePosition}`} />
-              )
-            ) : (
-              <div className="w-full h-full bg-zinc-900 bg-[url('/grid.svg')] opacity-20" />
-            )}
-            <div className="absolute inset-0 bg-zinc-950/40" />
-          </div>
-
-          <div className="relative z-10 w-full max-w-5xl mx-auto p-10 md:p-16 bg-white/5 backdrop-blur-2xl border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)] flex flex-col items-center justify-center text-center rounded-4xl">
-            
-            {hasValidLogo && (
-              <img src={store.brand_logo} alt={store.business_name} className={getLogoClasses(logoSizePref, 'glass')} />
-            )}
-            
-            {store.tagline && (
-              <h1 className={`${theme.primaryText} text-3xl md:text-4xl lg:text-5xl mb-6 text-white drop-shadow-lg max-w-3xl mx-auto text-balance`}>
-                {store.tagline}
-              </h1>
-            )}
-
-            {store.subtext && (
-              <p className="text-base md:text-xl text-zinc-200 max-w-2xl mb-10 drop-shadow-md leading-relaxed font-light text-balance">
-                {store.subtext}
-              </p>
-            )}
-
-            <div className="flex flex-col sm:flex-row gap-5 w-full justify-center">
-              <a href={exploreLink} className={`px-10 py-4 font-bold uppercase tracking-widest text-xs transition-all duration-300 shadow-xl bg-${brandColor} text-black hover:scale-105 ${theme.buttonStyle}`}>{heroButtonText}</a>
-            </div>
-          </div>
-        </section>
-      )}
-    </>
+    </main>
   );
 }
