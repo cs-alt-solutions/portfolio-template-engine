@@ -74,8 +74,7 @@ export default function MenuFlow({
               {/* MENU ITEMS (Bullets) */}
               <div className="space-y-6 flex-1">
                 {section.bullets?.map((item, bIdx) => {
-                  // Smart Parse: If they type "Cheeseburger - $12" or "Cheeseburger $12", we split it nicely
-                  const priceMatch = item.match(/(.+?)(?:\s+[-—]\s+|\s+)(\$[\d.]+)$/);
+                  const priceMatch = item.match(/(.+?)(?:\s+[- ]\s+|\s+)(\$[\d.]+)$/);
                   const itemName = priceMatch ? priceMatch[1] : item;
                   const itemPrice = priceMatch ? priceMatch[2] : null;
 

@@ -9,7 +9,7 @@ import BentoGridFlow from './layouts/BentoGridFlow';
 import StickyScrollFlow from './layouts/StickyScrollFlow';
 import EditorialHoverFlow from './layouts/EditorialHoverFlow';
 import AccordionFlow from './layouts/AccordionFlow';
-import MenuFlow from './layouts/MenuFlow'; // 🚀 IMPORT NEW MENU FLOW
+import MenuFlow from './layouts/MenuFlow'; // 🚀 RESTORED IMPORT
 
 interface ContentEngineProps extends ContentLayoutProps {
   layout: string;
@@ -21,7 +21,7 @@ export default function ContentEngine(props: ContentEngineProps) {
     sticky: StickyScrollFlow,
     editorial: EditorialHoverFlow,
     accordion: AccordionFlow,
-    menu: MenuFlow, // 🚀 REGISTER IT
+    menu: MenuFlow, // 🚀 RESTORED REGISTRY
     classic: ClassicFlow,
   };
 

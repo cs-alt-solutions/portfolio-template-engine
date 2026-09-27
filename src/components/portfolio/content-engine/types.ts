@@ -1,5 +1,4 @@
 // src/components/portfolio/content-engine/types.ts
-
 export interface Capability {
   title: string;
   description: string;
@@ -22,7 +21,7 @@ export interface ContentLayoutProps {
   galleryHeading: string;
   capabilities: Capability[];
   galleryItems: GalleryItem[];
-  // 🚀 ADDED 'menu' to the available layouts
+  // 🚀 RESTORED 'menu'
   contentLayout?: 'classic' | 'bento' | 'sticky' | 'accordion' | 'editorial' | 'menu';
   aboutLayout?: 'split' | 'editorial' | 'minimal' | 'card';
 }
