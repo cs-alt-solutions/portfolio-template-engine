@@ -11,7 +11,7 @@ export interface GalleryItem {
   imageUrl: string;
   title?: string;
   description?: string;
-  category?: string; // Added to support category filtering later
+  category?: string;
 }
 
 export interface ContentLayoutProps {
@@ -22,8 +22,7 @@ export interface ContentLayoutProps {
   galleryHeading: string;
   capabilities: Capability[];
   galleryItems: GalleryItem[];
-  
-  // 🚨 ADDED: These allow the Engine to adapt to your new dashboard choices
-  contentLayout?: 'classic' | 'bento' | 'sticky' | 'accordion' | 'editorial';
+  // 🚀 ADDED 'menu' to the available layouts
+  contentLayout?: 'classic' | 'bento' | 'sticky' | 'accordion' | 'editorial' | 'menu';
   aboutLayout?: 'split' | 'editorial' | 'minimal' | 'card';
 }
