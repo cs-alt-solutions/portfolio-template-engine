@@ -6,7 +6,7 @@ import { ContentLayoutProps } from '../types';
 import { getFonts } from '../utils';
 import { THEME_REGISTRY } from '@/utils/themes';
 
-// Smart Price Extractor: Finds "$XX.XX" at the end of a string
+// We still need the price extractor for the text-only bullets
 const parseItemData = (rawText: string = '') => {
   const match = rawText.match(/(.+?)(?:\s*[-|:—]*\s*)(\$[\d.]+)$/);
   if (match) return { text: match[1].trim(), price: match[2] };
@@ -69,19 +69,11 @@ export default function MenuFlow({
                 {/* 📸 VISUAL MENU ITEMS (The Photo Grid - ONLY shows if photos exist) */}
                 {hasPhotos && (
                   <div className="xl:col-span-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {attachedImages.map((img, idx) => {
-                      const parsedTitle = parseItemData(img.title);
-                      const displayName = parsedTitle.text;
-                      let displayPrice = parsedTitle.price;
-                      
-                      let displayDesc = img.description || '';
-                      if (!displayPrice && img.description) {
-                        const descParse = parseItemData(img.description);
-                        if (descParse.price) {
-                          displayPrice = descParse.price;
-                          displayDesc = descParse.text;
-                        }
-                      }
+                    {attachedImages.map((img: any, idx) => {
+                      // 🚀 THE FIX: We pull the dedicated price field directly from the object now!
+                      const displayPrice = img.price || '';
+                      const displayName = img.title || '';
+                      const displayDesc = img.description || '';
 
                       return (
                         <div key={idx} className={`relative aspect-square md:aspect-4/3 rounded-2xl overflow-hidden group shadow-xl bg-zinc-900 border ${isLightMode ? 'border-zinc-200' : 'border-white/10'} cursor-pointer`}>
@@ -107,7 +99,7 @@ export default function MenuFlow({
                               </div>
                               {displayPrice && (
                                 <span className={`text-xl font-black shrink-0 ${brandTextColor} drop-shadow-md ${fonts.body}`}>
-                                  {displayPrice}
+                                  {displayPrice.startsWith('$') ? displayPrice : `$${displayPrice}`}
                                 </span>
                               )}
                             </div>
