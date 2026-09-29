@@ -53,8 +53,9 @@ const PhotoCard = ({ item, isLightMode, fonts, brandColor, brandTextColor, theme
                 {item.title && <h4 className={`text-xl md:text-2xl font-black text-white leading-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] ${fonts.heading}`}>{item.title}</h4>}
                 <span className="text-[9px] text-white/70 uppercase tracking-widest font-bold mt-1.5 block opacity-0 group-hover:opacity-100 transition-opacity">Tap for Details</span>
               </div>
+              {/* 🚀 THE FIX: Ensures price is always top layer and explicitly visible! */}
               {item.price && (
-                <div className={`shrink-0 bg-${brandColor} text-zinc-950 px-3 py-1.5 rounded-xl shadow-[0_4px_15px_rgba(0,0,0,0.5)] transform -rotate-3`}>
+                <div className={`relative z-20 shrink-0 bg-${brandColor} text-zinc-950 px-3 py-1.5 rounded-xl shadow-[0_4px_15px_rgba(0,0,0,0.5)] transform -rotate-3`}>
                   <span className={`text-base md:text-lg font-black tracking-tight ${fonts.body}`}>{item.price}</span>
                 </div>
               )}
@@ -135,6 +136,7 @@ export default function MenuFlow({
       <div className="flex flex-col gap-24 md:gap-32">
         {capabilities.map((section, i) => {
           
+          // 1. Unify all Gallery Items and Legacy Bullets into one array of Cards
           const unifiedItems: UnifiedMenuItem[] = [];
           
           const attachedGallery = typedGallery.filter(item => item.category === section.title);
@@ -142,9 +144,16 @@ export default function MenuFlow({
             const isPhoto = !!(img.imageUrl && img.imageUrl.trim() !== '');
             const parsedTitle = parseItemData(img.title || '');
             const displayName = parsedTitle.text;
-            let displayPrice = img.price ? img.price.trim() : '';
-            let displayDesc = img.description || '';
+            
+            // 🚀 THE FIX: Safely stringify price and check ALL fallbacks!
+            let displayPrice = '';
+            if (img.price && String(img.price).trim() !== '') {
+              displayPrice = String(img.price).trim();
+            } else if (parsedTitle.price) {
+              displayPrice = parsedTitle.price;
+            }
 
+            let displayDesc = img.description || '';
             if (!displayPrice && displayDesc) {
               const descParse = parseItemData(displayDesc);
               if (descParse.price) {
