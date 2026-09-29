@@ -5,7 +5,6 @@ import { notFound } from 'next/navigation';
 import { supabase } from '@/utils/supabase';
 import { THEME_REGISTRY } from '@/utils/themes';
 import { STOREFRONT_DEFAULTS } from '@/utils/glossary';
-
 import HeroEngine from '@/components/portfolio/hero/HeroEngine';
 import AboutSection from '@/components/portfolio/AboutSection';
 import ContentEngine from '@/components/portfolio/content-engine';
@@ -23,7 +22,6 @@ export const fetchCache = 'force-no-store';
 // ============================================================================
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const resolvedParams = await params;
-  
   const { data: store } = await supabase
     .from('storefronts')
     .select('business_name, tagline, brand_logo')
@@ -47,10 +45,23 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export interface SocialPlatform { name: string; url: string; Icon: React.ElementType; }
 interface CustomIconProps extends SVGProps<SVGSVGElement> { size?: number | string; }
-interface FormattedGalleryItem { id: string; imageUrl: string; title?: string; description?: string; category?: string; }
 
-const HERO_NAMES: Record<string, string> = { 'center': "Centered Focus", 'split-left': "Split-Left Structure", 'split-right': "Split-Right Structure", 'cinematic': "Cinematic Frame Layout", 'glass': "Frosted Glass Overlay" };
-const FLOW_NAMES: Record<string, string> = { 'classic': "Classic Flow Layout", 'bento': "Bento Grid System", 'sticky': "Sticky Scroll Engine", 'editorial': "Editorial Hover Stack", 'accordion': "Interactive Accordion Flow" };
+// 🚀 THE FIX: Added price to the allowed FormattedGalleryItem interface
+interface FormattedGalleryItem {
+  id: string;
+  imageUrl: string;
+  title?: string;
+  description?: string;
+  category?: string;
+  price?: string;
+}
+
+const HERO_NAMES: Record<string, string> = {
+  'center': "Centered Focus", 'split-left': "Split-Left Structure", 'split-right': "Split-Right Structure", 'cinematic': "Cinematic Frame Layout", 'glass': "Frosted Glass Overlay"
+};
+const FLOW_NAMES: Record<string, string> = {
+  'classic': "Classic Flow Layout", 'bento': "Bento Grid System", 'sticky': "Sticky Scroll Engine", 'editorial': "Editorial Hover Stack", 'accordion': "Interactive Accordion Flow"
+};
 
 const InstagramIcon = ({ size = 24, ...props }: CustomIconProps) => ( <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg> );
 const FacebookIcon = ({ size = 24, ...props }: CustomIconProps) => ( <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg> );
@@ -89,19 +100,19 @@ export default async function DynamicStorefront({
 
   const isHeroFixed = store.is_hero_fixed === true;
   const hasValidLogo = typeof store.brand_logo === 'string' && store.brand_logo.trim() !== '';
-
-  // 🚀 Safe Fallback guarantees `theme` is never undefined
+  
   const theme = THEME_REGISTRY[store.theme_style || 'industrial'] || THEME_REGISTRY['industrial'];
   const layout = store.hero_layout || 'center';
   const brandColor = store.brand_color || 'cyan-500';
-  
+
   const accentColorClass = theme.useBrandAccent ? `text-${brandColor}` : '';
   const buttonBgClass = theme.useBrandAccent ? `bg-${brandColor} text-zinc-950 hover:opacity-80 border-none` : `bg-${brandColor} text-zinc-950`;
   const lineAccent = theme.useBrandAccent ? `bg-${brandColor}` : 'bg-current';
 
-  // THE FIX: Anchors perfectly to the gallery div below
   const exploreLink = '#gallery'; 
+
   const hasAbout = !!store.about_bio || !!store.about_image || !!store.about_heading;
+  
   const galleryTitle = store.gallery_heading || STOREFRONT_DEFAULTS?.GALLERY_HEADING || "Featured Work";
   const heroButtonText = `View ${galleryTitle}`;
 
@@ -116,10 +127,19 @@ export default async function DynamicStorefront({
     .filter((item): item is SocialPlatform => item !== null);
 
   const rawGallery = Array.isArray(store.gallery_items) ? store.gallery_items : [];
+  
+  // 🚀 THE FIX: Tell the mapper to include 'price' when sending the data to the engine!
   const formattedGalleryItems: FormattedGalleryItem[] = rawGallery.map((item: unknown, index: number) => {
     if (typeof item === 'string') return { id: `gal-${index}`, imageUrl: item };
     const obj = item as Record<string, string | undefined>;
-    return { id: obj.id || `gal-${index}`, imageUrl: obj.imageUrl || '', title: obj.title, description: obj.description || obj.category, category: obj.category };
+    return { 
+      id: obj.id || `gal-${index}`, 
+      imageUrl: obj.imageUrl || '', 
+      title: obj.title, 
+      description: obj.description || obj.category, 
+      category: obj.category,
+      price: obj.price // <-- We were dropping the price right here!
+    };
   }).filter((item: FormattedGalleryItem) => item.imageUrl !== ''); 
 
   return (
@@ -156,7 +176,6 @@ export default async function DynamicStorefront({
         </div>
       )}
 
-      {/* 🚀 THE CLIP-PATH FIX FOR THE MID-PAGE BANNER */}
       {isHeroFixed && store.hero_image && (
         <div className="relative w-full h-[30vh] md:h-[40vh] border-y border-white/10 shadow-[inset_0_0_100px_rgba(0,0,0,0.8)]" style={{ clipPath: 'inset(0)' }}>
           <div 
@@ -167,7 +186,6 @@ export default async function DynamicStorefront({
         </div>
       )}
 
-      {/* THE FIX: ID perfectly matches the exploreLink! */}
       <div id="gallery">
         <ContentEngine 
           layout={store.content_layout || 'classic'}
@@ -193,6 +211,7 @@ export default async function DynamicStorefront({
           )}
           <span>&copy; {new Date().getFullYear()} {store.business_name || 'All Rights Reserved'}.</span>
         </div>
+
         <div className="flex items-center gap-1.5">
           <span>Powered by</span>
           <a href="https://alternativesolutions.io" target="_blank" rel="noopener noreferrer" className="text-zinc-300 hover:text-cyan-400 font-bold transition-colors underline decoration-cyan-500/50 underline-offset-4">
@@ -207,6 +226,7 @@ export default async function DynamicStorefront({
           {!store.is_template && store.status?.toUpperCase() === 'IN REVIEW' && <StagingReviewOverlay store={store} />}
         </>
       )}
+
     </main>
   );
 }
