@@ -38,8 +38,6 @@ const parseItemData = (rawText: string = '') => {
 // 📸 FLIPPING PHOTO CARD
 const PhotoCard = ({ item, isLightMode, fonts, brandColor, brandTextColor, themeRadius }: CardProps) => {
   const [isFlipped, setIsFlipped] = useState(false);
-  
-  // Only allow flipping if there is actually a description to show
   const canFlip = !!item.desc;
 
   return (
@@ -54,11 +52,9 @@ const PhotoCard = ({ item, isLightMode, fonts, brandColor, brandTextColor, theme
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={item.imageUrl} alt={item.title || 'Menu Item'} className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
           <div className={`absolute inset-0 bg-linear-to-t ${isLightMode ? 'from-black/80 via-black/10' : 'from-black/90 via-black/30'} to-transparent opacity-90`} />
-          
           <div className="absolute inset-0 p-4 md:p-5 flex flex-col justify-end">
             <div className="flex justify-between items-end gap-3">
               <div className="flex-1 min-w-0 pr-2">
-                {/* 🚀 THE FIX: Removed truncate, added text-balance and line-clamp-2 */}
                 {item.title && (
                   <h4 className={`text-lg md:text-xl font-black text-white leading-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] ${fonts.heading} text-balance line-clamp-2`}>
                     {item.title}
@@ -103,27 +99,29 @@ const PhotoCard = ({ item, isLightMode, fonts, brandColor, brandTextColor, theme
   );
 };
 
-// 📝 SOLID TEXT CARD
+// 📝 SOLID TEXT CARD (Fixed Layout & Padding so text never collides with price badge)
 const TextCard = ({ item, isLightMode, fonts, brandColor, brandTextColor, themeRadius }: CardProps) => {
   return (
     <div className="relative aspect-square md:aspect-4/3 group transition-transform duration-300 hover:-translate-y-1">
-      <div className={`absolute inset-0 flex flex-col justify-between p-6 md:p-8 shadow-xl border ${isLightMode ? 'bg-zinc-50 border-zinc-200' : 'bg-zinc-900 border-white/5'} ${themeRadius} overflow-hidden`}>
-        <div className="min-h-0 flex-1">
-          {/* 🚀 THE FIX: Removed truncate, added text-balance and line-clamp-2 */}
+      <div className={`absolute inset-0 flex flex-col justify-between p-6 md:p-8 shadow-xl border ${isLightMode ? 'bg-zinc-50 border-zinc-200' : 'bg-zinc-900 border-white/5'} ${themeRadius} overflow-hidden relative`}>
+        
+        {/* 🚀 THE FIX: Added pr-16 padding on the right so text stops before colliding with the badge */}
+        <div className="min-h-0 flex-1 pr-12">
           {item.title && (
-            <h4 className={`text-xl md:text-2xl font-black mb-3 ${fonts.heading} ${isLightMode ? 'text-zinc-900' : 'text-zinc-100'} group-hover:${brandTextColor} transition-colors text-balance line-clamp-2`}>
+            <h4 className={`text-xl md:text-2xl font-black mb-2.5 ${fonts.heading} ${isLightMode ? 'text-zinc-900' : 'text-zinc-100'} group-hover:${brandTextColor} transition-colors text-balance line-clamp-2`}>
               {item.title}
             </h4>
           )}
           {item.desc && (
-            <p className={`text-sm leading-relaxed ${fonts.body} ${isLightMode ? 'text-zinc-600' : 'text-zinc-400'} line-clamp-4`}>
+            <p className={`text-xs md:text-sm leading-relaxed ${fonts.body} ${isLightMode ? 'text-zinc-600' : 'text-zinc-400'} line-clamp-4`}>
               {item.desc}
             </p>
           )}
         </div>
         
+        {/* Absolute Bottom-Right Price Badge */}
         {item.price && (
-          <div className="flex justify-end mt-4 shrink-0">
+          <div className="absolute bottom-5 right-5 z-20">
             <div className={`shrink-0 bg-${brandColor} text-zinc-950 px-3 py-1.5 rounded-xl shadow-[0_4px_15px_rgba(0,0,0,0.5)] transform -rotate-3 group-hover:rotate-0 group-hover:scale-110 transition-all duration-300`}>
               <span className={`text-base font-black tracking-tight ${fonts.body}`}>
                 {item.price}
@@ -131,6 +129,7 @@ const TextCard = ({ item, isLightMode, fonts, brandColor, brandTextColor, themeR
             </div>
           </div>
         )}
+
       </div>
     </div>
   );
