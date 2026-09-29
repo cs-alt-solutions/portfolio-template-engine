@@ -46,7 +46,6 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 export interface SocialPlatform { name: string; url: string; Icon: React.ElementType; }
 interface CustomIconProps extends SVGProps<SVGSVGElement> { size?: number | string; }
 
-// 🚀 THE FIX: Added price to the allowed FormattedGalleryItem interface
 interface FormattedGalleryItem {
   id: string;
   imageUrl: string;
@@ -60,7 +59,7 @@ const HERO_NAMES: Record<string, string> = {
   'center': "Centered Focus", 'split-left': "Split-Left Structure", 'split-right': "Split-Right Structure", 'cinematic': "Cinematic Frame Layout", 'glass': "Frosted Glass Overlay"
 };
 const FLOW_NAMES: Record<string, string> = {
-  'classic': "Classic Flow Layout", 'bento': "Bento Grid System", 'sticky': "Sticky Scroll Engine", 'editorial': "Editorial Hover Stack", 'accordion': "Interactive Accordion Flow"
+  'classic': "Classic Flow Layout", 'bento': "Bento Grid System", 'sticky': "Sticky Scroll Engine", 'editorial': "Editorial Hover Stack", 'accordion': "Interactive Accordion Flow", 'menu': "Culinary Menu"
 };
 
 const InstagramIcon = ({ size = 24, ...props }: CustomIconProps) => ( <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg> );
@@ -128,7 +127,7 @@ export default async function DynamicStorefront({
 
   const rawGallery = Array.isArray(store.gallery_items) ? store.gallery_items : [];
   
-  // 🚀 THE FIX: Tell the mapper to include 'price' when sending the data to the engine!
+  // 🚀 THE FIX: Removed the `.filter()` that was aggressively deleting text-only blank cards!
   const formattedGalleryItems: FormattedGalleryItem[] = rawGallery.map((item: unknown, index: number) => {
     if (typeof item === 'string') return { id: `gal-${index}`, imageUrl: item };
     const obj = item as Record<string, string | undefined>;
@@ -138,9 +137,9 @@ export default async function DynamicStorefront({
       title: obj.title, 
       description: obj.description || obj.category, 
       category: obj.category,
-      price: obj.price // <-- We were dropping the price right here!
+      price: obj.price
     };
-  }).filter((item: FormattedGalleryItem) => item.imageUrl !== ''); 
+  });
 
   return (
     <main className={`min-h-screen flex flex-col selection:bg-cyan-500/30 ${theme.pageBg || 'bg-zinc-950'} relative`}>
