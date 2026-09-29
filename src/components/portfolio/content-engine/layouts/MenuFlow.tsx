@@ -5,42 +5,118 @@ import React, { useState } from 'react';
 import { ContentLayoutProps, GalleryItem } from '../types';
 import { getFonts } from '../utils';
 import { THEME_REGISTRY } from '@/utils/themes';
-import { Camera } from 'lucide-react';
-import ServiceProofModal from '../../ServiceProofModal';
-
-interface ModalState {
-  title: string;
-  images: GalleryItem[];
-  description?: string;
-}
 
 interface ExtendedGalleryItem extends GalleryItem {
   price?: string;
 }
 
-// Smart Price Extractor: Finds "$XX.XX" at the end of a string
+interface UnifiedMenuItem {
+  type: 'photo' | 'blank';
+  id: string;
+  title: string;
+  price: string;
+  desc: string;
+  imageUrl?: string;
+}
+
+interface CardProps {
+  item: UnifiedMenuItem;
+  isLightMode?: boolean;
+  fonts: { heading: string; body: string; accent: string };
+  brandColor: string;
+  brandTextColor: string;
+  themeRadius: string;
+}
+
+// Smart Price Extractor for Legacy Bullets
 const parseItemData = (rawText: string = '') => {
   const match = rawText.match(/(.+?)(?:\s*[-|:—]*\s*)(\$[\d.]+)$/);
   if (match) return { text: match[1].trim(), price: match[2] };
   return { text: rawText.trim(), price: null };
 };
 
+// 📸 FLIPPING PHOTO CARD
+const PhotoCard = ({ item, isLightMode, fonts, brandColor, brandTextColor, themeRadius }: CardProps) => {
+  const [isFlipped, setIsFlipped] = useState(false);
+  return (
+    <div className="relative aspect-square md:aspect-4/3 cursor-pointer group perspective-[1000px]" onClick={() => setIsFlipped(!isFlipped)}>
+      <div className={`relative w-full h-full transition-transform duration-700 transform-3d ${isFlipped ? 'transform-[rotateY(180deg)]' : ''}`}>
+        
+        {/* FRONT */}
+        <div className={`absolute inset-0 w-full h-full backface-hidden shadow-xl bg-zinc-900 border ${isLightMode ? 'border-zinc-200' : 'border-white/10'} ${themeRadius} overflow-hidden`}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={item.imageUrl} alt={item.title || 'Menu Item'} className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+          <div className={`absolute inset-0 bg-linear-to-t ${isLightMode ? 'from-black/80 via-black/10' : 'from-black/90 via-black/20'} to-transparent opacity-90`} />
+          <div className="absolute inset-0 p-5 md:p-6 flex flex-col justify-end">
+            <div className="flex justify-between items-end gap-3">
+              <div className="flex-1">
+                {item.title && <h4 className={`text-xl md:text-2xl font-black text-white leading-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] ${fonts.heading}`}>{item.title}</h4>}
+                <span className="text-[9px] text-white/70 uppercase tracking-widest font-bold mt-1.5 block opacity-0 group-hover:opacity-100 transition-opacity">Tap for Details</span>
+              </div>
+              {item.price && (
+                <div className={`shrink-0 bg-${brandColor} text-zinc-950 px-3 py-1.5 rounded-xl shadow-[0_4px_15px_rgba(0,0,0,0.5)] transform -rotate-3`}>
+                  <span className={`text-base md:text-lg font-black tracking-tight ${fonts.body}`}>{item.price}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* BACK */}
+        <div className={`absolute inset-0 w-full h-full backface-hidden transform-[rotateY(180deg)] shadow-xl border ${isLightMode ? 'bg-zinc-50 border-zinc-200' : 'bg-zinc-950 border-zinc-800'} ${themeRadius} overflow-hidden p-6 flex flex-col justify-center items-center text-center`}>
+          <span className={`text-[10px] font-black uppercase tracking-widest ${brandTextColor} mb-4`}>Ingredients & Details</span>
+          <p className={`text-base md:text-lg leading-relaxed ${fonts.body} ${isLightMode ? 'text-zinc-700' : 'text-zinc-300'}`}>
+            {item.desc || "Freshly prepared and made to order."}
+          </p>
+        </div>
+
+      </div>
+    </div>
+  );
+};
+
+// 📝 SOLID TEXT CARD (For items without photos)
+const TextCard = ({ item, isLightMode, fonts, brandColor, brandTextColor, themeRadius }: CardProps) => {
+  return (
+    <div className={`relative aspect-square md:aspect-4/3 flex flex-col justify-between p-6 md:p-8 shadow-xl border ${isLightMode ? 'bg-zinc-50 border-zinc-200' : 'bg-zinc-900 border-white/5'} ${themeRadius} group hover:-translate-y-1 transition-transform duration-300`}>
+      <div>
+        {item.title && (
+          <h4 className={`text-2xl md:text-3xl font-black mb-3 ${fonts.heading} ${isLightMode ? 'text-zinc-900' : 'text-zinc-100'} group-hover:${brandTextColor} transition-colors`}>
+            {item.title}
+          </h4>
+        )}
+        {item.desc && (
+          <p className={`text-sm md:text-base leading-relaxed ${fonts.body} ${isLightMode ? 'text-zinc-600' : 'text-zinc-400'} line-clamp-4`}>
+            {item.desc}
+          </p>
+        )}
+      </div>
+      
+      {item.price && (
+        <div className="flex justify-end mt-4">
+          <div className={`shrink-0 bg-${brandColor} text-zinc-950 px-3 py-1.5 rounded-xl shadow-[0_4px_15px_rgba(0,0,0,0.5)] transform -rotate-3 group-hover:rotate-0 group-hover:scale-110 transition-all duration-300`}>
+            <span className={`text-lg font-black tracking-tight ${fonts.body}`}>
+              {item.price}
+            </span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 export default function MenuFlow({
   themeStyle, brandColor, isLightMode, capabilitiesHeading, capabilities, galleryItems
 }: ContentLayoutProps) {
-  const [activeModal, setActiveModal] = useState<ModalState | null>(null);
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
 
   const fonts = getFonts(themeStyle);
   const brandTextColor = `text-${brandColor}`;
   const theme = THEME_REGISTRY[themeStyle] || THEME_REGISTRY['industrial'];
+  const shapeRadius = theme.radius || 'rounded-none';
   
   const hasMenu = capabilities && capabilities.length > 0;
   const typedGallery = (galleryItems || []) as ExtendedGalleryItem[];
-  const validGallery = typedGallery.filter(item => item && item.imageUrl && item.imageUrl.trim() !== '');
-
-  const getAttachedImages = (categoryTitle: string): ExtendedGalleryItem[] => {
-    return validGallery.filter((item) => item.category === categoryTitle);
-  };
 
   if (!hasMenu) return null;
 
@@ -52,143 +128,126 @@ export default function MenuFlow({
         <h2 className={`text-5xl md:text-7xl mb-6 ${brandTextColor} ${fonts.heading} drop-shadow-md`}>
           {capabilitiesHeading || 'Menu'}
         </h2>
-        <div className={`w-24 h-1.5 mx-auto bg-${brandColor} ${theme.radius === 'rounded-none' ? 'rounded-none' : 'rounded-full'}`} />
+        <div className={`w-24 h-1.5 mx-auto bg-${brandColor} ${shapeRadius === 'rounded-none' ? 'rounded-none' : 'rounded-full'}`} />
       </div>
 
       {/* CATEGORY STACK */}
       <div className="flex flex-col gap-24 md:gap-32">
         {capabilities.map((section, i) => {
-          const attachedImages = getAttachedImages(section.title);
-          const hasPhotos = attachedImages.length > 0;
-          const hasTextBullets = section.bullets && section.bullets.length > 0;
+          
+          const unifiedItems: UnifiedMenuItem[] = [];
+          
+          const attachedGallery = typedGallery.filter(item => item.category === section.title);
+          attachedGallery.forEach(img => {
+            const isPhoto = !!(img.imageUrl && img.imageUrl.trim() !== '');
+            const parsedTitle = parseItemData(img.title || '');
+            const displayName = parsedTitle.text;
+            let displayPrice = img.price ? img.price.trim() : '';
+            let displayDesc = img.description || '';
+
+            if (!displayPrice && displayDesc) {
+              const descParse = parseItemData(displayDesc);
+              if (descParse.price) {
+                displayPrice = descParse.price;
+                displayDesc = descParse.text;
+              }
+            }
+
+            if (displayPrice && !displayPrice.startsWith('$')) {
+              displayPrice = `$${displayPrice}`;
+            }
+
+            unifiedItems.push({
+              type: isPhoto ? 'photo' : 'blank',
+              id: img.id || Math.random().toString(),
+              title: displayName,
+              price: displayPrice,
+              desc: displayDesc,
+              imageUrl: img.imageUrl
+            });
+          });
+
+          (section.bullets || []).forEach((bullet, bIdx) => {
+            if (!bullet.trim()) return;
+            const { text: itemName, price: itemPrice } = parseItemData(bullet);
+            unifiedItems.push({
+              type: 'blank',
+              id: `bullet-${bIdx}`,
+              title: itemName,
+              price: itemPrice || '',
+              desc: '',
+            });
+          });
+
+          if (unifiedItems.length === 0) return null;
+
+          const isExpanded = expandedSections[section.title];
+          const visibleItems = isExpanded ? unifiedItems : unifiedItems.slice(0, 4);
+          const needsExpandButton = unifiedItems.length > 4;
 
           return (
             <div key={`menu-${i}`} className="flex flex-col relative w-full">
               
-              {/* SECTION HEADER */}
-              <div className="flex items-end justify-between border-b-2 border-zinc-800 dark:border-zinc-200/20 pb-4 mb-8">
-                <h3 className={`text-4xl md:text-5xl ${isLightMode ? 'text-zinc-900' : 'text-zinc-100'} ${fonts.heading}`}>
+              {/* CENTERED CATEGORY HEADER */}
+              <div className="flex flex-col items-center text-center border-b border-zinc-800 dark:border-zinc-200/20 pb-8 mb-10">
+                <h3 className={`text-4xl md:text-5xl ${isLightMode ? 'text-zinc-900' : 'text-zinc-100'} ${fonts.heading} mb-4`}>
                   {section.title}
                 </h3>
-                {hasPhotos && (
+                
+                {section.description && (
+                  <p className={`text-base md:text-lg max-w-2xl opacity-80 leading-relaxed ${fonts.body} ${isLightMode ? 'text-zinc-700' : 'text-zinc-400'} ${['elegant', 'organic'].includes(themeStyle) ? 'italic' : ''} mb-6`}>
+                    {section.description}
+                  </p>
+                )}
+
+                {needsExpandButton && (
                   <button
-                    onClick={() => setActiveModal({ title: section.title, images: attachedImages, description: section.description })}
-                    className={`flex items-center gap-2 px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest transition-all hover:scale-105 ${theme.radius === 'rounded-none' ? 'rounded-none' : 'rounded-full'} ${isLightMode ? 'bg-zinc-100 text-zinc-800 hover:bg-zinc-200 border border-zinc-300' : 'bg-white/5 border border-white/10 text-white hover:bg-white/10'}`}
+                    onClick={() => setExpandedSections(prev => ({ ...prev, [section.title]: !prev[section.title] }))}
+                    className={`px-6 py-2.5 text-[10px] font-bold uppercase tracking-widest transition-all hover:scale-105 shadow-md ${shapeRadius === 'rounded-none' ? 'rounded-none' : 'rounded-full'} ${isLightMode ? 'bg-zinc-100 text-zinc-800 hover:bg-zinc-200 border border-zinc-300' : 'bg-white/10 border border-white/20 text-white hover:bg-white/20'}`}
                   >
-                    <Camera className="w-3.5 h-3.5" />
-                    <span className="hidden sm:inline">View Gallery</span>
+                    {isExpanded ? 'Show Less' : `View All (${unifiedItems.length})`}
                   </button>
                 )}
               </div>
 
-              {section.description && (
-                <p className={`text-lg md:text-xl mb-10 max-w-3xl opacity-80 leading-relaxed ${fonts.body} ${isLightMode ? 'text-zinc-700' : 'text-zinc-400'} ${['elegant', 'organic'].includes(themeStyle) ? 'italic' : ''}`}>
-                  {section.description}
-                </p>
-              )}
+              {/* UNIFIED GRID */}
+              <div className="w-full">
+                <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                  {visibleItems.map((item, idx) => {
+                    // Mobile hides items 3 and 4 unless expanded
+                    const isHiddenOnMobile = (!isExpanded && idx >= 2) ? 'hidden sm:block' : 'block';
 
-              {/* DYNAMIC MENU GRID */}
-              <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 md:gap-12">
-                
-                {/* 📸 VISUAL MENU ITEMS (The Photo Grid - ONLY shows if photos exist) */}
-                {hasPhotos && (
-                  <div className="xl:col-span-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {attachedImages.map((img, idx) => {
-                      // 🚀 STRICT NAME CHECK: Do not fallback to category title!
-                      const displayName = img.title ? img.title.trim() : '';
-                      
-                      // Check dedicated price first, otherwise parse from description if needed
-                      let displayPrice = img.price ? img.price.trim() : '';
-                      let displayDesc = img.description || '';
-
-                      if (!displayPrice && displayDesc) {
-                        const descParse = parseItemData(displayDesc);
-                        if (descParse.price) {
-                          displayPrice = descParse.price;
-                          displayDesc = descParse.text;
-                        }
-                      }
-
-                      return (
-                        <div key={idx} className={`relative aspect-square md:aspect-4/3 rounded-2xl overflow-hidden group shadow-xl bg-zinc-900 border ${isLightMode ? 'border-zinc-200' : 'border-white/10'} cursor-pointer`}>
-                          
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={img.imageUrl} alt={displayName || 'Menu Item'} className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
-                          
-                          {/* Permanent Mobile-Safe Dark Gradient */}
-                          <div className={`absolute inset-0 bg-linear-to-t ${isLightMode ? 'from-black/90 via-black/40' : 'from-black/95 via-black/50'} to-transparent opacity-90 transition-opacity duration-500 group-hover:opacity-100`} />
-
-                          {/* Always-Visible Text Block */}
-                          <div className="absolute inset-0 p-5 md:p-6 flex flex-col justify-end">
-                            <div className="flex justify-between items-start gap-4">
-                              <div className="flex-1">
-                                {displayName && (
-                                  <h4 className={`text-lg md:text-xl font-bold text-white leading-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] ${fonts.heading} group-hover:${brandTextColor} transition-colors duration-300`}>
-                                    {displayName}
-                                  </h4>
-                                )}
-                                {displayDesc && (
-                                  <p className={`text-xs text-zinc-300 mt-1 line-clamp-2 drop-shadow-md font-light leading-relaxed ${fonts.body}`}>
-                                    {displayDesc}
-                                  </p>
-                                )}
-                              </div>
-                              
-                              {/* Flashy, tilted price badge */}
-                              {displayPrice && (
-                                <div className={`shrink-0 bg-${brandColor} text-zinc-950 px-3 py-1 rounded-xl shadow-[0_4px_15px_rgba(0,0,0,0.5)] transform -rotate-3 group-hover:rotate-0 group-hover:scale-110 transition-all duration-300`}>
-                                  <span className={`text-sm md:text-base font-black tracking-tight ${fonts.body}`}>
-                                    {displayPrice.startsWith('$') ? displayPrice : `$${displayPrice}`}
-                                  </span>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-
-                {/* 📝 TEXT MENU ITEMS (The Bullet Fallback - ONLY shows if NO photos exist) */}
-                {!hasPhotos && hasTextBullets && (
-                  <div className="xl:col-span-12 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-2">
-                    {section.bullets?.map((item, bIdx) => {
-                      const { text: itemName, price: itemPrice } = parseItemData(item);
-
-                      return (
-                        <div key={bIdx} className={`flex justify-between items-start gap-4 p-4 rounded-xl transition-all ${isLightMode ? 'hover:bg-zinc-100' : 'hover:bg-white/5'}`}>
-                          <div className="flex-1">
-                            <h4 className={`text-lg md:text-xl font-bold ${isLightMode ? 'text-zinc-900' : 'text-zinc-100'} ${fonts.body}`}>
-                              {itemName}
-                            </h4>
-                          </div>
-                          {itemPrice && (
-                            <span className={`text-lg font-bold shrink-0 ${brandTextColor} ${fonts.body}`}>
-                              {itemPrice}
-                            </span>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
+                    return (
+                      <div key={item.id} className={`${isHiddenOnMobile} h-full`}>
+                        {item.type === 'photo' ? (
+                          <PhotoCard 
+                            item={item} 
+                            isLightMode={isLightMode} 
+                            fonts={fonts} 
+                            brandColor={brandColor} 
+                            brandTextColor={brandTextColor} 
+                            themeRadius={shapeRadius} 
+                          />
+                        ) : (
+                          <TextCard 
+                            item={item} 
+                            isLightMode={isLightMode} 
+                            fonts={fonts} 
+                            brandColor={brandColor} 
+                            brandTextColor={brandTextColor} 
+                            themeRadius={shapeRadius} 
+                          />
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
 
             </div>
           );
         })}
       </div>
-
-      <ServiceProofModal
-        isOpen={!!activeModal}
-        onClose={() => setActiveModal(null)}
-        title={activeModal?.title || ''}
-        images={activeModal?.images || []}
-        description={activeModal?.description}
-        themeStyle={themeStyle}
-        brandColor={brandColor}
-      />
     </div>
   );
 }
