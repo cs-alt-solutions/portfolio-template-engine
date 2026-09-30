@@ -10,6 +10,7 @@ interface ExtendedGalleryItem extends GalleryItem {
   price?: string;
   isVisible?: boolean;
   isRaw?: boolean;
+  addons?: { name: string; price: string }[];
 }
 
 interface UnifiedMenuItem {
@@ -20,6 +21,7 @@ interface UnifiedMenuItem {
   desc: string;
   imageUrl?: string;
   isRaw?: boolean;
+  addons?: { name: string; price: string }[];
 }
 
 interface CardProps {
@@ -39,10 +41,25 @@ const parseItemData = (rawText: string = '') => {
 
 const slugify = (text: string) => text.toLowerCase().replace(/[^a-z0-9]+/g, '-');
 
+// 🚀 Flexible price formatter for variants vs add-ons
+const formatVariantPrice = (price: string) => {
+  const clean = price.trim();
+  if (!clean) return '';
+  // If the user manually typed a + or -, honor it
+  if (clean.match(/^[+-]/)) {
+    const sign = clean[0];
+    const num = clean.slice(1).trim();
+    return `${sign}${num.startsWith('$') ? '' : '$'}${num}`;
+  }
+  // Otherwise, it's a flat price variant (e.g., a Half Sub)
+  return clean.startsWith('$') ? clean : `$${clean}`;
+};
+
 // 📸 FLIPPING PHOTO CARD
 const PhotoCard = ({ item, isLightMode, fonts, brandColor, brandTextColor, themeRadius }: CardProps) => {
   const [isFlipped, setIsFlipped] = useState(false);
-  const canFlip = !!item.desc;
+  const hasAddons = item.addons && item.addons.length > 0;
+  const canFlip = !!item.desc || hasAddons;
 
   return (
     <div 
@@ -50,6 +67,7 @@ const PhotoCard = ({ item, isLightMode, fonts, brandColor, brandTextColor, theme
       onClick={() => canFlip && setIsFlipped(!isFlipped)}
     >
       <div className={`relative w-full h-full transition-transform duration-700 transform-3d ${isFlipped ? 'transform-[rotateY(180deg)]' : ''}`}>
+        
         {/* FRONT */}
         <div className={`absolute inset-0 w-full h-full backface-hidden shadow-xl bg-zinc-900 border ${isLightMode ? 'border-zinc-200' : 'border-white/10'} ${themeRadius} overflow-hidden`}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -61,7 +79,6 @@ const PhotoCard = ({ item, isLightMode, fonts, brandColor, brandTextColor, theme
                 {item.title && (
                   <h4 className={`text-lg md:text-xl font-black text-white leading-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] ${fonts.heading} text-balance line-clamp-2`}>
                     {item.title}
-                    {/* 🚀 THE FIX: Appends asterisk for raw items */}
                     {item.isRaw && <span className="text-rose-500 ml-1 leading-none">*</span>}
                   </h4>
                 )}
@@ -86,16 +103,32 @@ const PhotoCard = ({ item, isLightMode, fonts, brandColor, brandTextColor, theme
           <div className="absolute inset-0 opacity-[0.03] bg-[url('/grid.svg')] pointer-events-none" />
           <div className={`absolute -top-12 -right-12 w-32 h-32 bg-${brandColor} opacity-10 rounded-full blur-2xl pointer-events-none`} />
           <div className={`absolute -bottom-12 -left-12 w-32 h-32 bg-${brandColor} opacity-10 rounded-full blur-2xl pointer-events-none`} />
-          {item.desc && (
-            <>
-              <span className={`text-[10px] font-black uppercase tracking-widest ${brandTextColor} mb-3 relative z-10 flex items-center gap-2`}>
-                <span className="w-3 h-px bg-current opacity-50" /> Details <span className="w-3 h-px bg-current opacity-50" />
-              </span>
-              <p className={`text-sm md:text-base leading-relaxed ${fonts.body} ${isLightMode ? 'text-zinc-700' : 'text-zinc-300'} relative z-10`}>
-                {item.desc}
-              </p>
-            </>
-          )}
+          
+          <div className="w-full flex flex-col items-center max-h-full overflow-y-auto hide-scrollbar z-10">
+            {item.desc && (
+              <>
+                <span className={`text-[10px] font-black uppercase tracking-widest ${brandTextColor} mb-3 flex items-center gap-2 shrink-0`}>
+                  <span className="w-3 h-px bg-current opacity-50" /> Details <span className="w-3 h-px bg-current opacity-50" />
+                </span>
+                <p className={`text-sm md:text-base leading-relaxed ${fonts.body} ${isLightMode ? 'text-zinc-700' : 'text-zinc-300'}`}>
+                  {item.desc}
+                </p>
+              </>
+            )}
+
+            {/* 🚀 Flexible Options & Add-ons List */}
+            {hasAddons && (
+              <div className={`w-full text-left space-y-2 pt-4 mt-4 border-t ${isLightMode ? 'border-zinc-200' : 'border-zinc-800'} shrink-0`}>
+                <span className={`text-[9px] font-black uppercase tracking-widest opacity-70 block mb-2 ${isLightMode ? 'text-zinc-500' : 'text-zinc-400'}`}>Options & Add-ons</span>
+                {item.addons!.map((addon, i) => (
+                  <div key={i} className={`flex justify-between items-center text-[11px] uppercase tracking-wider font-bold border-b pb-1.5 border-dashed ${isLightMode ? 'border-zinc-300 text-zinc-600' : 'border-zinc-700 text-zinc-300'}`}>
+                    <span>{addon.name}</span>
+                    <span className={brandTextColor}>{formatVariantPrice(addon.price)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
@@ -105,7 +138,8 @@ const PhotoCard = ({ item, isLightMode, fonts, brandColor, brandTextColor, theme
 // 📝 FLIPPING TEXT CARD
 const TextCard = ({ item, isLightMode, fonts, brandColor, brandTextColor, themeRadius }: CardProps) => {
   const [isFlipped, setIsFlipped] = useState(false);
-  const canFlip = !!item.desc;
+  const hasAddons = item.addons && item.addons.length > 0;
+  const canFlip = !!item.desc || hasAddons;
 
   return (
     <div 
@@ -125,7 +159,6 @@ const TextCard = ({ item, isLightMode, fonts, brandColor, brandTextColor, themeR
                 {item.title && (
                   <h4 className={`text-lg md:text-xl font-black ${isLightMode ? 'text-zinc-900' : 'text-zinc-100'} leading-tight drop-shadow-xs ${fonts.heading} text-balance line-clamp-2`}>
                     {item.title}
-                    {/* 🚀 THE FIX: Appends asterisk for raw items */}
                     {item.isRaw && <span className="text-rose-500 ml-1 leading-none">*</span>}
                   </h4>
                 )}
@@ -151,16 +184,31 @@ const TextCard = ({ item, isLightMode, fonts, brandColor, brandTextColor, themeR
           <div className={`absolute -top-12 -right-12 w-32 h-32 bg-${brandColor} opacity-10 rounded-full blur-2xl pointer-events-none`} />
           <div className={`absolute -bottom-12 -left-12 w-32 h-32 bg-${brandColor} opacity-10 rounded-full blur-2xl pointer-events-none`} />
           
-          {item.desc && (
-            <>
-              <span className={`text-[10px] font-black uppercase tracking-widest ${brandTextColor} mb-3 relative z-10 flex items-center gap-2`}>
-                <span className="w-3 h-px bg-current opacity-50" /> Details <span className="w-3 h-px bg-current opacity-50" />
-              </span>
-              <p className={`text-sm md:text-base leading-relaxed ${fonts.body} ${isLightMode ? 'text-zinc-700' : 'text-zinc-300'} relative z-10`}>
-                {item.desc}
-              </p>
-            </>
-          )}
+          <div className="w-full flex flex-col items-center max-h-full overflow-y-auto hide-scrollbar z-10">
+            {item.desc && (
+              <>
+                <span className={`text-[10px] font-black uppercase tracking-widest ${brandTextColor} mb-3 flex items-center gap-2 shrink-0`}>
+                  <span className="w-3 h-px bg-current opacity-50" /> Details <span className="w-3 h-px bg-current opacity-50" />
+                </span>
+                <p className={`text-sm md:text-base leading-relaxed ${fonts.body} ${isLightMode ? 'text-zinc-700' : 'text-zinc-300'}`}>
+                  {item.desc}
+                </p>
+              </>
+            )}
+
+            {/* 🚀 Flexible Options & Add-ons List */}
+            {hasAddons && (
+              <div className={`w-full text-left space-y-2 pt-4 mt-4 border-t ${isLightMode ? 'border-zinc-200' : 'border-zinc-800'} shrink-0`}>
+                <span className={`text-[9px] font-black uppercase tracking-widest opacity-70 block mb-2 ${isLightMode ? 'text-zinc-500' : 'text-zinc-400'}`}>Options & Add-ons</span>
+                {item.addons!.map((addon, i) => (
+                  <div key={i} className={`flex justify-between items-center text-[11px] uppercase tracking-wider font-bold border-b pb-1.5 border-dashed ${isLightMode ? 'border-zinc-300 text-zinc-600' : 'border-zinc-700 text-zinc-300'}`}>
+                    <span>{addon.name}</span>
+                    <span className={brandTextColor}>{formatVariantPrice(addon.price)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
       </div>
@@ -181,7 +229,6 @@ export default function MenuFlow({
   const hasMenu = capabilities && capabilities.length > 0;
   const typedGallery = (galleryItems || []) as ExtendedGalleryItem[];
 
-  // 🚀 Boolean to check if ANY active item across the entire menu triggers the Raw Warning
   const showRawWarning = typedGallery.some(img => img.isVisible !== false && img.isRaw);
 
   useEffect(() => {
@@ -291,7 +338,8 @@ export default function MenuFlow({
               price: displayPrice,
               desc: displayDesc,
               imageUrl: img.imageUrl,
-              isRaw: img.isRaw // 🚀 Pass flag to UI array
+              isRaw: img.isRaw,
+              addons: img.addons
             });
           });
 
@@ -343,7 +391,6 @@ export default function MenuFlow({
         })}
       </div>
 
-      {/* 🚀 THE FIX: Dynamic FDA Health Warning Footer */}
       {showRawWarning && (
         <div className="mt-16 md:mt-24 pt-10 border-t border-zinc-800/40 text-center px-4">
           <p className={`text-[10px] md:text-xs uppercase tracking-widest max-w-3xl mx-auto leading-relaxed ${isLightMode ? 'text-zinc-500' : 'text-zinc-500'}`}>
