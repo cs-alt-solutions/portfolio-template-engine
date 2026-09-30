@@ -9,6 +9,7 @@ import { THEME_REGISTRY } from '@/utils/themes';
 interface ExtendedGalleryItem extends GalleryItem {
   price?: string;
   isVisible?: boolean;
+  isRaw?: boolean;
 }
 
 interface UnifiedMenuItem {
@@ -18,6 +19,7 @@ interface UnifiedMenuItem {
   price: string;
   desc: string;
   imageUrl?: string;
+  isRaw?: boolean;
 }
 
 interface CardProps {
@@ -59,6 +61,8 @@ const PhotoCard = ({ item, isLightMode, fonts, brandColor, brandTextColor, theme
                 {item.title && (
                   <h4 className={`text-lg md:text-xl font-black text-white leading-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] ${fonts.heading} text-balance line-clamp-2`}>
                     {item.title}
+                    {/* 🚀 THE FIX: Appends asterisk for raw items */}
+                    {item.isRaw && <span className="text-rose-500 ml-1 leading-none">*</span>}
                   </h4>
                 )}
                 {canFlip && (
@@ -121,6 +125,8 @@ const TextCard = ({ item, isLightMode, fonts, brandColor, brandTextColor, themeR
                 {item.title && (
                   <h4 className={`text-lg md:text-xl font-black ${isLightMode ? 'text-zinc-900' : 'text-zinc-100'} leading-tight drop-shadow-xs ${fonts.heading} text-balance line-clamp-2`}>
                     {item.title}
+                    {/* 🚀 THE FIX: Appends asterisk for raw items */}
+                    {item.isRaw && <span className="text-rose-500 ml-1 leading-none">*</span>}
                   </h4>
                 )}
                 {canFlip && (
@@ -175,6 +181,9 @@ export default function MenuFlow({
   const hasMenu = capabilities && capabilities.length > 0;
   const typedGallery = (galleryItems || []) as ExtendedGalleryItem[];
 
+  // 🚀 Boolean to check if ANY active item across the entire menu triggers the Raw Warning
+  const showRawWarning = typedGallery.some(img => img.isVisible !== false && img.isRaw);
+
   useEffect(() => {
     if (!hasMenu) return;
     const observer = new IntersectionObserver(
@@ -216,7 +225,6 @@ export default function MenuFlow({
         <div className={`w-24 h-1.5 mx-auto bg-${brandColor} ${shapeRadius === 'rounded-none' ? 'rounded-none' : 'rounded-full'}`} />
       </div>
 
-      {/* 🚀 THE FIX: FLOATING DYNAMIC ISLAND JUMP MENU */}
       <div className="sticky top-4 z-50 w-full flex justify-center mb-12 md:mb-16 pointer-events-none">
         <div className={`pointer-events-auto flex overflow-x-auto gap-2 p-2 rounded-full backdrop-blur-2xl border shadow-2xl max-w-full hide-scrollbar
           ${isLightMode ? 'bg-white/80 border-zinc-200' : 'bg-zinc-950/80 border-zinc-800'}
@@ -231,7 +239,7 @@ export default function MenuFlow({
               <button
                 key={section.title}
                 onClick={() => scrollToCategory(section.title)}
-                className={`whitespace-nowrap shrink-0 px-5 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300
+                className={`whitespace-nowrap shrink-0 px-5 py-2.5 rounded-full text-[11px] font-black uppercase tracking-widest transition-all duration-300
                   ${isActive 
                     ? `bg-${brandColor} text-zinc-950 shadow-[0_0_15px_rgba(var(--tw-colors-${brandColor}),0.4)] scale-105` 
                     : `${isLightMode ? 'bg-transparent text-zinc-500 hover:text-zinc-800' : 'bg-transparent text-zinc-400 hover:text-white'}`
@@ -282,7 +290,8 @@ export default function MenuFlow({
               title: displayName,
               price: displayPrice,
               desc: displayDesc,
-              imageUrl: img.imageUrl
+              imageUrl: img.imageUrl,
+              isRaw: img.isRaw // 🚀 Pass flag to UI array
             });
           });
 
@@ -316,7 +325,6 @@ export default function MenuFlow({
               </div>
 
               <div className="w-full">
-                {/* 🚀 THE FIX: Mobile Horizontal Swipe Carousel + Desktop Grid */}
                 <div className="flex md:grid md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 overflow-x-auto md:overflow-visible pb-8 snap-x snap-mandatory hide-scrollbar -mx-6 px-6 md:mx-0 md:px-0">
                   {unifiedItems.map((item) => (
                     <div key={item.id} className="shrink-0 w-[80vw] sm:w-[320px] md:w-auto snap-center h-full">
@@ -334,6 +342,17 @@ export default function MenuFlow({
           );
         })}
       </div>
+
+      {/* 🚀 THE FIX: Dynamic FDA Health Warning Footer */}
+      {showRawWarning && (
+        <div className="mt-16 md:mt-24 pt-10 border-t border-zinc-800/40 text-center px-4">
+          <p className={`text-[10px] md:text-xs uppercase tracking-widest max-w-3xl mx-auto leading-relaxed ${isLightMode ? 'text-zinc-500' : 'text-zinc-500'}`}>
+            <span className="text-rose-500 font-bold text-sm mr-1">*</span> 
+            Consuming raw or undercooked meats, poultry, seafood, shellfish, or eggs may increase your risk of foodborne illness.
+          </p>
+        </div>
+      )}
+      
     </div>
   );
 }

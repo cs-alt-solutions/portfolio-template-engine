@@ -54,6 +54,7 @@ interface FormattedGalleryItem {
   category?: string;
   price?: string;
   isVisible?: boolean;
+  isRaw?: boolean; // 🚀 ADDED: Now TypeScript knows to expect the raw flag
 }
 
 const HERO_NAMES: Record<string, string> = {
@@ -128,7 +129,7 @@ export default async function DynamicStorefront({
 
   const rawGallery = Array.isArray(store.gallery_items) ? store.gallery_items : [];
   
-  // 🚀 THE FIX: Explicitly typing the mapped object instead of using 'any'
+  // 🚀 THE FIX: Passed isRaw safely through the mapping type check
   const formattedGalleryItems: FormattedGalleryItem[] = rawGallery.map((item: unknown, index: number) => {
     if (typeof item === 'string') return { id: `gal-${index}`, imageUrl: item };
     
@@ -140,6 +141,7 @@ export default async function DynamicStorefront({
       category?: string;
       price?: string;
       isVisible?: boolean;
+      isRaw?: boolean;
     };
     
     return { 
@@ -149,7 +151,8 @@ export default async function DynamicStorefront({
       description: obj.description || obj.category, 
       category: obj.category,
       price: obj.price,
-      isVisible: obj.isVisible
+      isVisible: obj.isVisible,
+      isRaw: obj.isRaw
     };
   });
 
