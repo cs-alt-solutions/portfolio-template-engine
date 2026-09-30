@@ -53,6 +53,7 @@ interface FormattedGalleryItem {
   description?: string;
   category?: string;
   price?: string;
+  isVisible?: boolean;
 }
 
 const HERO_NAMES: Record<string, string> = {
@@ -127,17 +128,28 @@ export default async function DynamicStorefront({
 
   const rawGallery = Array.isArray(store.gallery_items) ? store.gallery_items : [];
   
-  // 🚀 THE FIX: Removed the `.filter()` that was aggressively deleting text-only blank cards!
+  // 🚀 THE FIX: Explicitly typing the mapped object instead of using 'any'
   const formattedGalleryItems: FormattedGalleryItem[] = rawGallery.map((item: unknown, index: number) => {
     if (typeof item === 'string') return { id: `gal-${index}`, imageUrl: item };
-    const obj = item as Record<string, string | undefined>;
+    
+    const obj = item as {
+      id?: string;
+      imageUrl?: string;
+      title?: string;
+      description?: string;
+      category?: string;
+      price?: string;
+      isVisible?: boolean;
+    };
+    
     return { 
       id: obj.id || `gal-${index}`, 
       imageUrl: obj.imageUrl || '', 
       title: obj.title, 
       description: obj.description || obj.category, 
       category: obj.category,
-      price: obj.price
+      price: obj.price,
+      isVisible: obj.isVisible
     };
   });
 

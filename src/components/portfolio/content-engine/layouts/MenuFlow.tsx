@@ -8,6 +8,7 @@ import { THEME_REGISTRY } from '@/utils/themes';
 
 interface ExtendedGalleryItem extends GalleryItem {
   price?: string;
+  isVisible?: boolean;
 }
 
 interface UnifiedMenuItem {
@@ -28,7 +29,6 @@ interface CardProps {
   themeRadius: string;
 }
 
-// Smart Price Extractor for Legacy Bullets
 const parseItemData = (rawText: string = '') => {
   const match = rawText.match(/(.+?)(?:\s*[-|:—]*\s*)(\$[\d.]+)$/);
   if (match) return { text: match[1].trim(), price: match[2] };
@@ -46,7 +46,6 @@ const PhotoCard = ({ item, isLightMode, fonts, brandColor, brandTextColor, theme
       onClick={() => canFlip && setIsFlipped(!isFlipped)}
     >
       <div className={`relative w-full h-full transition-transform duration-700 transform-3d ${isFlipped ? 'transform-[rotateY(180deg)]' : ''}`}>
-        
         {/* FRONT */}
         <div className={`absolute inset-0 w-full h-full backface-hidden shadow-xl bg-zinc-900 border ${isLightMode ? 'border-zinc-200' : 'border-white/10'} ${themeRadius} overflow-hidden`}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -81,7 +80,6 @@ const PhotoCard = ({ item, isLightMode, fonts, brandColor, brandTextColor, theme
           <div className="absolute inset-0 opacity-[0.03] bg-[url('/grid.svg')] pointer-events-none" />
           <div className={`absolute -top-12 -right-12 w-32 h-32 bg-${brandColor} opacity-10 rounded-full blur-2xl pointer-events-none`} />
           <div className={`absolute -bottom-12 -left-12 w-32 h-32 bg-${brandColor} opacity-10 rounded-full blur-2xl pointer-events-none`} />
-
           {item.desc && (
             <>
               <span className={`text-[10px] font-black uppercase tracking-widest ${brandTextColor} mb-3 relative z-10 flex items-center gap-2`}>
@@ -93,19 +91,16 @@ const PhotoCard = ({ item, isLightMode, fonts, brandColor, brandTextColor, theme
             </>
           )}
         </div>
-
       </div>
     </div>
   );
 };
 
-// 📝 SOLID TEXT CARD (Fixed Layout & Padding so text never collides with price badge)
+// 📝 SOLID TEXT CARD
 const TextCard = ({ item, isLightMode, fonts, brandColor, brandTextColor, themeRadius }: CardProps) => {
   return (
     <div className="relative aspect-square md:aspect-4/3 group transition-transform duration-300 hover:-translate-y-1">
       <div className={`absolute inset-0 flex flex-col justify-between p-6 md:p-8 shadow-xl border ${isLightMode ? 'bg-zinc-50 border-zinc-200' : 'bg-zinc-900 border-white/5'} ${themeRadius} overflow-hidden relative`}>
-        
-        {/* 🚀 THE FIX: Added pr-16 padding on the right so text stops before colliding with the badge */}
         <div className="min-h-0 flex-1 pr-12">
           {item.title && (
             <h4 className={`text-xl md:text-2xl font-black mb-2.5 ${fonts.heading} ${isLightMode ? 'text-zinc-900' : 'text-zinc-100'} group-hover:${brandTextColor} transition-colors text-balance line-clamp-2`}>
@@ -119,7 +114,6 @@ const TextCard = ({ item, isLightMode, fonts, brandColor, brandTextColor, themeR
           )}
         </div>
         
-        {/* Absolute Bottom-Right Price Badge */}
         {item.price && (
           <div className="absolute bottom-5 right-5 z-20">
             <div className={`shrink-0 bg-${brandColor} text-zinc-950 px-3 py-1.5 rounded-xl shadow-[0_4px_15px_rgba(0,0,0,0.5)] transform -rotate-3 group-hover:rotate-0 group-hover:scale-110 transition-all duration-300`}>
@@ -129,7 +123,6 @@ const TextCard = ({ item, isLightMode, fonts, brandColor, brandTextColor, themeR
             </div>
           </div>
         )}
-
       </div>
     </div>
   );
@@ -165,7 +158,9 @@ export default function MenuFlow({
           
           const unifiedItems: UnifiedMenuItem[] = [];
           
-          const attachedGallery = typedGallery.filter(item => item.category === section.title);
+          // 🚀 THE FIX: Filter out any items where isVisible explicitly equals false
+          const attachedGallery = typedGallery.filter(item => item.category === section.title && item.isVisible !== false);
+          
           attachedGallery.forEach(img => {
             const isPhoto = !!(img.imageUrl && img.imageUrl.trim() !== '');
             const parsedTitle = parseItemData(img.title || '');
