@@ -16,12 +16,12 @@ export interface GalleryItem {
 export interface ContentLayoutProps {
   themeStyle: string;
   brandColor: string;
+  secondaryBrandColor?: string; // 🚀 ADDED
   isLightMode: boolean;
   capabilitiesHeading: string;
   galleryHeading: string;
   capabilities: Capability[];
   galleryItems: GalleryItem[];
-  // 🚀 RESTORED 'menu'
   contentLayout?: 'classic' | 'bento' | 'sticky' | 'accordion' | 'editorial' | 'menu';
   aboutLayout?: 'split' | 'editorial' | 'minimal' | 'card';
 }

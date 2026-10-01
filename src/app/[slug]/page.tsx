@@ -54,7 +54,8 @@ interface FormattedGalleryItem {
   category?: string;
   price?: string;
   isVisible?: boolean;
-  isRaw?: boolean; // 🚀 ADDED: Now TypeScript knows to expect the raw flag
+  isRaw?: boolean;
+  addons?: { name: string; price: string }[]; // 🚀 ADDED: Allows add-ons array to pass through
 }
 
 const HERO_NAMES: Record<string, string> = {
@@ -104,7 +105,10 @@ export default async function DynamicStorefront({
   
   const theme = THEME_REGISTRY[store.theme_style || 'industrial'] || THEME_REGISTRY['industrial'];
   const layout = store.hero_layout || 'center';
+  
+  // 🚀 Map both brand colors
   const brandColor = store.brand_color || 'cyan-500';
+  const secondaryBrandColor = store.secondary_brand_color || brandColor;
 
   const accentColorClass = theme.useBrandAccent ? `text-${brandColor}` : '';
   const buttonBgClass = theme.useBrandAccent ? `bg-${brandColor} text-zinc-950 hover:opacity-80 border-none` : `bg-${brandColor} text-zinc-950`;
@@ -129,7 +133,7 @@ export default async function DynamicStorefront({
 
   const rawGallery = Array.isArray(store.gallery_items) ? store.gallery_items : [];
   
-  // 🚀 THE FIX: Passed isRaw safely through the mapping type check
+  // 🚀 Explicitly typing the mapped object instead of using 'any'
   const formattedGalleryItems: FormattedGalleryItem[] = rawGallery.map((item: unknown, index: number) => {
     if (typeof item === 'string') return { id: `gal-${index}`, imageUrl: item };
     
@@ -142,6 +146,7 @@ export default async function DynamicStorefront({
       price?: string;
       isVisible?: boolean;
       isRaw?: boolean;
+      addons?: { name: string; price: string }[];
     };
     
     return { 
@@ -152,12 +157,14 @@ export default async function DynamicStorefront({
       category: obj.category,
       price: obj.price,
       isVisible: obj.isVisible,
-      isRaw: obj.isRaw
+      isRaw: obj.isRaw,
+      addons: obj.addons || []
     };
   });
 
   return (
-    <main className={`min-h-screen flex flex-col selection:bg-cyan-500/30 ${theme.pageBg || 'bg-zinc-950'} relative`}>
+    // 🚀 Highlights the text selection with the secondary brand color
+    <main className={`min-h-screen flex flex-col selection:bg-${secondaryBrandColor}/30 ${theme.pageBg || 'bg-zinc-950'} relative`}>
       
       <HeroEngine 
         layout={layout}
@@ -205,6 +212,7 @@ export default async function DynamicStorefront({
           layout={store.content_layout || 'classic'}
           themeStyle={store.theme_style || 'industrial'}
           brandColor={brandColor}
+          secondaryBrandColor={secondaryBrandColor} // 🚀 Passing down the secondary color
           isLightMode={theme.isLightMode || false}
           capabilitiesHeading={store.capabilities_heading || STOREFRONT_DEFAULTS?.CAPABILITIES_HEADING || "Services"} 
           galleryHeading={store.gallery_heading || STOREFRONT_DEFAULTS?.GALLERY_HEADING || "Featured Work"} 

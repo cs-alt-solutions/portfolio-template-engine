@@ -29,6 +29,7 @@ interface CardProps {
   isLightMode?: boolean;
   fonts: { heading: string; body: string; accent: string };
   brandColor: string;
+  secondaryBrandColor: string;
   brandTextColor: string;
   themeRadius: string;
 }
@@ -45,18 +46,16 @@ const slugify = (text: string) => text.toLowerCase().replace(/[^a-z0-9]+/g, '-')
 const formatVariantPrice = (price: string) => {
   const clean = price.trim();
   if (!clean) return '';
-  // If the user manually typed a + or -, honor it
   if (clean.match(/^[+-]/)) {
     const sign = clean[0];
     const num = clean.slice(1).trim();
     return `${sign}${num.startsWith('$') ? '' : '$'}${num}`;
   }
-  // Otherwise, it's a flat price variant (e.g., a Half Sub)
   return clean.startsWith('$') ? clean : `$${clean}`;
 };
 
 // 📸 FLIPPING PHOTO CARD
-const PhotoCard = ({ item, isLightMode, fonts, brandColor, brandTextColor, themeRadius }: CardProps) => {
+const PhotoCard = ({ item, isLightMode, fonts, brandColor, secondaryBrandColor, brandTextColor, themeRadius }: CardProps) => {
   const [isFlipped, setIsFlipped] = useState(false);
   const hasAddons = item.addons && item.addons.length > 0;
   const canFlip = !!item.desc || hasAddons;
@@ -99,35 +98,40 @@ const PhotoCard = ({ item, isLightMode, fonts, brandColor, brandTextColor, theme
         </div>
 
         {/* BACK */}
-        <div className={`absolute inset-0 w-full h-full backface-hidden transform-[rotateY(180deg)] shadow-xl border ${isLightMode ? 'bg-white border-zinc-200' : 'bg-zinc-950 border-zinc-800'} ${themeRadius} overflow-hidden p-6 flex flex-col justify-center items-center text-center relative`}>
-          <div className="absolute inset-0 opacity-[0.03] bg-[url('/grid.svg')] pointer-events-none" />
+        <div className={`absolute inset-0 w-full h-full backface-hidden transform-[rotateY(180deg)] shadow-xl border ${isLightMode ? 'bg-white border-zinc-200' : 'bg-zinc-950 border-zinc-800'} ${themeRadius} relative`}>
+          <div className="absolute inset-0 opacity-[0.03] bg-[url('/grid.svg')] pointer-events-none rounded-[inherit]" />
           <div className={`absolute -top-12 -right-12 w-32 h-32 bg-${brandColor} opacity-10 rounded-full blur-2xl pointer-events-none`} />
           <div className={`absolute -bottom-12 -left-12 w-32 h-32 bg-${brandColor} opacity-10 rounded-full blur-2xl pointer-events-none`} />
           
-          <div className="w-full flex flex-col items-center max-h-full overflow-y-auto hide-scrollbar z-10">
-            {item.desc && (
-              <>
-                <span className={`text-[10px] font-black uppercase tracking-widest ${brandTextColor} mb-3 flex items-center gap-2 shrink-0`}>
-                  <span className="w-3 h-px bg-current opacity-50" /> Details <span className="w-3 h-px bg-current opacity-50" />
-                </span>
-                <p className={`text-sm md:text-base leading-relaxed ${fonts.body} ${isLightMode ? 'text-zinc-700' : 'text-zinc-300'}`}>
-                  {item.desc}
-                </p>
-              </>
-            )}
+          {/* 🚀 THE FIX: Ensures the scroll container never squishes and stays perfectly scrollable */}
+          <div className="absolute inset-0 p-6 flex flex-col items-center justify-center overflow-y-auto hide-scrollbar z-10">
+            <div className="w-full text-center flex flex-col items-center">
+              {item.desc && (
+                <>
+                  <span className={`text-[10px] font-black uppercase tracking-widest ${brandTextColor} mb-3 flex items-center justify-center gap-2 w-full`}>
+                    <span className="w-3 h-px bg-current opacity-50" /> Details <span className="w-3 h-px bg-current opacity-50" />
+                  </span>
+                  <p className={`text-sm md:text-base leading-relaxed ${fonts.body} ${isLightMode ? 'text-zinc-700' : 'text-zinc-300'}`}>
+                    {item.desc}
+                  </p>
+                </>
+              )}
 
-            {/* 🚀 Flexible Options & Add-ons List */}
-            {hasAddons && (
-              <div className={`w-full text-left space-y-2 pt-4 mt-4 border-t ${isLightMode ? 'border-zinc-200' : 'border-zinc-800'} shrink-0`}>
-                <span className={`text-[9px] font-black uppercase tracking-widest opacity-70 block mb-2 ${isLightMode ? 'text-zinc-500' : 'text-zinc-400'}`}>Options & Add-ons</span>
-                {item.addons!.map((addon, i) => (
-                  <div key={i} className={`flex justify-between items-center text-[11px] uppercase tracking-wider font-bold border-b pb-1.5 border-dashed ${isLightMode ? 'border-zinc-300 text-zinc-600' : 'border-zinc-700 text-zinc-300'}`}>
-                    <span>{addon.name}</span>
-                    <span className={brandTextColor}>{formatVariantPrice(addon.price)}</span>
-                  </div>
-                ))}
-              </div>
-            )}
+              {/* 🚀 THE SECONDARY COLOR POP FOR ADD-ONS */}
+              {hasAddons && (
+                <div className={`w-full text-left space-y-2 pt-5 ${item.desc ? 'mt-5 border-t' : ''} ${isLightMode ? 'border-zinc-200' : 'border-zinc-800/80'} shrink-0`}>
+                  <span className={`text-[9px] font-black uppercase tracking-widest opacity-70 block mb-3 ${isLightMode ? 'text-zinc-500' : 'text-zinc-400'}`}>Options & Add-ons</span>
+                  {item.addons!.map((addon, i) => (
+                    <div key={i} className={`flex justify-between items-center text-[11px] uppercase tracking-wider font-bold border-b pb-2 mb-2 border-dashed ${isLightMode ? 'border-zinc-300 text-zinc-600' : 'border-zinc-800 text-zinc-300'} last:border-0 last:mb-0 last:pb-0`}>
+                      <span className="pr-4">{addon.name}</span>
+                      <span className={`shrink-0 px-2 py-1 rounded-md bg-${secondaryBrandColor}/10 text-${secondaryBrandColor} border border-${secondaryBrandColor}/20 shadow-sm`}>
+                        {formatVariantPrice(addon.price)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -136,7 +140,7 @@ const PhotoCard = ({ item, isLightMode, fonts, brandColor, brandTextColor, theme
 };
 
 // 📝 FLIPPING TEXT CARD
-const TextCard = ({ item, isLightMode, fonts, brandColor, brandTextColor, themeRadius }: CardProps) => {
+const TextCard = ({ item, isLightMode, fonts, brandColor, secondaryBrandColor, brandTextColor, themeRadius }: CardProps) => {
   const [isFlipped, setIsFlipped] = useState(false);
   const hasAddons = item.addons && item.addons.length > 0;
   const canFlip = !!item.desc || hasAddons;
@@ -179,35 +183,39 @@ const TextCard = ({ item, isLightMode, fonts, brandColor, brandTextColor, themeR
         </div>
 
         {/* BACK */}
-        <div className={`absolute inset-0 w-full h-full backface-hidden transform-[rotateY(180deg)] shadow-xl border ${isLightMode ? 'bg-white border-zinc-200' : 'bg-zinc-950 border-zinc-800'} ${themeRadius} overflow-hidden p-6 flex flex-col justify-center items-center text-center relative`}>
-          <div className="absolute inset-0 opacity-[0.03] bg-[url('/grid.svg')] pointer-events-none" />
+        <div className={`absolute inset-0 w-full h-full backface-hidden transform-[rotateY(180deg)] shadow-xl border ${isLightMode ? 'bg-white border-zinc-200' : 'bg-zinc-950 border-zinc-800'} ${themeRadius} relative`}>
+          <div className="absolute inset-0 opacity-[0.03] bg-[url('/grid.svg')] pointer-events-none rounded-[inherit]" />
           <div className={`absolute -top-12 -right-12 w-32 h-32 bg-${brandColor} opacity-10 rounded-full blur-2xl pointer-events-none`} />
           <div className={`absolute -bottom-12 -left-12 w-32 h-32 bg-${brandColor} opacity-10 rounded-full blur-2xl pointer-events-none`} />
           
-          <div className="w-full flex flex-col items-center max-h-full overflow-y-auto hide-scrollbar z-10">
-            {item.desc && (
-              <>
-                <span className={`text-[10px] font-black uppercase tracking-widest ${brandTextColor} mb-3 flex items-center gap-2 shrink-0`}>
-                  <span className="w-3 h-px bg-current opacity-50" /> Details <span className="w-3 h-px bg-current opacity-50" />
-                </span>
-                <p className={`text-sm md:text-base leading-relaxed ${fonts.body} ${isLightMode ? 'text-zinc-700' : 'text-zinc-300'}`}>
-                  {item.desc}
-                </p>
-              </>
-            )}
+          <div className="absolute inset-0 p-6 flex flex-col items-center justify-center overflow-y-auto hide-scrollbar z-10">
+            <div className="w-full text-center flex flex-col items-center">
+              {item.desc && (
+                <>
+                  <span className={`text-[10px] font-black uppercase tracking-widest ${brandTextColor} mb-3 flex items-center justify-center gap-2 w-full`}>
+                    <span className="w-3 h-px bg-current opacity-50" /> Details <span className="w-3 h-px bg-current opacity-50" />
+                  </span>
+                  <p className={`text-sm md:text-base leading-relaxed ${fonts.body} ${isLightMode ? 'text-zinc-700' : 'text-zinc-300'}`}>
+                    {item.desc}
+                  </p>
+                </>
+              )}
 
-            {/* 🚀 Flexible Options & Add-ons List */}
-            {hasAddons && (
-              <div className={`w-full text-left space-y-2 pt-4 mt-4 border-t ${isLightMode ? 'border-zinc-200' : 'border-zinc-800'} shrink-0`}>
-                <span className={`text-[9px] font-black uppercase tracking-widest opacity-70 block mb-2 ${isLightMode ? 'text-zinc-500' : 'text-zinc-400'}`}>Options & Add-ons</span>
-                {item.addons!.map((addon, i) => (
-                  <div key={i} className={`flex justify-between items-center text-[11px] uppercase tracking-wider font-bold border-b pb-1.5 border-dashed ${isLightMode ? 'border-zinc-300 text-zinc-600' : 'border-zinc-700 text-zinc-300'}`}>
-                    <span>{addon.name}</span>
-                    <span className={brandTextColor}>{formatVariantPrice(addon.price)}</span>
-                  </div>
-                ))}
-              </div>
-            )}
+              {/* 🚀 THE SECONDARY COLOR POP FOR ADD-ONS */}
+              {hasAddons && (
+                <div className={`w-full text-left space-y-2 pt-5 ${item.desc ? 'mt-5 border-t' : ''} ${isLightMode ? 'border-zinc-200' : 'border-zinc-800/80'} shrink-0`}>
+                  <span className={`text-[9px] font-black uppercase tracking-widest opacity-70 block mb-3 ${isLightMode ? 'text-zinc-500' : 'text-zinc-400'}`}>Options & Add-ons</span>
+                  {item.addons!.map((addon, i) => (
+                    <div key={i} className={`flex justify-between items-center text-[11px] uppercase tracking-wider font-bold border-b pb-2 mb-2 border-dashed ${isLightMode ? 'border-zinc-300 text-zinc-600' : 'border-zinc-800 text-zinc-300'} last:border-0 last:mb-0 last:pb-0`}>
+                      <span className="pr-4">{addon.name}</span>
+                      <span className={`shrink-0 px-2 py-1 rounded-md bg-${secondaryBrandColor}/10 text-${secondaryBrandColor} border border-${secondaryBrandColor}/20 shadow-sm`}>
+                        {formatVariantPrice(addon.price)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -217,7 +225,7 @@ const TextCard = ({ item, isLightMode, fonts, brandColor, brandTextColor, themeR
 };
 
 export default function MenuFlow({
-  themeStyle, brandColor, isLightMode, capabilitiesHeading, capabilities, galleryItems
+  themeStyle, brandColor, secondaryBrandColor, isLightMode, capabilitiesHeading, capabilities, galleryItems
 }: ContentLayoutProps) {
   const [activeCategory, setActiveCategory] = useState<string>('');
 
@@ -225,6 +233,7 @@ export default function MenuFlow({
   const brandTextColor = `text-${brandColor}`;
   const theme = THEME_REGISTRY[themeStyle] || THEME_REGISTRY['industrial'];
   const shapeRadius = theme.radius || 'rounded-none';
+  const activeSecondaryColor = secondaryBrandColor || brandColor; // Safe fallback
   
   const hasMenu = capabilities && capabilities.length > 0;
   const typedGallery = (galleryItems || []) as ExtendedGalleryItem[];
@@ -377,9 +386,9 @@ export default function MenuFlow({
                   {unifiedItems.map((item) => (
                     <div key={item.id} className="shrink-0 w-[80vw] sm:w-[320px] md:w-auto snap-center h-full">
                       {item.type === 'photo' ? (
-                        <PhotoCard item={item} isLightMode={isLightMode} fonts={fonts} brandColor={brandColor} brandTextColor={brandTextColor} themeRadius={shapeRadius} />
+                        <PhotoCard item={item} isLightMode={isLightMode} fonts={fonts} brandColor={brandColor} secondaryBrandColor={activeSecondaryColor} brandTextColor={brandTextColor} themeRadius={shapeRadius} />
                       ) : (
-                        <TextCard item={item} isLightMode={isLightMode} fonts={fonts} brandColor={brandColor} brandTextColor={brandTextColor} themeRadius={shapeRadius} />
+                        <TextCard item={item} isLightMode={isLightMode} fonts={fonts} brandColor={brandColor} secondaryBrandColor={activeSecondaryColor} brandTextColor={brandTextColor} themeRadius={shapeRadius} />
                       )}
                     </div>
                   ))}
