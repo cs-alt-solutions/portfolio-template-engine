@@ -55,7 +55,7 @@ interface FormattedGalleryItem {
   price?: string;
   isVisible?: boolean;
   isRaw?: boolean;
-  addons?: { name: string; price: string }[]; // 🚀 ADDED: Allows add-ons array to pass through
+  addons?: { name: string; price: string }[];
 }
 
 const HERO_NAMES: Record<string, string> = {
@@ -106,13 +106,15 @@ export default async function DynamicStorefront({
   const theme = THEME_REGISTRY[store.theme_style || 'industrial'] || THEME_REGISTRY['industrial'];
   const layout = store.hero_layout || 'center';
   
-  // 🚀 Map both brand colors
+  // 🚀 THE FIX: Extract and map both brand colors
   const brandColor = store.brand_color || 'cyan-500';
   const secondaryBrandColor = store.secondary_brand_color || brandColor;
 
   const accentColorClass = theme.useBrandAccent ? `text-${brandColor}` : '';
   const buttonBgClass = theme.useBrandAccent ? `bg-${brandColor} text-zinc-950 hover:opacity-80 border-none` : `bg-${brandColor} text-zinc-950`;
-  const lineAccent = theme.useBrandAccent ? `bg-${brandColor}` : 'bg-current';
+  
+  // 🚀 THE FIX: Upgraded the accent line to a beautiful dual-tone gradient
+  const lineAccent = theme.useBrandAccent ? `bg-linear-to-r from-${brandColor} to-${secondaryBrandColor}` : 'bg-current';
 
   const exploreLink = '#gallery'; 
 
@@ -133,7 +135,6 @@ export default async function DynamicStorefront({
 
   const rawGallery = Array.isArray(store.gallery_items) ? store.gallery_items : [];
   
-  // 🚀 Explicitly typing the mapped object instead of using 'any'
   const formattedGalleryItems: FormattedGalleryItem[] = rawGallery.map((item: unknown, index: number) => {
     if (typeof item === 'string') return { id: `gal-${index}`, imageUrl: item };
     
@@ -163,7 +164,7 @@ export default async function DynamicStorefront({
   });
 
   return (
-    // 🚀 Highlights the text selection with the secondary brand color
+    // 🚀 THE FIX: Highlights the text selection with the secondary brand color
     <main className={`min-h-screen flex flex-col selection:bg-${secondaryBrandColor}/30 ${theme.pageBg || 'bg-zinc-950'} relative`}>
       
       <HeroEngine 
@@ -171,6 +172,7 @@ export default async function DynamicStorefront({
         store={store}
         theme={theme}
         brandColor={brandColor}
+        secondaryBrandColor={secondaryBrandColor} // 🚀 Passed down
         isHeroFixed={isHeroFixed}
         hasValidLogo={hasValidLogo}
         exploreLink={exploreLink}
@@ -187,7 +189,8 @@ export default async function DynamicStorefront({
               heading: store.about_heading || STOREFRONT_DEFAULTS?.ABOUT_HEADING || 'About Us', 
               bio: store.about_bio,
               imageUrl: store.about_image,
-              brandColor: store.brand_color,
+              brandColor: brandColor,
+              secondaryBrandColor: secondaryBrandColor, // 🚀 Passed down
               socials: activeSocials, 
               isLightMode: theme.isLightMode || false, 
               themeStyle: store.theme_style || 'industrial',
@@ -212,7 +215,7 @@ export default async function DynamicStorefront({
           layout={store.content_layout || 'classic'}
           themeStyle={store.theme_style || 'industrial'}
           brandColor={brandColor}
-          secondaryBrandColor={secondaryBrandColor} // 🚀 Passing down the secondary color
+          secondaryBrandColor={secondaryBrandColor} // 🚀 Passed down
           isLightMode={theme.isLightMode || false}
           capabilitiesHeading={store.capabilities_heading || STOREFRONT_DEFAULTS?.CAPABILITIES_HEADING || "Services"} 
           galleryHeading={store.gallery_heading || STOREFRONT_DEFAULTS?.GALLERY_HEADING || "Featured Work"} 
@@ -221,7 +224,13 @@ export default async function DynamicStorefront({
         />
       </div>
 
-      <StorefrontClientActions store={store} brandColor={brandColor} isLightMode={theme.isLightMode || false} themeStyle={store.theme_style || 'industrial'} />
+      <StorefrontClientActions 
+        store={store} 
+        brandColor={brandColor} 
+        secondaryBrandColor={secondaryBrandColor} // 🚀 Passed down
+        isLightMode={theme.isLightMode || false} 
+        themeStyle={store.theme_style || 'industrial'} 
+      />
 
       <footer className="w-full py-8 px-6 border-t border-white/10 bg-zinc-950 text-[11px] font-mono text-zinc-500 uppercase tracking-widest flex flex-col md:flex-row items-center justify-between gap-6 relative z-20">
         <div className="flex items-center gap-4">

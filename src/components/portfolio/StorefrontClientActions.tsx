@@ -16,6 +16,7 @@ interface StorefrontClientActionsProps {
     [key: string]: unknown;
   };
   brandColor: string;
+  secondaryBrandColor?: string; // 🚀 Added
   isLightMode?: boolean;
   themeStyle?: string;
 }
@@ -23,6 +24,7 @@ interface StorefrontClientActionsProps {
 export default function StorefrontClientActions({
   store,
   brandColor,
+  secondaryBrandColor,
   isLightMode = false,
   themeStyle = 'industrial',
 }: StorefrontClientActionsProps) {
@@ -36,6 +38,9 @@ export default function StorefrontClientActions({
 
   const headlineText = store.primary_cta || "Let's Work Together";
   const buttonText = store.secondary_cta || STOREFRONT_DEFAULTS.SECONDARY_CTA || "Get in Touch";
+  
+  // 🚀 The Active Secondary Color
+  const activeSecondary = secondaryBrandColor || brandColor;
 
   const fonts = getFonts(themeStyle);
   const isNeo = themeStyle === 'neo';
@@ -76,7 +81,10 @@ export default function StorefrontClientActions({
   return (
     <>
       <section id="contact" className={`py-16 px-6 text-center relative z-20 transition-colors overflow-hidden ${getBannerStyles()}`}>
-        <div className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-48 bg-${brandColor}/15 rounded-full blur-3xl pointer-events-none`} />
+        
+        {/* 🚀 THE FIX: Dynamic Ambient Orb uses the secondary brand color for incredible contrast! */}
+        <div className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-48 bg-${activeSecondary}/20 rounded-full blur-[100px] pointer-events-none`} />
+        
         <div className="max-w-3xl mx-auto space-y-4 relative z-10">
           <h2 className={`text-3xl md:text-5xl tracking-tight drop-shadow-sm ${fonts.heading}`}>
             {headlineText}

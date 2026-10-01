@@ -19,6 +19,7 @@ export interface HeroEngineProps {
   store: StorefrontHeroData;
   theme: ThemeDefinition;
   brandColor: string;
+  secondaryBrandColor: string; // 🚀 Added
   isHeroFixed: boolean;
   hasValidLogo: boolean;
   exploreLink: string;
@@ -47,6 +48,7 @@ export default function HeroEngine({
   store,
   theme,
   brandColor,
+  secondaryBrandColor,
   isHeroFixed,
   hasValidLogo,
   exploreLink,
@@ -55,12 +57,10 @@ export default function HeroEngine({
   buttonBgClass,
   lineAccent
 }: HeroEngineProps) {
-  // 🚀 Safe Fallback object to prevent undefined crashes
   const safeTheme = theme || {} as ThemeDefinition;
   const rawBgColor = getRawBgColor(safeTheme.pageBg, safeTheme.isLightMode);
 
   const getLogoClasses = (size: string | undefined, layoutType: string) => {
-    // 🚀 Added 'block' to force the logo to push text down instead of overlapping it
     const base = "block w-auto max-w-full object-contain drop-shadow-2xl transition-all duration-300";
     let placement = "";
     if (layoutType === 'center' || layoutType === 'glass') {
@@ -115,7 +115,8 @@ export default function HeroEngine({
             ) : (
               <img src={store?.hero_image || ''} alt={store?.business_name || 'Hero'} className={`w-full h-full object-cover scale-105 opacity-50 ${activePosition}`} />
             )}
-            {safeTheme.useBrandTint && <div className={`absolute inset-0 opacity-20 bg-${brandColor} mix-blend-color`} />}
+            {/* 🚀 THE FIX: Duotone tint uses the Secondary Color! */}
+            {safeTheme.useBrandTint && <div className={`absolute inset-0 opacity-20 bg-${secondaryBrandColor} mix-blend-color`} />}
             <div className={`absolute inset-0 bg-linear-to-b ${safeTheme.overlayFade || ''}`} />
           </div>
 
@@ -129,7 +130,6 @@ export default function HeroEngine({
                 <h2 className={`${safeTheme.accentText || ''} ${accentColorClass} mb-6 drop-shadow-md`}>{safeTheme.prefix || ''}{store?.business_name || ''}</h2>
               )}
               
-              {/* 🚀 Conditionally rendering text blocks so empty fields collapse perfectly */}
               {store?.tagline && (
                 <h1 className={`${safeTheme.primaryText || ''} text-3xl md:text-4xl lg:text-5xl mb-6 drop-shadow-sm max-w-3xl mx-auto text-balance`}>
                   {store.tagline}

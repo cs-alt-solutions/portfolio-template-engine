@@ -18,13 +18,18 @@ interface GalleryGridProps {
   galleryHeading?: string;
   themeStyle?: string;
   brandColor?: string;
+  secondaryBrandColor?: string; // 🚀 Added
   isLightMode?: boolean;
 }
 
-export default function GalleryGrid({ items, galleryHeading, themeStyle = 'industrial', brandColor, isLightMode }: GalleryGridProps) {
+export default function GalleryGrid({ items, galleryHeading, themeStyle = 'industrial', brandColor = 'cyan-500', secondaryBrandColor, isLightMode }: GalleryGridProps) {
   const [activeFilter, setActiveFilter] = useState<string>('All');
   
   const theme = THEME_REGISTRY[themeStyle] || THEME_REGISTRY['industrial'];
+  
+  // 🚀 The Active Secondary Color
+  const activeSecondary = secondaryBrandColor || brandColor;
+
   const accentColorClass = theme.useBrandAccent ? `text-${brandColor}` : '';
   const bgColor = isLightMode ? 'bg-white border-t border-stone-200' : 'bg-zinc-900 border-t border-zinc-800';
 
@@ -32,7 +37,6 @@ export default function GalleryGrid({ items, galleryHeading, themeStyle = 'indus
   
   if (!validItems || validItems.length === 0) return null;
 
-  // THE FIX: Explicitly cast the filtered array as string[] so TypeScript knows it is safe
   const categories: string[] = ['All', ...Array.from(new Set(validItems.map((item: GalleryItem) => item.category).filter(Boolean) as string[]))];
 
   const filteredItems = activeFilter === 'All' 
@@ -41,7 +45,6 @@ export default function GalleryGrid({ items, galleryHeading, themeStyle = 'indus
 
   const fonts = getFonts(themeStyle);
 
-  // 🚀 SINGLE SOURCE OF TRUTH: Map geometry cleanly to our theme registry!
   const shapeRadius = themeStyle === 'elegant' ? 'rounded-sm' : 
                       ['industrial', 'neo', 'cyberpunk', 'editorial'].includes(themeStyle) ? 'rounded-none' : 
                       themeStyle === 'organic' ? 'rounded-[30px]' : 'rounded-2xl';
@@ -59,7 +62,6 @@ export default function GalleryGrid({ items, galleryHeading, themeStyle = 'indus
             </h3>
           </div>
           
-          {/* Dynamic Filter Pills */}
           {categories.length > 1 && (
             <div className="flex flex-wrap gap-2">
               {categories.map((cat: string) => (
@@ -79,7 +81,6 @@ export default function GalleryGrid({ items, galleryHeading, themeStyle = 'indus
           )}
         </div>
 
-        {/* Dynamic Masonry Columns */}
         <div className="columns-1 sm:columns-2 lg:columns-3 gap-6 space-y-6">
           {filteredItems.map((item: GalleryItem, index: number) => (
             <div key={item.id || index} className={`group relative overflow-hidden ${shapeRadius} shadow-lg transition-all duration-300 hover:shadow-2xl break-inside-avoid bg-zinc-100 dark:bg-zinc-900 border border-zinc-200/50 dark:border-zinc-800/50`}>
@@ -93,11 +94,11 @@ export default function GalleryGrid({ items, galleryHeading, themeStyle = 'indus
                 loading="lazy"
               />
               
-              {/* Overlay Details */}
               {(item.title || item.description) && (
                 <div className="absolute bottom-0 left-0 w-full p-6 translate-y-4 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all duration-300 z-20">
                   {item.category && (
-                    <span className={`inline-block px-2 py-1 mb-2 text-[10px] font-black uppercase tracking-widest rounded bg-${brandColor} text-zinc-950`}>
+                    // 🚀 THE FIX: Category tag uses secondary color!
+                    <span className={`inline-block px-2 py-1 mb-2 text-[10px] font-black uppercase tracking-widest rounded bg-${activeSecondary} text-zinc-950`}>
                       {item.category}
                     </span>
                   )}
