@@ -8,20 +8,25 @@ import GalleryGrid from '../../GalleryGrid';
 export default function ClassicFlow({
   themeStyle, brandColor, isLightMode, capabilitiesHeading, galleryHeading, capabilities, galleryItems
 }: ContentLayoutProps) {
-  
   const fonts = getFonts(themeStyle);
   const brandTextColor = `text-${brandColor}`;
+  
   const hasCaps = capabilities && capabilities.length > 0;
-  const hasGallery = galleryItems && galleryItems.length > 0;
+  
+  // 🚀 THE FIX: We separate unattached gallery items to render them at the bottom
+  const unattachedGallery = (galleryItems || []).filter(img => !img.category || img.category.trim() === '');
+  const hasUnattachedGallery = unattachedGallery.length > 0;
 
   return (
     <>
+      {/* SCOPE OF WORK (Capabilities) */}
       {hasCaps && (
         <div className="max-w-7xl mx-auto px-6 py-20">
           <h2 className={`text-4xl md:text-5xl mb-16 text-center ${brandTextColor} ${fonts.heading}`}>
-            {capabilitiesHeading}
+            {capabilitiesHeading || 'Scope of Work'}
           </h2>
-          {/* 🚨 THE FIX: Pass galleryItems into Capabilities here! 🚨 */}
+          
+          {/* We pass the FULL gallery items here so the "Proof" buttons still work inside the cards */}
           <Capabilities 
             items={capabilities} 
             galleryItems={galleryItems} 
@@ -31,13 +36,14 @@ export default function ClassicFlow({
         </div>
       )}
       
-      {hasGallery && (
+      {/* PROOF OF WORK (Unassigned Gallery Dump) */}
+      {hasUnattachedGallery && (
         <div className={`w-full py-24 ${isLightMode ? 'bg-black/5' : 'bg-white/5'}`}>
           <div className="container mx-auto px-6">
             <h3 className={`text-4xl md:text-5xl mb-12 text-center ${brandTextColor} ${fonts.heading}`}>
-              {galleryHeading}
+              {galleryHeading || 'Proof of Work'}
             </h3>
-            <GalleryGrid items={galleryItems} themeStyle={themeStyle} />
+            <GalleryGrid items={unattachedGallery} themeStyle={themeStyle} brandColor={brandColor} isLightMode={isLightMode} />
           </div>
         </div>
       )}
