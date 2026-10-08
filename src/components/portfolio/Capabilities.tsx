@@ -1,9 +1,10 @@
 // src/components/portfolio/Capabilities.tsx
 'use client';
+
 import React, { useState } from 'react';
 import { getFonts, getThemeBullet } from './content-engine/utils';
 import { Info, Image as ImageIcon, ArrowRight } from 'lucide-react';
-import ServiceProofModal, { GalleryItem } from './ServiceProofModal'; // Ensure this path is correct
+import ServiceProofModal, { GalleryItem } from './ServiceProofModal';
 
 export interface Capability {
   title: string;
@@ -22,13 +23,15 @@ interface CapabilitiesProps {
   galleryItems?: GalleryItem[];
   themeStyle?: string;
   brandColor?: string;
+  secondaryBrandColor?: string;
 }
 
 export default function Capabilities({ 
   items, 
   galleryItems = [], 
   themeStyle = 'industrial', 
-  brandColor = 'cyan-500' 
+  brandColor = 'cyan-500',
+  secondaryBrandColor
 }: CapabilitiesProps) {
   const [activeModalService, setActiveModalService] = useState<ModalServiceState | null>(null);
 
@@ -39,8 +42,10 @@ export default function Capabilities({
   const isCyber = themeStyle === 'cyberpunk';
   const isIndustrial = themeStyle === 'industrial';
   const isMidnight = themeStyle === 'midnight';
+
   const fonts = getFonts(themeStyle);
   const brandTextColor = `text-${brandColor}`;
+  const activeSecondary = secondaryBrandColor || brandColor;
 
   const getCardStyles = () => {
     if (themeStyle === 'elegant') return 'bg-white border border-zinc-200 hover:border-zinc-400 hover:shadow-[0_20px_50px_rgba(0,0,0,0.08)] rounded-sm p-8 md:p-10 transition-all hover:-translate-y-1';
@@ -49,7 +54,7 @@ export default function Capabilities({
     if (isNeo) return 'bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-1 hover:shadow-none rounded-none p-8 md:p-10 transition-all';
     if (isIndustrial) return 'bg-zinc-900 border-2 border-zinc-700 shadow-[8px_8px_0_0_rgba(0,0,0,0.5)] hover:-translate-y-1 rounded-none p-8 md:p-10 transition-all';
     if (isMidnight) return 'bg-zinc-900/30 backdrop-blur-2xl border border-white/5 shadow-2xl hover:bg-zinc-900/40 hover:shadow-[0_0_30px_rgba(255,255,255,0.05)] hover:-translate-y-1 rounded-2xl p-8 md:p-10 transition-all';
-    if (isCyber) return `bg-black/60 border border-white/10 hover:border-${brandColor} hover:shadow-[0_0_30px_rgba(var(--${brandColor}),0.2)] rounded-none p-8 md:p-10 transition-all`;
+    if (isCyber) return `bg-black/60 border border-white/10 hover:border-${brandColor} hover:shadow-[0_0_30px_rgba(var(--tw-colors-${brandColor}),0.2)] rounded-none p-8 md:p-10 transition-all`;
     if (isLightMode) return 'bg-white/50 border border-stone-200 hover:border-stone-300 hover:shadow-2xl rounded-3xl hover:-translate-y-1 p-8 md:p-10 transition-all';
     
     return 'bg-zinc-900/60 border border-zinc-800 hover:border-zinc-700 hover:bg-zinc-900/80 hover:shadow-2xl rounded-3xl hover:-translate-y-1 p-8 md:p-10 transition-all';
@@ -63,7 +68,6 @@ export default function Capabilities({
 
   return (
     <div className="w-full max-w-6xl mx-auto">
-      {/* 🚀 THE FIX: We use a responsive grid to stack them beautifully */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {items.map((item, i) => {
           const attachedImages = getAttachedImages(item.title);
@@ -80,9 +84,9 @@ export default function Capabilities({
                     <button
                       onClick={() => setActiveModalService({ title: item.title, images: attachedImages, desc: item.description })}
                       className={`inline-flex items-center gap-1.5 px-3 py-1.5 ${isSharpTheme ? 'rounded-sm' : 'rounded-full'} text-[10px] font-mono font-bold uppercase tracking-widest transition-all shadow-sm shrink-0 hover:scale-105 ${
-                        isLightMode
-                          ? 'bg-zinc-900 text-white hover:bg-zinc-700'
-                          : 'bg-white/10 border border-white/20 text-white hover:bg-white hover:text-black'
+                        isLightMode 
+                          ? `bg-zinc-900 text-white hover:bg-${activeSecondary} hover:text-zinc-950` 
+                          : `bg-white/10 border border-white/20 text-white hover:bg-${activeSecondary} hover:text-zinc-950 hover:border-${activeSecondary}`
                       }`}
                       title="Click to view visual proof of work"
                     >
@@ -103,7 +107,7 @@ export default function Capabilities({
                   <ul className={`space-y-4 pt-6 border-t ${isLightMode ? 'border-zinc-200' : 'border-zinc-800'} ${fonts.body} mb-6`}>
                     {item.bullets.map((b, bIdx) => (
                       <li key={bIdx} className="flex items-start gap-4">
-                        {getThemeBullet(themeStyle, brandTextColor)}
+                        {getThemeBullet(themeStyle, bIdx % 2 === 0 ? brandTextColor : `text-${activeSecondary}`)}
                         <span className={`text-base md:text-lg leading-relaxed ${isLightMode ? 'text-zinc-800' : 'text-zinc-200'}`}>{b}</span>
                       </li>
                     ))}
@@ -114,10 +118,11 @@ export default function Capabilities({
               {hasProof && (
                 <button
                   onClick={() => setActiveModalService({ title: item.title, images: attachedImages, desc: item.description })}
+                  // 🚀 THE FIX: A solid hover flood of the secondary color that is compliant with the safelist
                   className={`w-full mt-auto py-3 px-4 border ${isSharpTheme ? 'rounded-sm' : 'rounded-xl'} text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-all ${
-                    isLightMode
-                      ? 'bg-zinc-100 hover:bg-zinc-900 border-zinc-300 hover:border-zinc-900 text-zinc-800 hover:text-white'
-                      : 'bg-black/40 hover:bg-white/10 border-white/10 hover:border-white/30 text-zinc-300 hover:text-white'
+                    isLightMode 
+                      ? `bg-zinc-100 border-zinc-300 text-zinc-800 hover:bg-${activeSecondary} hover:text-zinc-950 hover:border-transparent hover:shadow-lg` 
+                      : `bg-black/40 border-white/10 text-zinc-300 hover:bg-${activeSecondary} hover:text-zinc-950 hover:border-transparent hover:shadow-lg`
                   }`}
                 >
                   <ImageIcon className="w-4 h-4" /> View Gallery <ArrowRight className="w-3.5 h-3.5" />
@@ -128,7 +133,6 @@ export default function Capabilities({
         })}
       </div>
 
-      {/* THE POP-OUT PROOF OF WORK MODAL */}
       <ServiceProofModal
         isOpen={!!activeModalService}
         onClose={() => setActiveModalService(null)}

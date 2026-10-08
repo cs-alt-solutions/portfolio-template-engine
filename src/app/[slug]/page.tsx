@@ -11,16 +11,13 @@ import ContentEngine from '@/components/portfolio/content-engine';
 import PrototypeTourGuide from '@/components/portfolio/PrototypeTourGuide';
 import StorefrontClientActions from '../../components/portfolio/StorefrontClientActions';
 import StagingReviewOverlay from '@/components/portfolio/staging-review/StagingReviewOverlay';
-import LocationPanel from '@/components/portfolio/LocationPanel'; // 🚀 ADDED: Location Panel Import
+import LocationPanel from '@/components/portfolio/LocationPanel'; 
 import { Send } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 export const fetchCache = 'force-no-store';
 
-// ============================================================================
-// DYNAMIC METADATA (BROWSER TAB & SEO)
-// ============================================================================
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const resolvedParams = await params;
   const { data: store } = await supabase
@@ -107,14 +104,16 @@ export default async function DynamicStorefront({
   const theme = THEME_REGISTRY[store.theme_style || 'industrial'] || THEME_REGISTRY['industrial'];
   const layout = store.hero_layout || 'center';
   
-  // 🚀 Map both brand colors
   const brandColor = store.brand_color || 'cyan-500';
   const secondaryBrandColor = store.secondary_brand_color || brandColor;
 
   const accentColorClass = theme.useBrandAccent ? `text-${brandColor}` : '';
-  const buttonBgClass = theme.useBrandAccent ? `bg-${brandColor} text-zinc-950 hover:opacity-80 border-none` : `bg-${brandColor} text-zinc-950`;
   
-  // 🚀 Upgraded the accent line to a beautiful dual-tone gradient
+  // 🚀 THE FIX: Safely paints the hero button completely in the secondary brand color
+  const buttonBgClass = theme.useBrandAccent 
+    ? `bg-${secondaryBrandColor} text-zinc-950 hover:scale-105 transition-all shadow-lg border-none` 
+    : `bg-${brandColor} text-zinc-950`;
+  
   const lineAccent = theme.useBrandAccent ? `bg-linear-to-r from-${brandColor} to-${secondaryBrandColor}` : 'bg-current';
 
   const exploreLink = '#gallery'; 
@@ -215,13 +214,13 @@ export default async function DynamicStorefront({
           layout={store.content_layout || 'classic'}
           themeStyle={store.theme_style || 'industrial'}
           brandColor={brandColor}
-          secondaryBrandColor={secondaryBrandColor} 
+          secondaryBrandColor={secondaryBrandColor}
           isLightMode={theme.isLightMode || false}
           capabilitiesHeading={store.capabilities_heading || STOREFRONT_DEFAULTS?.CAPABILITIES_HEADING || "Services"} 
           galleryHeading={store.gallery_heading || STOREFRONT_DEFAULTS?.GALLERY_HEADING || "Featured Work"} 
           capabilities={store.capabilities || []}
           galleryItems={formattedGalleryItems}
-          orderingUrl={store.ordering_url} // 🚀 ADD THIS LINE TO CATCH THE LINK!
+          orderingUrl={store.ordering_url}
         />
       </div>
 
@@ -233,15 +232,15 @@ export default async function DynamicStorefront({
         themeStyle={store.theme_style || 'industrial'} 
       />
 
-      {/* 🚀 THE NEW HEADLESS MAP INJECTION */}
       <LocationPanel 
         businessName={store.business_name || 'Our Location'}
         mapEmbedUrl={store.map_embed_url}
         themeStyle={store.theme_style}
         brandColor={brandColor}
         isLightMode={theme.isLightMode}
-        industryTag={store.industry_tag} // 🚀 Passes the database tag to the copy engine
+        industryTag={store.industry_tag}
       />
+
       <footer className="w-full py-8 px-6 border-t border-white/10 bg-zinc-950 text-[11px] font-mono text-zinc-500 uppercase tracking-widest flex flex-col md:flex-row items-center justify-between gap-6 relative z-20">
         <div className="flex items-center gap-4">
           {hasValidLogo && (

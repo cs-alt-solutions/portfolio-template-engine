@@ -13,11 +13,11 @@ interface StorefrontClientActionsProps {
     business_name?: string;
     primary_cta?: string;
     secondary_cta?: string;
-    lead_inquiry_types?: string[]; // 🚀 Let TS know this array exists
+    lead_inquiry_types?: string[];
     [key: string]: unknown;
   };
   brandColor: string;
-  secondaryBrandColor?: string; // 🚀 Restored this so page.tsx doesn't throw errors
+  secondaryBrandColor?: string;
   isLightMode?: boolean;
   themeStyle?: string;
 }
@@ -40,7 +40,6 @@ export default function StorefrontClientActions({
   const headlineText = store.primary_cta || "Let's Work Together";
   const buttonText = store.secondary_cta || STOREFRONT_DEFAULTS.SECONDARY_CTA || "Get in Touch";
   
-  // Ensure the ambient orb glows with the secondary color if available
   const activeSecondary = secondaryBrandColor || brandColor;
 
   const fonts = getFonts(themeStyle);
@@ -58,31 +57,25 @@ export default function StorefrontClientActions({
   };
 
   const getButtonStyles = () => {
-    if (themeStyle === 'elegant') {
-      return 'bg-zinc-950 text-white border border-zinc-800 hover:bg-zinc-800 rounded-sm font-serif tracking-widest shadow-lg';
-    }
-    if (themeStyle === 'organic') {
-      return 'bg-[#2C3B2D] text-white hover:bg-[#3d523e] rounded-full font-serif tracking-wide shadow-md';
-    }
-    if (themeStyle === 'editorial') {
-      return 'bg-black text-white border-2 border-black hover:bg-zinc-800 rounded-none font-sans font-black tracking-[0.2em]';
-    }
-    if (isNeo) {
-      return 'bg-white text-black border-4 border-black rounded-none shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 font-black';
-    }
-    if (isCyber) {
-      return 'bg-black text-white border border-current shadow-[0_0_15px_currentColor] hover:bg-white hover:text-black rounded-none font-mono font-bold';
-    }
-    if (isLightMode) {
-      return 'bg-zinc-950 text-white border-2 border-zinc-950 hover:bg-zinc-800 hover:shadow-2xl rounded-xl font-black';
-    }
-    return 'bg-white text-zinc-950 border-2 border-white hover:bg-zinc-200 shadow-[0_0_25px_rgba(255,255,255,0.2)] rounded-xl font-black';
+    // 🚀 THE FIX: A solid, vibrant pop of the secondary color that bypasses the safelist issue
+    const secondaryPop = `bg-${activeSecondary} text-zinc-950 hover:scale-105 border-none shadow-xl`;
+
+    if (themeStyle === 'elegant') return 'bg-zinc-950 text-white border border-zinc-800 hover:bg-zinc-800 rounded-sm font-serif tracking-widest shadow-lg';
+    if (themeStyle === 'organic') return `${secondaryPop} rounded-full font-serif tracking-wide`;
+    if (themeStyle === 'editorial') return 'bg-black text-white border-2 border-black hover:bg-zinc-800 rounded-none font-sans font-black tracking-[0.2em]';
+    if (isNeo) return 'bg-white text-black border-4 border-black rounded-none shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 font-black';
+    if (isCyber) return `bg-black text-${activeSecondary} border border-current shadow-[0_0_15px_currentColor] hover:bg-white hover:text-black rounded-none font-mono font-bold`;
+    if (isLightMode) return `${secondaryPop} rounded-xl font-black`;
+    
+    // Default Industrial / Base fallback
+    return `${secondaryPop} rounded-xl font-black`;
   };
 
   return (
     <>
       <section id="contact" className={`py-16 px-6 text-center relative z-20 transition-colors overflow-hidden ${getBannerStyles()}`}>
-        <div className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-48 bg-${activeSecondary}/15 rounded-full blur-3xl pointer-events-none`} />
+        <div className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-48 bg-${activeSecondary}/25 rounded-full blur-3xl pointer-events-none`} />
+        
         <div className="max-w-3xl mx-auto space-y-4 relative z-10">
           <h2 className={`text-3xl md:text-5xl tracking-tight drop-shadow-sm ${fonts.heading}`}>
             {headlineText}
@@ -112,7 +105,7 @@ export default function StorefrontClientActions({
         brandColor={brandColor}
         isLightMode={isLightMode}
         themeStyle={themeStyle}
-        inquiryOptions={store.lead_inquiry_types} // 🚀 THE FIX: Passes the database array to the modal
+        inquiryOptions={store.lead_inquiry_types}
       />
     </>
   );
