@@ -2,7 +2,7 @@
 'use client';
 import React, { useState } from 'react';
 import { getFonts, getThemeBullet } from './content-engine/utils';
-import { Info, Image as ImageIcon, X, ArrowRight } from 'lucide-react';
+import { Info, Image as ImageIcon, ArrowRight } from 'lucide-react';
 import ServiceProofModal, { GalleryItem } from './ServiceProofModal'; // Ensure this path is correct
 
 export interface Capability {

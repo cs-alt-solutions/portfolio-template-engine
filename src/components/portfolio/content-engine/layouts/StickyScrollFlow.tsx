@@ -98,6 +98,7 @@ export default function StickyScrollFlow({
             <div className={`absolute inset-0 bg-${brandColor} opacity-10 mix-blend-color`} />
             
             {displayImage ? (
+              // eslint-disable-next-line @next/next/no-img-element
               <img 
                 key={displayImage} 
                 src={displayImage} 

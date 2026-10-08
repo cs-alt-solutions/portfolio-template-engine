@@ -5,9 +5,9 @@ import React, { useState } from 'react';
 import { getFonts } from './content-engine/utils'; 
 import { THEME_REGISTRY } from '@/utils/themes';
 import { Layers } from 'lucide-react';
-import ServiceProofModal from './ServiceProofModal'; // 🚀 Reusing your gorgeous modal!
+import ServiceProofModal from './ServiceProofModal';
 
-interface GalleryItem {
+export interface GalleryItem {
   id: string;
   imageUrl: string;
   title?: string;
@@ -28,8 +28,6 @@ export default function GalleryGrid({
   items, galleryHeading, themeStyle = 'industrial', brandColor = 'cyan-500', secondaryBrandColor, isLightMode 
 }: GalleryGridProps) {
   const [activeFilter, setActiveFilter] = useState<string>('All');
-  
-  // Modal State for Project Deep-Dives
   const [activeProject, setActiveProject] = useState<{ title: string, images: GalleryItem[], description?: string } | null>(null);
 
   const theme = THEME_REGISTRY[themeStyle] || THEME_REGISTRY['industrial'];
@@ -45,13 +43,12 @@ export default function GalleryGrid({
     ? validItems 
     : validItems.filter((item: GalleryItem) => item.category === activeFilter);
 
-  // 🚀 SMART GROUPING ENGINE: Groups images by Title. If no title exists, groups by ID (keeps them separate).
-  const groupedProjects = filteredItems.reduce((acc, item) => {
+  const groupedProjects = filteredItems.reduce<Record<string, GalleryItem[]>>((acc, item) => {
     const key = item.title?.trim() ? item.title.trim() : item.id;
     if (!acc[key]) acc[key] = [];
     acc[key].push(item);
     return acc;
-  }, {} as Record<string, GalleryItem[]>);
+  }, {});
 
   const fonts = getFonts(themeStyle);
   const shapeRadius = themeStyle === 'elegant' ? 'rounded-sm' : 
@@ -90,7 +87,6 @@ export default function GalleryGrid({
           )}
         </div>
 
-        {/* MASONRY GRID OVERHAUL */}
         <div className="columns-1 sm:columns-2 lg:columns-3 gap-6 space-y-6">
           {Object.entries(groupedProjects).map(([key, projectImages], index) => {
             const coverImage = projectImages[0];
@@ -103,7 +99,7 @@ export default function GalleryGrid({
                 onClick={() => setActiveProject({ title: displayTitle || 'Project Details', images: projectImages, description: coverImage.description })}
                 className={`group relative overflow-hidden ${shapeRadius} shadow-lg transition-all duration-300 hover:shadow-2xl break-inside-avoid bg-zinc-100 dark:bg-zinc-900 border border-zinc-200/50 dark:border-zinc-800/50 cursor-pointer`}
               >
-                {/* 🚀 THE COVER IMAGE */}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img 
                   src={coverImage.imageUrl} 
                   alt={displayTitle || `Gallery Image ${index + 1}`} 
@@ -111,7 +107,6 @@ export default function GalleryGrid({
                   loading="lazy"
                 />
 
-                {/* 🚀 PROJECT BADGE (Only shows if multiple photos share a title) */}
                 {isProjectGroup && (
                   <div className="absolute top-4 right-4 z-20 bg-black/70 backdrop-blur-md px-3 py-1.5 rounded-full flex items-center gap-1.5 border border-white/10 shadow-lg animate-in fade-in duration-500">
                     <Layers size={12} className={accentColorClass} />
@@ -119,9 +114,8 @@ export default function GalleryGrid({
                   </div>
                 )}
 
-                <div className={`absolute inset-0 bg-linear-to-t from-black/90 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10`} />
+                <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10" />
                 
-                {/* DETAILS OVERLAY */}
                 <div className="absolute bottom-0 left-0 w-full p-6 translate-y-4 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all duration-300 z-20">
                   {coverImage.category && (
                     <span className={`inline-block px-2 py-1 mb-2 text-[10px] font-black uppercase tracking-widest rounded bg-${activeSecondary} text-zinc-950`}>
@@ -137,7 +131,6 @@ export default function GalleryGrid({
         </div>
       </div>
 
-      {/* 🚀 PROJECT DEEP-DIVE MODAL */}
       <ServiceProofModal
         isOpen={!!activeProject}
         onClose={() => setActiveProject(null)}

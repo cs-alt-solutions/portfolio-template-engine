@@ -1,7 +1,7 @@
 // src/components/portfolio/UniversalLeadModal.tsx
 'use client';
 import React, { useState } from 'react';
-import { X, Send, CheckCircle, Sparkles, AlertCircle } from 'lucide-react';
+import { X, Send, CheckCircle, Sparkles, AlertCircle, ChevronDown } from 'lucide-react';
 import { getFonts } from './content-engine/utils';
 import { submitStorefrontLead } from '@/actions/submitLead';
 
@@ -15,6 +15,7 @@ interface UniversalLeadModalProps {
   brandColor?: string;
   isLightMode?: boolean;
   themeStyle?: string;
+  inquiryOptions?: string[]; 
 }
 
 export default function UniversalLeadModal({
@@ -27,16 +28,24 @@ export default function UniversalLeadModal({
   brandColor = 'cyan-500', 
   isLightMode = false,
   themeStyle = 'industrial',
+  inquiryOptions = ["General Inquiry", "Request a Quote"] 
 }: UniversalLeadModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     phone: '',
+    inquiryType: inquiryOptions[0] || 'General Inquiry', 
     details: '',
   });
+
+  // 🚀 DERIVED STATE: Avoids the useEffect double-render error entirely
+  const effectiveInquiryType = inquiryOptions && inquiryOptions.length > 0
+    ? (inquiryOptions.includes(formData.inquiryType) ? formData.inquiryType : inquiryOptions[0])
+    : 'General Inquiry';
 
   if (!isOpen) return null;
 
@@ -44,6 +53,8 @@ export default function UniversalLeadModal({
     e.preventDefault();
     setIsSubmitting(true);
     setErrorMessage('');
+
+    const combinedDetails = `[INQUIRY TYPE: ${effectiveInquiryType.toUpperCase()}]\n\n${formData.details}`;
 
     try {
       const response = await submitStorefrontLead({
@@ -53,7 +64,7 @@ export default function UniversalLeadModal({
         name: formData.name,
         email: formData.email,
         phone: formData.phone,
-        details: formData.details,
+        details: combinedDetails,
       });
 
       if (response.success) {
@@ -65,7 +76,6 @@ export default function UniversalLeadModal({
       console.error("Transmission Error:", err);
       setErrorMessage("System timeout. Please try again.");
     } finally {
-      // THIS GUARANTEES THE BUTTON UN-FREEZES NO MATTER WHAT
       setIsSubmitting(false);
     }
   };
@@ -109,9 +119,22 @@ export default function UniversalLeadModal({
     return `bg-${brandColor} ${textClass} border border-white/20 shadow-lg hover:opacity-90 active:scale-[0.99] ${inputRadius}`;
   };
 
+  const getDetailsPlaceholder = () => {
+    if (effectiveInquiryType === 'Job Application / Hiring') return "Tell us about your experience and the position you're looking for...";
+    if (effectiveInquiryType === 'General Inquiry') return "How can we help you today?";
+    if (effectiveInquiryType === 'Other') return "Tell us more about what you need...";
+    return "Tell us what you're looking for, ideal dates, or any specific questions...";
+  };
+
+  const getDetailsLabel = () => {
+    if (effectiveInquiryType === 'Job Application / Hiring') return "Experience & Background *";
+    if (effectiveInquiryType === 'General Inquiry' || effectiveInquiryType === 'Other') return "How can we help? *";
+    return "Project Details & Notes *";
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className={`relative w-full max-w-lg p-6 md:p-8 transition-all ${radius} ${getModalStyles()}`}>
+      <div className={`relative w-full max-w-lg p-6 md:p-8 transition-all max-h-[90vh] overflow-y-auto custom-scrollbar ${radius} ${getModalStyles()}`}>
         
         <button
           onClick={onClose}
@@ -155,6 +178,27 @@ export default function UniversalLeadModal({
             )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
+              
+              {inquiryOptions && inquiryOptions.length > 0 && (
+                <div>
+                  <label className={`block text-[10px] font-mono uppercase tracking-wider mb-1.5 opacity-70 ${fonts.body}`}>
+                    Topic *
+                  </label>
+                  <div className="relative">
+                    <select
+                      value={effectiveInquiryType}
+                      onChange={(e) => setFormData({ ...formData, inquiryType: e.target.value })}
+                      className={`w-full px-4 py-3 text-sm outline-none transition-all appearance-none cursor-pointer ${getInputStyles()}`}
+                    >
+                      {inquiryOptions.map((opt) => (
+                        <option key={opt} value={opt}>{opt}</option>
+                      ))}
+                    </select>
+                    <ChevronDown className={`absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none ${isLightMode ? 'text-zinc-500' : 'text-zinc-500'}`} />
+                  </div>
+                </div>
+              )}
+
               <div>
                 <label className={`block text-[10px] font-mono uppercase tracking-wider mb-1.5 opacity-70 ${fonts.body}`}>
                   Your Name *
@@ -199,12 +243,12 @@ export default function UniversalLeadModal({
 
               <div>
                 <label className={`block text-[10px] font-mono uppercase tracking-wider mb-1.5 opacity-70 ${fonts.body}`}>
-                  Project Details & Notes *
+                  {getDetailsLabel()}
                 </label>
                 <textarea
                   rows={3}
                   required
-                  placeholder="Tell us what you're looking for, ideal dates, or any specific questions..."
+                  placeholder={getDetailsPlaceholder()}
                   value={formData.details}
                   onChange={(e) => setFormData({ ...formData, details: e.target.value })}
                   className={`w-full px-4 py-3 text-sm outline-none resize-none transition-all ${getInputStyles()}`}

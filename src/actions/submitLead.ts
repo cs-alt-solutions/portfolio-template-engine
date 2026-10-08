@@ -16,7 +16,7 @@ export interface LeadPayload {
 
 export async function submitStorefrontLead(payload: LeadPayload) {
   try {
-    // 1. ROUTE TO EXISTING TABLE: Pointing back to your correct storefront_leads table
+    // 1. ROUTE TO EXISTING TABLE (Leaves the raw [INQUIRY TYPE] tag intact for your dashboard)
     const { error: dbError } = await supabase
       .from('storefront_leads')
       .insert([
@@ -35,7 +35,7 @@ export async function submitStorefrontLead(payload: LeadPayload) {
       throw new Error('Failed to record inquiry in system ledger.');
     }
 
-    // 2. DEFENSIVE GUARD: Verify API key exists
+    // 2. DEFENSIVE GUARD
     const apiKey = process.env.RESEND_API_KEY;
     if (!apiKey) {
       console.warn('RESEND_API_KEY is missing. Lead saved to DB, but email skipped.');
@@ -44,16 +44,20 @@ export async function submitStorefrontLead(payload: LeadPayload) {
 
     // 3. EMAIL DISPATCH
     const resend = new Resend(apiKey);
-    
-    // Dynamically route to the specific storefront owner
     const recipientEmail = payload.contactEmail || process.env.FALLBACK_LEADS_EMAIL || 'support@alternativesolutions.io';
 
+    // 🚀 SMART PARSING: Extract the dynamic inquiry type we injected on the frontend
+    const inquiryMatch = payload.details.match(/\[INQUIRY TYPE: (.*?)\]/);
+    const inquiryType = inquiryMatch ? inquiryMatch[1] : 'Direct Inquiry';
+    
+    // Clean the ugly bracket tag out of the email body so it looks premium
+    const cleanDetails = payload.details.replace(/\[INQUIRY TYPE: .*?\]\n\n/, '');
+
     const { error: mailError } = await resend.emails.send({
-      // 🚀 OFFICIAL PRODUCTION ROUTING
       from: `${payload.businessName} Leads <leads@alternativesolutions.io>`, 
       to: [recipientEmail], 
       replyTo: payload.email,
-      subject: `New Inquiry: ${payload.name} - ${payload.businessName}`,
+      subject: `New ${inquiryType}: ${payload.name} - ${payload.businessName}`,
       html: `
         <!DOCTYPE html>
         <html>
@@ -68,7 +72,7 @@ export async function submitStorefrontLead(payload: LeadPayload) {
                 <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="max-w: 600px; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05); border: 1px solid #e4e4e7;">
                   <tr>
                     <td style="background-color: #0f172a; padding: 32px 40px; text-align: left;">
-                      <p style="margin: 0; color: #38bdf8; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px;">Direct Quote Request</p>
+                      <p style="margin: 0; color: #38bdf8; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px;">${inquiryType}</p>
                       <h1 style="margin: 8px 0 0 0; color: #ffffff; font-size: 24px; font-weight: 800; letter-spacing: -0.5px;">${payload.businessName}</h1>
                     </td>
                   </tr>
@@ -77,7 +81,6 @@ export async function submitStorefrontLead(payload: LeadPayload) {
                       <p style="margin: 0 0 24px 0; color: #3f3f46; font-size: 15px; line-height: 1.6;">
                         You have received a new potential project lead via your storefront. Simply reply directly to this email to respond to the client.
                       </p>
-
                       <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 32px;">
                         <tr>
                           <td style="padding: 20px;">
@@ -102,7 +105,7 @@ export async function submitStorefrontLead(payload: LeadPayload) {
                       </table>
                       <p style="margin: 0 0 8px 0; color: #0f172a; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Project Scope & Notes</p>
                       <div style="border-left: 4px solid #0ea5e9; background-color: #f0f9ff; padding: 20px; border-radius: 0 8px 8px 0;">
-                        <p style="margin: 0; color: #0c4a6e; font-size: 15px; line-height: 1.6; white-space: pre-wrap;">${payload.details}</p>
+                        <p style="margin: 0; color: #0c4a6e; font-size: 15px; line-height: 1.6; white-space: pre-wrap;">${cleanDetails}</p>
                       </div>
                     </td>
                   </tr>
