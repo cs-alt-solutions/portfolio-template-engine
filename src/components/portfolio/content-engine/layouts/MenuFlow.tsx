@@ -1,4 +1,4 @@
-/* src/components/portfolio/content-engine/layouts/MenuFlow.tsx */
+// src/components/portfolio/content-engine/layouts/MenuFlow.tsx
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -42,7 +42,6 @@ const parseItemData = (rawText: string = '') => {
 
 const slugify = (text: string) => text.toLowerCase().replace(/[^a-z0-9]+/g, '-');
 
-// 🚀 Flexible price formatter for variants vs add-ons
 const formatVariantPrice = (price: string) => {
   const clean = price.trim();
   if (!clean) return '';
@@ -103,7 +102,6 @@ const PhotoCard = ({ item, isLightMode, fonts, brandColor, secondaryBrandColor, 
           <div className={`absolute -top-12 -right-12 w-32 h-32 bg-${brandColor} opacity-10 rounded-full blur-2xl pointer-events-none`} />
           <div className={`absolute -bottom-12 -left-12 w-32 h-32 bg-${brandColor} opacity-10 rounded-full blur-2xl pointer-events-none`} />
           
-          {/* 🚀 THE FIX: Ensures the scroll container never squishes and stays perfectly scrollable */}
           <div className="absolute inset-0 p-6 flex flex-col items-center justify-center overflow-y-auto hide-scrollbar z-10">
             <div className="w-full text-center flex flex-col items-center">
               {item.desc && (
@@ -117,7 +115,6 @@ const PhotoCard = ({ item, isLightMode, fonts, brandColor, secondaryBrandColor, 
                 </>
               )}
 
-              {/* 🚀 THE SECONDARY COLOR POP FOR ADD-ONS */}
               {hasAddons && (
                 <div className={`w-full text-left space-y-2 pt-5 ${item.desc ? 'mt-5 border-t' : ''} ${isLightMode ? 'border-zinc-200' : 'border-zinc-800/80'} shrink-0`}>
                   <span className={`text-[9px] font-black uppercase tracking-widest opacity-70 block mb-3 ${isLightMode ? 'text-zinc-500' : 'text-zinc-400'}`}>Options & Add-ons</span>
@@ -201,7 +198,6 @@ const TextCard = ({ item, isLightMode, fonts, brandColor, secondaryBrandColor, b
                 </>
               )}
 
-              {/* 🚀 THE SECONDARY COLOR POP FOR ADD-ONS */}
               {hasAddons && (
                 <div className={`w-full text-left space-y-2 pt-5 ${item.desc ? 'mt-5 border-t' : ''} ${isLightMode ? 'border-zinc-200' : 'border-zinc-800/80'} shrink-0`}>
                   <span className={`text-[9px] font-black uppercase tracking-widest opacity-70 block mb-3 ${isLightMode ? 'text-zinc-500' : 'text-zinc-400'}`}>Options & Add-ons</span>
@@ -225,15 +221,15 @@ const TextCard = ({ item, isLightMode, fonts, brandColor, secondaryBrandColor, b
 };
 
 export default function MenuFlow({
-  themeStyle, brandColor, secondaryBrandColor, isLightMode, capabilitiesHeading, capabilities, galleryItems
-}: ContentLayoutProps) {
+  themeStyle, brandColor, secondaryBrandColor, isLightMode, capabilitiesHeading, capabilities, galleryItems, orderingUrl
+}: ContentLayoutProps & { orderingUrl?: string }) { // 🚀 Added local orderingUrl prop
   const [activeCategory, setActiveCategory] = useState<string>('');
 
   const fonts = getFonts(themeStyle);
   const brandTextColor = `text-${brandColor}`;
   const theme = THEME_REGISTRY[themeStyle] || THEME_REGISTRY['industrial'];
   const shapeRadius = theme.radius || 'rounded-none';
-  const activeSecondaryColor = secondaryBrandColor || brandColor; // Safe fallback
+  const activeSecondaryColor = secondaryBrandColor || brandColor;
   
   const hasMenu = capabilities && capabilities.length > 0;
   const typedGallery = (galleryItems || []) as ExtendedGalleryItem[];
@@ -282,7 +278,7 @@ export default function MenuFlow({
       </div>
 
       <div className="sticky top-4 z-50 w-full flex justify-center mb-12 md:mb-16 pointer-events-none">
-        <div className={`pointer-events-auto flex overflow-x-auto gap-2 p-2 rounded-full backdrop-blur-2xl border shadow-2xl max-w-full hide-scrollbar
+        <div className={`pointer-events-auto flex items-center overflow-x-auto gap-2 p-2 rounded-full backdrop-blur-2xl border shadow-2xl max-w-full hide-scrollbar
           ${isLightMode ? 'bg-white/80 border-zinc-200' : 'bg-zinc-950/80 border-zinc-800'}
         `} style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
           <style dangerouslySetInnerHTML={{__html: `.hide-scrollbar::-webkit-scrollbar { display: none; }`}} />
@@ -306,6 +302,22 @@ export default function MenuFlow({
               </button>
             );
           })}
+
+          {/* 🚀 THE DYNAMIC EXTERNAL ORDERING BUTTON */}
+          {orderingUrl && (
+            <>
+              <div className="w-px h-6 bg-current opacity-20 my-auto mx-1 shrink-0" />
+              <a
+                href={orderingUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`whitespace-nowrap shrink-0 px-6 py-2.5 rounded-full text-[11px] font-black uppercase tracking-widest transition-all duration-300 bg-${activeSecondaryColor} text-zinc-950 shadow-[0_0_15px_currentColor] hover:scale-105 ml-1`}
+              >
+                Order Online
+              </a>
+            </>
+          )}
+
         </div>
       </div>
 

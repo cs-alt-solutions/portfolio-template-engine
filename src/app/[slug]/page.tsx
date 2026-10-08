@@ -215,12 +215,13 @@ export default async function DynamicStorefront({
           layout={store.content_layout || 'classic'}
           themeStyle={store.theme_style || 'industrial'}
           brandColor={brandColor}
-          secondaryBrandColor={secondaryBrandColor}
+          secondaryBrandColor={secondaryBrandColor} 
           isLightMode={theme.isLightMode || false}
           capabilitiesHeading={store.capabilities_heading || STOREFRONT_DEFAULTS?.CAPABILITIES_HEADING || "Services"} 
           galleryHeading={store.gallery_heading || STOREFRONT_DEFAULTS?.GALLERY_HEADING || "Featured Work"} 
           capabilities={store.capabilities || []}
           galleryItems={formattedGalleryItems}
+          orderingUrl={store.ordering_url} // 🚀 ADD THIS LINE TO CATCH THE LINK!
         />
       </div>
 
