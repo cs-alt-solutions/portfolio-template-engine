@@ -16,12 +16,13 @@ export interface GalleryItem {
 export interface ContentLayoutProps {
   themeStyle: string;
   brandColor: string;
-  secondaryBrandColor?: string; // 🚀 ADDED
+  secondaryBrandColor?: string;
   isLightMode: boolean;
   capabilitiesHeading: string;
   galleryHeading: string;
   capabilities: Capability[];
   galleryItems: GalleryItem[];
-  contentLayout?: 'classic' | 'bento' | 'sticky' | 'accordion' | 'editorial' | 'menu';
+  // 🚀 THE FIX: Added 'lookbook' to the allowed types
+  contentLayout?: 'classic' | 'bento' | 'sticky' | 'accordion' | 'editorial' | 'menu' | 'lookbook';
   aboutLayout?: 'split' | 'editorial' | 'minimal' | 'card';
 }

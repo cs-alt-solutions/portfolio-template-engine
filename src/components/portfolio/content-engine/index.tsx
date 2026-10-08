@@ -9,11 +9,12 @@ import BentoGridFlow from './layouts/BentoGridFlow';
 import StickyScrollFlow from './layouts/StickyScrollFlow';
 import EditorialHoverFlow from './layouts/EditorialHoverFlow';
 import AccordionFlow from './layouts/AccordionFlow';
-import MenuFlow from './layouts/MenuFlow'; 
+import MenuFlow from './layouts/MenuFlow';
+import LookbookFlow from './layouts/LookbookFlow'; // 🚀 ADDED NEW LOOKBOOK IMPORT
 
 interface ContentEngineProps extends ContentLayoutProps {
   layout: string;
-  orderingUrl?: string; // 🚀 THE FIX: Tell TS this prop is allowed
+  orderingUrl?: string;
 }
 
 export default function ContentEngine(props: ContentEngineProps) {
@@ -24,6 +25,7 @@ export default function ContentEngine(props: ContentEngineProps) {
     editorial: EditorialHoverFlow,
     accordion: AccordionFlow,
     menu: MenuFlow,
+    lookbook: LookbookFlow, // 🚀 ADDED TO REGISTRY
     classic: ClassicFlow,
   };
 
