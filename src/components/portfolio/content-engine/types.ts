@@ -3,6 +3,8 @@ export interface Capability {
   title: string;
   description: string;
   bullets?: string[];
+  price?: string; 
+  isAlaCarte?: boolean; // 🚀 THE FIX: Tells TS this flag exists
 }
 
 export interface GalleryItem {
@@ -22,7 +24,6 @@ export interface ContentLayoutProps {
   galleryHeading: string;
   capabilities: Capability[];
   galleryItems: GalleryItem[];
-  // 🚀 THE FIX: Added 'lookbook' to the allowed types
   contentLayout?: 'classic' | 'bento' | 'sticky' | 'accordion' | 'editorial' | 'menu' | 'lookbook';
   aboutLayout?: 'split' | 'editorial' | 'minimal' | 'card';
 }
