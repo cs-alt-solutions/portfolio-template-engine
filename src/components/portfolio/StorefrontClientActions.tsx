@@ -11,12 +11,13 @@ interface StorefrontClientActionsProps {
     slug?: string;
     contact_email?: string;
     business_name?: string;
-    primary_cta?: string; 
-    secondary_cta?: string; 
+    primary_cta?: string;
+    secondary_cta?: string;
+    lead_inquiry_types?: string[]; // 🚀 Let TS know this array exists
     [key: string]: unknown;
   };
   brandColor: string;
-  secondaryBrandColor?: string; // 🚀 Added
+  secondaryBrandColor?: string; // 🚀 Restored this so page.tsx doesn't throw errors
   isLightMode?: boolean;
   themeStyle?: string;
 }
@@ -39,7 +40,7 @@ export default function StorefrontClientActions({
   const headlineText = store.primary_cta || "Let's Work Together";
   const buttonText = store.secondary_cta || STOREFRONT_DEFAULTS.SECONDARY_CTA || "Get in Touch";
   
-  // 🚀 The Active Secondary Color
+  // Ensure the ambient orb glows with the secondary color if available
   const activeSecondary = secondaryBrandColor || brandColor;
 
   const fonts = getFonts(themeStyle);
@@ -81,10 +82,7 @@ export default function StorefrontClientActions({
   return (
     <>
       <section id="contact" className={`py-16 px-6 text-center relative z-20 transition-colors overflow-hidden ${getBannerStyles()}`}>
-        
-        {/* 🚀 THE FIX: Dynamic Ambient Orb uses the secondary brand color for incredible contrast! */}
-        <div className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-48 bg-${activeSecondary}/20 rounded-full blur-[100px] pointer-events-none`} />
-        
+        <div className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-48 bg-${activeSecondary}/15 rounded-full blur-3xl pointer-events-none`} />
         <div className="max-w-3xl mx-auto space-y-4 relative z-10">
           <h2 className={`text-3xl md:text-5xl tracking-tight drop-shadow-sm ${fonts.heading}`}>
             {headlineText}
@@ -103,7 +101,7 @@ export default function StorefrontClientActions({
           </div>
         </div>
       </section>
-      
+
       <UniversalLeadModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
@@ -114,6 +112,7 @@ export default function StorefrontClientActions({
         brandColor={brandColor}
         isLightMode={isLightMode}
         themeStyle={themeStyle}
+        inquiryOptions={store.lead_inquiry_types} // 🚀 THE FIX: Passes the database array to the modal
       />
     </>
   );
