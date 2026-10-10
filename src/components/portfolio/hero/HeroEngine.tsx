@@ -11,7 +11,7 @@ export interface StorefrontHeroData {
   brand_logo?: string;
   logo_size?: string;
   hero_position?: string;
-  hero_cta?: string; // 🚀 ADDED: Now TypeScript knows this exists in the database
+  hero_cta?: string; // 🚀 ADDED: Now TypeScript knows this exists
   [key: string]: unknown;
 }
 
@@ -20,7 +20,7 @@ export interface HeroEngineProps {
   store: StorefrontHeroData;
   theme: ThemeDefinition;
   brandColor: string;
-  secondaryBrandColor: string;
+  secondaryBrandColor: string; // 🚀 Added
   isHeroFixed: boolean;
   hasValidLogo: boolean;
   exploreLink: string;
@@ -116,6 +116,7 @@ export default function HeroEngine({
             ) : (
               <img src={store?.hero_image || ''} alt={store?.business_name || 'Hero'} className={`w-full h-full object-cover scale-105 opacity-50 ${activePosition}`} />
             )}
+            {/* 🚀 THE FIX: Duotone tint uses the Secondary Color! */}
             {safeTheme.useBrandTint && <div className={`absolute inset-0 opacity-20 bg-${secondaryBrandColor} mix-blend-color`} />}
             <div className={`absolute inset-0 bg-linear-to-b ${safeTheme.overlayFade || ''}`} />
           </div>
@@ -142,7 +143,7 @@ export default function HeroEngine({
                 </p>
               )}
 
-              {/* 🚀 FIXED: Now reads store.hero_cta dynamically */}
+              {/* 🚀 FIXED: Reads the database hero_cta with a fallback */}
               <a href={exploreLink} className={`inline-block ${safeTheme.buttonStyle || ''} ${buttonBgClass}`}>
                 {store?.hero_cta || heroButtonText}
               </a>
@@ -187,7 +188,7 @@ export default function HeroEngine({
                 </p>
               )}
 
-              {/* 🚀 FIXED: Now reads store.hero_cta dynamically */}
+              {/* 🚀 FIXED */}
               <a href={exploreLink} className={`inline-block ${safeTheme.buttonStyle || ''} ${buttonBgClass}`}>
                 {store?.hero_cta || heroButtonText}
               </a>
@@ -239,7 +240,7 @@ export default function HeroEngine({
                 </p>
               )}
 
-              {/* 🚀 FIXED: Now reads store.hero_cta dynamically */}
+              {/* 🚀 FIXED */}
               <a href={exploreLink} className={`inline-block ${safeTheme.buttonStyle || ''} ${buttonBgClass}`}>
                 {store?.hero_cta || heroButtonText}
               </a>
@@ -297,7 +298,7 @@ export default function HeroEngine({
                   </p>
                 )}
                 
-                {/* 🚀 FIXED: Now reads store.hero_cta dynamically */}
+                {/* 🚀 FIXED */}
                 <a href={exploreLink} className={`inline-block relative z-10 ${safeTheme.buttonStyle || ''} ${buttonBgClass}`}>
                   {store?.hero_cta || heroButtonText}
                 </a>
@@ -345,7 +346,7 @@ export default function HeroEngine({
             )}
 
             <div className="flex flex-col sm:flex-row gap-5 w-full justify-center">
-              {/* 🚀 FIXED: Now reads store.hero_cta dynamically */}
+              {/* 🚀 FIXED */}
               <a href={exploreLink} className={`px-10 py-4 font-bold uppercase tracking-widest text-xs transition-all duration-300 shadow-xl bg-${brandColor} text-black hover:scale-105 ${safeTheme.buttonStyle || ''}`}>
                 {store?.hero_cta || heroButtonText}
               </a>
