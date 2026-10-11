@@ -86,10 +86,8 @@ export default function LookbookFlow({
         {packages.length > 0 && (
           <div className="mb-20">
             <div className="mb-12 text-center">
-              <span className={`text-xs font-mono font-bold uppercase tracking-[0.3em] ${brandTextColor} block mb-2`}>
-                Package Pricing
-              </span>
-              <h2 className={`text-4xl md:text-5xl lg:text-6xl tracking-tighter ${isLightMode ? 'text-zinc-900' : 'text-white'} ${fonts.heading}`}>
+              {/* 🚀 THE FIX: Removed the duplicate hardcoded H2 and relied strictly on the capabilitiesHeading */}
+              <h2 className={`text-4xl md:text-5xl lg:text-6xl tracking-tighter ${brandTextColor} ${fonts.heading}`}>
                 {capabilitiesHeading || 'Collections'}
               </h2>
             </div>
@@ -127,24 +125,26 @@ export default function LookbookFlow({
                     </div>
 
                     <div className="p-6 md:p-8 flex flex-col flex-1">
-                      <div className="flex flex-col xl:flex-row xl:items-baseline justify-between gap-2 mb-4">
-                        <h3 className={`text-2xl md:text-3xl transition-colors duration-300 ${fonts.heading} ${isLightMode ? 'text-zinc-900 group-hover:text-zinc-600' : 'text-zinc-100 group-hover:text-white'}`}>
+                      {/* 🚀 THE FIX: Wrapped the title and price in a locked flex-start container to prevent shifting */}
+                      <div className="flex flex-col xl:flex-row xl:items-start justify-between gap-2 mb-4 shrink-0">
+                        <h3 className={`text-2xl md:text-3xl transition-colors duration-300 leading-tight ${fonts.heading} ${isLightMode ? 'text-zinc-900 group-hover:text-zinc-600' : 'text-zinc-100 group-hover:text-white'}`}>
                           {cap.title}
                         </h3>
                         {cap.price && (
-                          <span className={`text-xl font-black shrink-0 ${brandTextColor}`}>
+                          <span className={`text-xl font-black shrink-0 mt-1 ${brandTextColor}`}>
                             {cap.price}
                           </span>
                         )}
                       </div>
                       
-                      {cap.description ? (
-                        <p className={`text-sm leading-relaxed mb-6 line-clamp-2 min-h-[2.75rem] ${fonts.body} ${isLightMode ? 'text-zinc-600' : 'text-zinc-400'} ${['elegant', 'organic'].includes(themeStyle) ? 'italic' : ''}`}>
-                          {cap.description}
-                        </p>
-                      ) : (
-                        <div className="mb-6 min-h-[2.75rem]" />
-                      )}
+                      {/* 🚀 THE FIX: Enforced a strict minimum height (h-[3rem]) and line-clamp-2 to guarantee perfect 2-row alignment across all cards */}
+                      <div className="h-[3rem] mb-6 shrink-0">
+                        {cap.description ? (
+                          <p className={`text-sm leading-relaxed line-clamp-2 ${fonts.body} ${isLightMode ? 'text-zinc-600' : 'text-zinc-400'} ${['elegant', 'organic'].includes(themeStyle) ? 'italic' : ''}`}>
+                            {cap.description}
+                          </p>
+                        ) : null}
+                      </div>
 
                       {cap.bullets && cap.bullets.length > 0 && (
                         <div className="space-y-2 mb-8 flex-1">
