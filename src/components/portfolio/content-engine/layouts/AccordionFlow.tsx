@@ -5,7 +5,7 @@ import React, { useState } from 'react';
 import { Plus } from 'lucide-react';
 import { ContentLayoutProps } from '../types';
 import { getFonts, getThemeBullet } from '../utils';
-import GalleryGrid from '../../GalleryGrid';
+import GalleryGrid from '../../gallery/GalleryGrid';
 
 export default function AccordionFlow({
   themeStyle, brandColor, isLightMode, capabilitiesHeading, galleryHeading, capabilities, galleryItems

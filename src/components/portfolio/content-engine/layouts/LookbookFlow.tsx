@@ -1,4 +1,4 @@
-/* src/components/portfolio/content-engine/layouts/LookbookFlow.tsx */
+// src/components/portfolio/content-engine/layouts/LookbookFlow.tsx
 'use client';
 
 import React, { useState } from 'react';
@@ -6,29 +6,11 @@ import { ContentLayoutProps } from '../types';
 import { getFonts } from '../utils';
 import { THEME_REGISTRY } from '@/utils/themes';
 import { 
-  ImageIcon, Maximize2, ArrowRight, Clock, Camera, 
+  ImageIcon, ArrowRight, Clock, Camera, 
   Package, MapPin, Wand2, Video, Calendar, CheckCircle2, Plus 
 } from 'lucide-react';
-import ServiceProofModal, { GalleryItem } from '../../ServiceProofModal';
 import UniversalLeadModal from '../../UniversalLeadModal';
-
-interface ExtendedGalleryItem extends GalleryItem {
-  addons?: { name: string; price: string }[];
-}
-
-interface ModalServiceState {
-  title: string;
-  images: ExtendedGalleryItem[];
-  desc?: string;
-  bullets?: string[];
-  addons?: { name: string; price: string }[];
-}
-
-const parseItemData = (rawText: string = '') => {
-  const match = rawText.match(/(.+?)(?:\s*[-|: ]*\s*)(\$[\d.]+)$/);
-  if (match) return { text: match[1].trim(), price: match[2] };
-  return { text: rawText.trim(), price: null };
-};
+import GalleryGrid from '../../gallery/GalleryGrid';
 
 const SmartDeliverable = ({ text, colorClass, isLightMode }: { text: string, colorClass: string, isLightMode: boolean }) => {
   const lower = text.toLowerCase();
@@ -58,7 +40,6 @@ export default function LookbookFlow({
   themeStyle, brandColor, secondaryBrandColor, isLightMode, capabilitiesHeading, galleryHeading, capabilities, galleryItems,
   storefrontSlug, businessName, contactEmail
 }: ContentLayoutProps) {
-  const [activeModalService, setActiveModalService] = useState<ModalServiceState | null>(null);
   const [activeBooking, setActiveBooking] = useState<string | null>(null);
 
   const fonts = getFonts(themeStyle);
@@ -71,61 +52,68 @@ export default function LookbookFlow({
   const packages = (capabilities || []).filter(c => !c.isAlaCarte);
   const alaCarte = (capabilities || []).filter(c => c.isAlaCarte);
 
-  const getAttachedImages = (serviceTitle: string): ExtendedGalleryItem[] => {
-    return (galleryItems || []).filter((item: ExtendedGalleryItem) => item.category === serviceTitle);
-  };
-
-  const unattachedGallery = (galleryItems || []).filter(img => !img.category || img.category.trim() === '');
-  const hasUnattachedGallery = unattachedGallery.length > 0;
+  // Filter the gallery items to ONLY pass valid items to the Project Folders grid
+  const validGalleryItems = (galleryItems || []).filter(img => img.isVisible !== false);
+  const hasGallery = validGalleryItems.length > 0;
 
   return (
     <div className="w-full bg-inherit pt-24 pb-32">
+      
+      {/* 1. PORTFOLIO GALLERY (MOVED TO TOP) */}
+      {hasGallery && (
+        <div className="mb-24">
+          <GalleryGrid 
+            items={validGalleryItems} 
+            galleryHeading={galleryHeading || 'Project Portfolios'} 
+            themeStyle={themeStyle} 
+            brandColor={brandColor} 
+            secondaryBrandColor={secondaryBrandColor} 
+            isLightMode={isLightMode} 
+            layout="structured"
+          />
+        </div>
+      )}
+
+      {/* --- THE PRONOUNCED STRUCTURAL GAP --- */}
+      {hasGallery && packages.length > 0 && (
+        <div className="w-full max-w-4xl mx-auto flex items-center justify-center mb-24 opacity-30">
+          <div className={`w-full h-px bg-gradient-to-r from-transparent via-${brandColor} to-transparent`} />
+        </div>
+      )}
+
       <div className="max-w-7xl mx-auto px-6">
         
-        {/* LOOKBOOK: 3-COLUMN PACKAGES */}
+        {/* 2. PACKAGES */}
         {packages.length > 0 && (
           <div className="mb-20">
             <div className="mb-12 text-center">
-              {/* 🚀 THE FIX: Removed the duplicate hardcoded H2 and relied strictly on the capabilitiesHeading */}
-              <h2 className={`text-4xl md:text-5xl lg:text-6xl tracking-tighter ${brandTextColor} ${fonts.heading}`}>
+              <span className={`text-xs font-mono font-bold uppercase tracking-[0.3em] ${brandTextColor} block mb-2`}>
+                Package Pricing
+              </span>
+              <h2 className={`text-4xl md:text-5xl lg:text-6xl tracking-tighter ${isLightMode ? 'text-zinc-900' : 'text-white'} ${fonts.heading}`}>
                 {capabilitiesHeading || 'Collections'}
               </h2>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
               {packages.map((cap, i) => {
-                const attachedImages = getAttachedImages(cap.title);
-                const coverImage = attachedImages.length > 0 ? attachedImages[0].imageUrl : null;
-                const packageAddons = attachedImages.flatMap((img: ExtendedGalleryItem) => img.addons || []);
+                const attachedImages = validGalleryItems.filter(img => img.category === cap.title);
+                const coverImage = cap.coverImage || (attachedImages.length > 0 ? attachedImages[0].imageUrl : null);
                 
                 return (
                   <div key={i} className={`flex flex-col h-full group ${isLightMode ? 'bg-white' : 'bg-zinc-900/40'} border ${isLightMode ? 'border-zinc-200' : 'border-white/5'} ${shapeRadius} overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300`}>
                     
-                    <div 
-                      className="relative w-full aspect-4/3 overflow-hidden cursor-pointer bg-zinc-800 shrink-0"
-                      onClick={() => setActiveModalService({ title: cap.title, images: attachedImages, desc: cap.description, bullets: cap.bullets, addons: packageAddons })}
-                    >
+                    <div className="relative w-full aspect-4/3 overflow-hidden bg-zinc-900/20 shrink-0">
                       {coverImage ? (
-                        <>
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={coverImage} alt={cap.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy" />
-                          <div className={`absolute inset-0 bg-${activeSecondary} mix-blend-color opacity-0 group-hover:opacity-20 transition-opacity duration-500`} />
-                        </>
+                        <img src={coverImage} alt={cap.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy" />
                       ) : (
-                        <div className="w-full h-full flex flex-col items-center justify-center text-zinc-500 bg-zinc-900/50">
-                          <ImageIcon size={32} className="mb-2 opacity-50" />
-                          <span className="text-[10px] uppercase tracking-widest font-bold opacity-50">No Cover</span>
+                        <div className="w-full h-full flex flex-col items-center justify-center text-zinc-500/50 border border-dashed border-zinc-700/50 m-2 rounded-lg">
+                          <ImageIcon size={24} className="mb-2 opacity-50" />
                         </div>
                       )}
-                      
-                      <div className="absolute top-4 right-4 z-20 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-full flex items-center gap-1.5 border border-white/10 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 transform translate-y-2 group-hover:translate-y-0">
-                        <Maximize2 size={12} className={`text-${activeSecondary}`} />
-                        <span className="text-[9px] text-white font-bold tracking-widest uppercase">View Details</span>
-                      </div>
                     </div>
 
                     <div className="p-6 md:p-8 flex flex-col flex-1">
-                      {/* 🚀 THE FIX: Wrapped the title and price in a locked flex-start container to prevent shifting */}
                       <div className="flex flex-col xl:flex-row xl:items-start justify-between gap-2 mb-4 shrink-0">
                         <h3 className={`text-2xl md:text-3xl transition-colors duration-300 leading-tight ${fonts.heading} ${isLightMode ? 'text-zinc-900 group-hover:text-zinc-600' : 'text-zinc-100 group-hover:text-white'}`}>
                           {cap.title}
@@ -137,7 +125,6 @@ export default function LookbookFlow({
                         )}
                       </div>
                       
-                      {/* 🚀 THE FIX: Enforced a strict minimum height (h-[3rem]) and line-clamp-2 to guarantee perfect 2-row alignment across all cards */}
                       <div className="h-[3rem] mb-6 shrink-0">
                         {cap.description ? (
                           <p className={`text-sm leading-relaxed line-clamp-2 ${fonts.body} ${isLightMode ? 'text-zinc-600' : 'text-zinc-400'} ${['elegant', 'organic'].includes(themeStyle) ? 'italic' : ''}`}>
@@ -172,7 +159,7 @@ export default function LookbookFlow({
           </div>
         )}
 
-        {/* 🚀 FULLY THEME-INTEGRATED ADDITIONAL ADD-ONS SECTION */}
+        {/* 3. ADDITIONAL ADD-ONS */}
         {alaCarte.length > 0 && (
           <div className={`mt-20 mb-28 max-w-4xl mx-auto border p-8 md:p-12 shadow-xl backdrop-blur-md ${isLightMode ? 'bg-zinc-50/50 border-zinc-200' : 'bg-black/30 border-zinc-800/80'} ${shapeRadius}`}>
             <div className="text-center mb-10">
@@ -180,9 +167,6 @@ export default function LookbookFlow({
                   <Plus size={12} /> Flexible Upgrades
                </div>
                <h3 className={`text-3xl md:text-4xl ${fonts.heading} ${isLightMode ? 'text-zinc-900' : 'text-white'}`}>Additional Add-ons</h3>
-               <p className={`text-xs md:text-sm mt-2 font-light ${fonts.body} ${isLightMode ? 'text-zinc-600' : 'text-zinc-400'}`}>
-                 Customize your shoot with any of these standalone enhancements.
-               </p>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -208,48 +192,7 @@ export default function LookbookFlow({
             </div>
           </div>
         )}
-
-        {/* UNATTACHED GALLERY GRID */}
-        {hasUnattachedGallery && (
-          <div className={`mt-24 pt-24 ${hasCaps || alaCarte.length > 0 ? `border-t ${isLightMode ? 'border-zinc-200' : 'border-zinc-800'}` : ''}`}>
-            <h3 className={`text-3xl md:text-5xl mb-12 text-center ${brandTextColor} ${fonts.heading}`}>
-              {galleryHeading || 'Portfolio'}
-            </h3>
-            
-            <div className="columns-1 sm:columns-2 lg:columns-3 gap-6 space-y-6">
-              {unattachedGallery.map((img, idx) => (
-                <div 
-                  key={idx} 
-                  className={`relative break-inside-avoid overflow-hidden shadow-lg group cursor-pointer ${shapeRadius}`}
-                  onClick={() => setActiveModalService({ title: galleryHeading || 'Portfolio', images: unattachedGallery, desc: '' })}
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={img.imageUrl} alt={img.title || `Gallery Image ${idx}`} className="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy" />
-                  
-                  {img.title && (
-                    <div className="absolute inset-0 bg-linear-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 flex items-end p-6">
-                      <h4 className={`text-lg font-bold text-white ${fonts.heading}`}>{img.title}</h4>
-                    </div>
-                  )}
-                  
-                  <div className={`absolute inset-0 bg-${activeSecondary} mix-blend-color opacity-0 group-hover:opacity-20 transition-opacity duration-500 z-0`} />
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
-
-      <ServiceProofModal
-        isOpen={!!activeModalService}
-        onClose={() => setActiveModalService(null)}
-        title={activeModalService?.title || ''}
-        images={activeModalService?.images || []}
-        description={activeModalService?.desc}
-        bullets={activeModalService?.bullets}
-        themeStyle={themeStyle}
-        brandColor={brandColor}
-      />
 
       <UniversalLeadModal
         isOpen={!!activeBooking}

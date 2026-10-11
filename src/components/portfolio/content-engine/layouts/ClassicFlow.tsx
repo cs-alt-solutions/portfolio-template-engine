@@ -3,7 +3,7 @@ import React from 'react';
 import { ContentLayoutProps } from '../types';
 import { getFonts } from '../utils';
 import Capabilities from '../../Capabilities';
-import GalleryGrid from '../../GalleryGrid';
+import GalleryGrid from '../../gallery/GalleryGrid';
 
 export default function ClassicFlow({
   themeStyle, brandColor, secondaryBrandColor, isLightMode, capabilitiesHeading, galleryHeading, capabilities, galleryItems

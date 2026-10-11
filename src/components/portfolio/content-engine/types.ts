@@ -1,23 +1,23 @@
 // src/components/portfolio/content-engine/types.ts
+
 export interface Capability {
   title: string;
   description: string;
   bullets?: string[];
-  price?: string; 
-  isAlaCarte?: boolean; // 🚀 THE FIX: Tells TS this flag exists
+  price?: string;
+  isAlaCarte?: boolean;
+  coverImage?: string; // 🚀 Added to support decoupled cover photos
 }
 
-// src/components/portfolio/content-engine/types.ts
 export interface GalleryItem {
   id: string;
   imageUrl: string;
   title?: string;
   description?: string;
-  category?: string;
+  category?: string; // 🚀 This now acts as the Project Folder Name
   price?: string;
   isVisible?: boolean;
   isRaw?: boolean;
-  // ADD THIS LINE:
   addons?: { name: string; price: string }[];
 }
 
@@ -33,8 +33,6 @@ export interface ContentLayoutProps {
   contentLayout?: 'classic' | 'bento' | 'sticky' | 'accordion' | 'editorial' | 'menu' | 'lookbook';
   aboutLayout?: 'split' | 'editorial' | 'minimal' | 'card';
   orderingUrl?: string;
-  
-  // ADD THESE THREE LINES:
   storefrontSlug?: string;
   businessName?: string;
   contactEmail?: string;
