@@ -1,3 +1,4 @@
+/* src/components/portfolio/content-engine/layouts/LookbookFlow.tsx */
 'use client';
 
 import React, { useState } from 'react';
@@ -6,15 +7,21 @@ import { getFonts } from '../utils';
 import { THEME_REGISTRY } from '@/utils/themes';
 import { 
   ImageIcon, Maximize2, ArrowRight, Clock, Camera, 
-  Package, MapPin, Wand2, Video, Calendar, CheckCircle2 
+  Package, MapPin, Wand2, Video, Calendar, CheckCircle2, Plus 
 } from 'lucide-react';
 import ServiceProofModal, { GalleryItem } from '../../ServiceProofModal';
 import UniversalLeadModal from '../../UniversalLeadModal';
 
+interface ExtendedGalleryItem extends GalleryItem {
+  addons?: { name: string; price: string }[];
+}
+
 interface ModalServiceState {
   title: string;
-  images: GalleryItem[];
+  images: ExtendedGalleryItem[];
   desc?: string;
+  bullets?: string[];
+  addons?: { name: string; price: string }[];
 }
 
 const parseItemData = (rawText: string = '') => {
@@ -23,7 +30,6 @@ const parseItemData = (rawText: string = '') => {
   return { text: rawText.trim(), price: null };
 };
 
-// 🧠 SMART DELIVERABLE ENGINE: Reads the text and assigns a cool visual icon
 const SmartDeliverable = ({ text, colorClass, isLightMode }: { text: string, colorClass: string, isLightMode: boolean }) => {
   const lower = text.toLowerCase();
   let Icon = CheckCircle2;
@@ -53,8 +59,6 @@ export default function LookbookFlow({
   storefrontSlug, businessName, contactEmail
 }: ContentLayoutProps) {
   const [activeModalService, setActiveModalService] = useState<ModalServiceState | null>(null);
-  
-  // NEW: State to trigger the direct inquiry modal
   const [activeBooking, setActiveBooking] = useState<string | null>(null);
 
   const fonts = getFonts(themeStyle);
@@ -67,8 +71,8 @@ export default function LookbookFlow({
   const packages = (capabilities || []).filter(c => !c.isAlaCarte);
   const alaCarte = (capabilities || []).filter(c => c.isAlaCarte);
 
-  const getAttachedImages = (serviceTitle: string): GalleryItem[] => {
-    return (galleryItems || []).filter((item: GalleryItem) => item.category === serviceTitle);
+  const getAttachedImages = (serviceTitle: string): ExtendedGalleryItem[] => {
+    return (galleryItems || []).filter((item: ExtendedGalleryItem) => item.category === serviceTitle);
   };
 
   const unattachedGallery = (galleryItems || []).filter(img => !img.category || img.category.trim() === '');
@@ -80,9 +84,12 @@ export default function LookbookFlow({
         
         {/* LOOKBOOK: 3-COLUMN PACKAGES */}
         {packages.length > 0 && (
-          <div className="mb-24">
+          <div className="mb-20">
             <div className="mb-12 text-center">
-              <h2 className={`text-4xl md:text-5xl lg:text-6xl tracking-tighter ${brandTextColor} ${fonts.heading}`}>
+              <span className={`text-xs font-mono font-bold uppercase tracking-[0.3em] ${brandTextColor} block mb-2`}>
+                Package Pricing
+              </span>
+              <h2 className={`text-4xl md:text-5xl lg:text-6xl tracking-tighter ${isLightMode ? 'text-zinc-900' : 'text-white'} ${fonts.heading}`}>
                 {capabilitiesHeading || 'Collections'}
               </h2>
             </div>
@@ -91,17 +98,18 @@ export default function LookbookFlow({
               {packages.map((cap, i) => {
                 const attachedImages = getAttachedImages(cap.title);
                 const coverImage = attachedImages.length > 0 ? attachedImages[0].imageUrl : null;
+                const packageAddons = attachedImages.flatMap((img: ExtendedGalleryItem) => img.addons || []);
                 
                 return (
                   <div key={i} className={`flex flex-col h-full group ${isLightMode ? 'bg-white' : 'bg-zinc-900/40'} border ${isLightMode ? 'border-zinc-200' : 'border-white/5'} ${shapeRadius} overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300`}>
                     
-                    {/* Visual Gallery Trigger */}
                     <div 
-                      className="relative w-full aspect-[4/3] overflow-hidden cursor-pointer bg-zinc-800 shrink-0"
-                      onClick={() => setActiveModalService({ title: cap.title, images: attachedImages, desc: cap.description })}
+                      className="relative w-full aspect-4/3 overflow-hidden cursor-pointer bg-zinc-800 shrink-0"
+                      onClick={() => setActiveModalService({ title: cap.title, images: attachedImages, desc: cap.description, bullets: cap.bullets, addons: packageAddons })}
                     >
                       {coverImage ? (
                         <>
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img src={coverImage} alt={cap.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy" />
                           <div className={`absolute inset-0 bg-${activeSecondary} mix-blend-color opacity-0 group-hover:opacity-20 transition-opacity duration-500`} />
                         </>
@@ -114,11 +122,10 @@ export default function LookbookFlow({
                       
                       <div className="absolute top-4 right-4 z-20 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-full flex items-center gap-1.5 border border-white/10 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 transform translate-y-2 group-hover:translate-y-0">
                         <Maximize2 size={12} className={`text-${activeSecondary}`} />
-                        <span className="text-[9px] text-white font-bold tracking-widest uppercase">View Gallery</span>
+                        <span className="text-[9px] text-white font-bold tracking-widest uppercase">View Details</span>
                       </div>
                     </div>
 
-                    {/* Package Details */}
                     <div className="p-6 md:p-8 flex flex-col flex-1">
                       <div className="flex flex-col xl:flex-row xl:items-baseline justify-between gap-2 mb-4">
                         <h3 className={`text-2xl md:text-3xl transition-colors duration-300 ${fonts.heading} ${isLightMode ? 'text-zinc-900 group-hover:text-zinc-600' : 'text-zinc-100 group-hover:text-white'}`}>
@@ -131,13 +138,14 @@ export default function LookbookFlow({
                         )}
                       </div>
                       
-                      {cap.description && (
-                        <p className={`text-sm leading-relaxed mb-6 ${fonts.body} ${isLightMode ? 'text-zinc-600' : 'text-zinc-400'} ${['elegant', 'organic'].includes(themeStyle) ? 'italic' : ''}`}>
+                      {cap.description ? (
+                        <p className={`text-sm leading-relaxed mb-6 line-clamp-2 min-h-[2.75rem] ${fonts.body} ${isLightMode ? 'text-zinc-600' : 'text-zinc-400'} ${['elegant', 'organic'].includes(themeStyle) ? 'italic' : ''}`}>
                           {cap.description}
                         </p>
+                      ) : (
+                        <div className="mb-6 min-h-[2.75rem]" />
                       )}
 
-                      {/* 🚀 THE FRONT-FACING DELIVERABLES GRID */}
                       {cap.bullets && cap.bullets.length > 0 && (
                         <div className="space-y-2 mb-8 flex-1">
                           {cap.bullets.map((b, bIdx) => (
@@ -146,10 +154,10 @@ export default function LookbookFlow({
                         </div>
                       )}
 
-                      {/* 🚀 DIRECT INQUIRY TRIGGER */}
                       <button 
+                        type="button"
                         onClick={() => setActiveBooking(cap.title)}
-                        className={`w-full py-4 px-4 mt-auto text-[11px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all border ${shapeRadius === 'rounded-none' ? 'rounded-none' : 'rounded-xl'} ${
+                        className={`w-full py-4 px-4 mt-auto text-[11px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all border cursor-pointer ${shapeRadius === 'rounded-none' ? 'rounded-none' : 'rounded-xl'} ${
                         isLightMode 
                           ? `bg-zinc-950 border-zinc-900 text-white hover:bg-${activeSecondary} hover:text-zinc-950 hover:border-transparent shadow-lg` 
                           : `bg-white border-white text-zinc-950 hover:bg-${activeSecondary} hover:text-zinc-950 hover:border-transparent shadow-lg`
@@ -164,29 +172,40 @@ export default function LookbookFlow({
           </div>
         )}
 
-        {/* À LA CARTE MENU */}
+        {/* 🚀 FULLY THEME-INTEGRATED ADDITIONAL ADD-ONS SECTION */}
         {alaCarte.length > 0 && (
-          <div className="mt-24 mb-32 max-w-4xl mx-auto">
-            {alaCarte.map((cap, i) => (
-              <div key={i} className="mb-16">
-                <div className="text-center mb-12">
-                   <h3 className={`text-3xl md:text-4xl ${fonts.heading} ${brandTextColor}`}>{cap.title}</h3>
-                   {cap.description && <p className={`mt-4 text-sm md:text-base max-w-2xl mx-auto ${fonts.body} ${isLightMode ? 'text-zinc-600' : 'text-zinc-400'} ${['elegant', 'organic'].includes(themeStyle) ? 'italic' : ''}`}>{cap.description}</p>}
-                </div>
-                
-                <div className="space-y-4">
-                   {cap.bullets?.map((b, bIdx) => {
-                      const { text, price } = parseItemData(b);
-                      return (
-                         <div key={bIdx} className={`flex items-end justify-between gap-4 border-b ${isLightMode ? 'border-zinc-200' : 'border-zinc-800/60'} pb-4 transition-colors hover:border-current/30`}>
-                            <span className={`text-base md:text-lg ${fonts.body} ${isLightMode ? 'text-zinc-800' : 'text-zinc-200'}`}>{text}</span>
-                            {price && <span className={`text-base md:text-lg font-bold tracking-tight ${brandTextColor}`}>{price}</span>}
-                         </div>
-                      );
-                   })}
-                </div>
-              </div>
-            ))}
+          <div className={`mt-20 mb-28 max-w-4xl mx-auto border p-8 md:p-12 shadow-xl backdrop-blur-md ${isLightMode ? 'bg-zinc-50/50 border-zinc-200' : 'bg-black/30 border-zinc-800/80'} ${shapeRadius}`}>
+            <div className="text-center mb-10">
+               <div className={`inline-flex items-center gap-2 px-3 py-1 border text-[10px] font-mono font-bold uppercase tracking-widest mb-3 ${shapeRadius === 'rounded-none' ? 'rounded-none' : 'rounded-full'} ${isLightMode ? 'bg-zinc-100 border-zinc-200 text-zinc-500' : 'bg-zinc-900 border-zinc-800 text-zinc-400'}`}>
+                  <Plus size={12} /> Flexible Upgrades
+               </div>
+               <h3 className={`text-3xl md:text-4xl ${fonts.heading} ${isLightMode ? 'text-zinc-900' : 'text-white'}`}>Additional Add-ons</h3>
+               <p className={`text-xs md:text-sm mt-2 font-light ${fonts.body} ${isLightMode ? 'text-zinc-600' : 'text-zinc-400'}`}>
+                 Customize your shoot with any of these standalone enhancements.
+               </p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+               {alaCarte.map((cap, i) => (
+                  <div key={i} className={`flex items-start justify-between p-5 border transition-all shadow-sm ${isLightMode ? 'bg-white border-zinc-200 hover:border-zinc-300' : 'bg-zinc-950/60 border-zinc-800/80 hover:border-zinc-700'} ${shapeRadius}`}>
+                     <div className="space-y-1 pr-4">
+                        <h4 className={`text-base font-bold ${fonts.heading} ${isLightMode ? 'text-zinc-900' : 'text-white'}`}>
+                          {cap.title}
+                        </h4>
+                        {cap.description && (
+                          <p className={`text-xs font-light leading-relaxed ${fonts.body} ${isLightMode ? 'text-zinc-600' : 'text-zinc-400'}`}>
+                            {cap.description}
+                          </p>
+                        )}
+                     </div>
+                     {cap.price && (
+                        <span className={`text-base font-black shrink-0 px-3 py-1 border font-mono ${brandTextColor} ${shapeRadius === 'rounded-none' ? 'rounded-none' : 'rounded-xl'} ${isLightMode ? 'bg-zinc-100 border-zinc-200' : 'bg-zinc-900 border-zinc-800'}`}>
+                          {cap.price}
+                        </span>
+                     )}
+                  </div>
+               ))}
+            </div>
           </div>
         )}
 
@@ -204,6 +223,7 @@ export default function LookbookFlow({
                   className={`relative break-inside-avoid overflow-hidden shadow-lg group cursor-pointer ${shapeRadius}`}
                   onClick={() => setActiveModalService({ title: galleryHeading || 'Portfolio', images: unattachedGallery, desc: '' })}
                 >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={img.imageUrl} alt={img.title || `Gallery Image ${idx}`} className="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy" />
                   
                   {img.title && (
@@ -220,23 +240,23 @@ export default function LookbookFlow({
         )}
       </div>
 
-      {/* VISUAL PROOF MODAL */}
       <ServiceProofModal
         isOpen={!!activeModalService}
         onClose={() => setActiveModalService(null)}
         title={activeModalService?.title || ''}
         images={activeModalService?.images || []}
         description={activeModalService?.desc}
+        bullets={activeModalService?.bullets}
         themeStyle={themeStyle}
         brandColor={brandColor}
       />
 
-      {/* 🚀 DIRECT INQUIRY MODAL: Pre-filled with the exact package they selected! */}
       <UniversalLeadModal
         isOpen={!!activeBooking}
         onClose={() => setActiveBooking(null)}
         ctaLabel={`Book ${activeBooking}`}
         inquiryOptions={[activeBooking || 'Direct Booking']}
+        addonOptions={alaCarte.map(item => ({ title: item.title, price: item.price }))}
         businessName={businessName || 'Our Team'}
         storefrontSlug={storefrontSlug || 'platform-direct'}
         contactEmail={contactEmail || ''}

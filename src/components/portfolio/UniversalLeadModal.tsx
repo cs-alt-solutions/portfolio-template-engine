@@ -1,7 +1,8 @@
-// src/components/portfolio/UniversalLeadModal.tsx
+/* src/components/portfolio/UniversalLeadModal.tsx */
 'use client';
+
 import React, { useState } from 'react';
-import { X, Send, CheckCircle, Sparkles, AlertCircle, ChevronDown } from 'lucide-react';
+import { X, Send, CheckCircle2, Sparkles, AlertCircle, ChevronDown } from 'lucide-react';
 import { getFonts } from './content-engine/utils';
 import { submitStorefrontLead } from '@/actions/submitLead';
 
@@ -11,11 +12,12 @@ interface UniversalLeadModalProps {
   ctaLabel: string;
   businessName: string;
   storefrontSlug?: string; 
-  contactEmail?: string;   
+  contactEmail?: string;     
   brandColor?: string;
   isLightMode?: boolean;
   themeStyle?: string;
-  inquiryOptions?: string[]; 
+  inquiryOptions?: string[];
+  addonOptions?: { title: string, price?: string }[];
 }
 
 export default function UniversalLeadModal({
@@ -28,7 +30,8 @@ export default function UniversalLeadModal({
   brandColor = 'cyan-500', 
   isLightMode = false,
   themeStyle = 'industrial',
-  inquiryOptions = ["General Inquiry", "Request a Quote"] 
+  inquiryOptions = ["General Inquiry", "Request a Quote"],
+  addonOptions = []
 }: UniversalLeadModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -42,19 +45,32 @@ export default function UniversalLeadModal({
     details: '',
   });
 
-  // 🚀 DERIVED STATE: Avoids the useEffect double-render error entirely
-  const effectiveInquiryType = inquiryOptions && inquiryOptions.length > 0
-    ? (inquiryOptions.includes(formData.inquiryType) ? formData.inquiryType : inquiryOptions[0])
+  const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
+
+  const effectiveInquiryType = inquiryOptions && inquiryOptions.length > 0 
+    ? (inquiryOptions.includes(formData.inquiryType) ? formData.inquiryType : inquiryOptions[0]) 
     : 'General Inquiry';
 
   if (!isOpen) return null;
+
+  const toggleAddon = (addonTitle: string) => {
+    if (selectedAddons.includes(addonTitle)) {
+      setSelectedAddons(selectedAddons.filter(a => a !== addonTitle));
+    } else {
+      setSelectedAddons([...selectedAddons, addonTitle]);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     setErrorMessage('');
 
-    const combinedDetails = `[INQUIRY TYPE: ${effectiveInquiryType.toUpperCase()}]\n\n${formData.details}`;
+    let combinedDetails = `[INQUIRY TYPE: ${effectiveInquiryType.toUpperCase()}]\n\n`;
+    if (selectedAddons.length > 0) {
+      combinedDetails += `SELECTED ADD-ONS:\n${selectedAddons.map(a => `- ${a}`).join('\n')}\n\n`;
+    }
+    combinedDetails += formData.details;
 
     try {
       const response = await submitStorefrontLead({
@@ -84,7 +100,7 @@ export default function UniversalLeadModal({
   const isNeo = themeStyle === 'neo';
   const isCyber = themeStyle === 'cyberpunk';
   const isMidnight = themeStyle === 'midnight';
-
+  
   const radius = themeStyle === 'elegant' ? 'rounded-sm' : 
                  ['industrial', 'neo', 'cyberpunk', 'editorial'].includes(themeStyle) ? 'rounded-none' : 
                  themeStyle === 'minimal' ? 'rounded-3xl' : 'rounded-2xl';
@@ -119,40 +135,29 @@ export default function UniversalLeadModal({
     return `bg-${brandColor} ${textClass} border border-white/20 shadow-lg hover:opacity-90 active:scale-[0.99] ${inputRadius}`;
   };
 
-  const getDetailsPlaceholder = () => {
-    if (effectiveInquiryType === 'Job Application / Hiring') return "Tell us about your experience and the position you're looking for...";
-    if (effectiveInquiryType === 'General Inquiry') return "How can we help you today?";
-    if (effectiveInquiryType === 'Other') return "Tell us more about what you need...";
-    return "Tell us what you're looking for, ideal dates, or any specific questions...";
-  };
-
-  const getDetailsLabel = () => {
-    if (effectiveInquiryType === 'Job Application / Hiring') return "Experience & Background *";
-    if (effectiveInquiryType === 'General Inquiry' || effectiveInquiryType === 'Other') return "How can we help? *";
-    return "Project Details & Notes *";
-  };
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
       <div className={`relative w-full max-w-lg p-6 md:p-8 transition-all max-h-[90vh] overflow-y-auto custom-scrollbar ${radius} ${getModalStyles()}`}>
         
-        <button
+        <button 
+          type="button"
           onClick={onClose}
-          className={`absolute top-4 right-4 p-2 transition-colors ${isNeo ? 'text-black hover:bg-black hover:text-white border-2 border-black rounded-none' : 'text-zinc-400 hover:text-white rounded-full'}`}
+          className={`absolute top-4 right-4 p-2 transition-colors cursor-pointer ${isNeo ? 'text-black hover:bg-black hover:text-white border-2 border-black rounded-none' : 'text-zinc-400 hover:text-white rounded-full'}`}
         >
           <X className="w-5 h-5" />
         </button>
 
         {isSubmitted ? (
           <div className="py-10 text-center space-y-4">
-            <CheckCircle className="w-16 h-16 mx-auto text-emerald-500 animate-bounce" />
+            <CheckCircle2 className="w-16 h-16 mx-auto text-emerald-500 animate-bounce" />
             <h3 className={`text-2xl font-bold ${fonts.heading}`}>Request Received!</h3>
             <p className={`text-sm opacity-80 max-w-xs mx-auto ${fonts.body}`}>
               Thank you, {formData.name}. {businessName} has logged your details and will be in touch shortly.
             </p>
-            <button
+            <button 
+              type="button"
               onClick={() => { setIsSubmitted(false); onClose(); }}
-              className={`mt-6 px-6 py-2.5 font-medium transition-all text-xs uppercase tracking-wider ${isNeo ? 'bg-black text-white border-2 border-black rounded-none font-bold' : 'bg-zinc-800 text-white hover:bg-zinc-700 rounded-sm'}`}
+              className={`mt-6 px-6 py-2.5 font-medium transition-all text-xs uppercase tracking-wider cursor-pointer ${isNeo ? 'bg-black text-white border-2 border-black rounded-none font-bold' : 'bg-zinc-800 text-white hover:bg-zinc-700 rounded-sm'}`}
             >
               Back to Website
             </button>
@@ -179,14 +184,13 @@ export default function UniversalLeadModal({
 
             <form onSubmit={handleSubmit} className="space-y-4">
               
+              {/* 🚀 THE FIX: Topic Selection */}
               {inquiryOptions && inquiryOptions.length > 0 && (
                 <div>
-                  <label className={`block text-[10px] font-mono uppercase tracking-wider mb-1.5 opacity-70 ${fonts.body}`}>
-                    Topic *
-                  </label>
+                  <label className={`block text-[10px] font-mono uppercase tracking-wider mb-1.5 opacity-70 ${fonts.body}`}>Topic *</label>
                   <div className="relative">
-                    <select
-                      value={effectiveInquiryType}
+                    <select 
+                      value={effectiveInquiryType} 
                       onChange={(e) => setFormData({ ...formData, inquiryType: e.target.value })}
                       className={`w-full px-4 py-3 text-sm outline-none transition-all appearance-none cursor-pointer ${getInputStyles()}`}
                     >
@@ -199,15 +203,38 @@ export default function UniversalLeadModal({
                 </div>
               )}
 
+              {/* 🚀 THE FIX: Available Add-ons moved directly under the Topic selection! */}
+              {addonOptions && addonOptions.length > 0 && (
+                <div className={`pt-2 mt-1 pb-2`}>
+                  <label className={`block text-[10px] font-mono uppercase tracking-wider mb-2 opacity-70 ${fonts.body}`}>
+                    Available Add-ons
+                  </label>
+                  <div className="space-y-2">
+                    {addonOptions.map((addon) => {
+                      const isChecked = selectedAddons.includes(addon.title);
+                      return (
+                        <div 
+                          key={addon.title} 
+                          onClick={() => toggleAddon(addon.title)}
+                          className="flex items-center gap-3 cursor-pointer group select-none"
+                        >
+                          <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${isChecked ? `bg-${brandColor} border-${brandColor}` : isLightMode ? 'border-zinc-300' : 'border-zinc-700 bg-zinc-950'}`}>
+                            {isChecked && <CheckCircle2 className={`w-3 h-3 ${['blue-500', 'indigo-500'].includes(brandColor) ? 'text-white' : 'text-zinc-950'}`} />}
+                          </div>
+                          <span className={`text-sm ${fonts.body} ${isLightMode ? 'text-zinc-800 group-hover:text-zinc-950' : 'text-zinc-300 group-hover:text-white'} transition-colors`}>
+                            {addon.title} {addon.price && <span className="opacity-60 ml-1">({addon.price})</span>}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
               <div>
-                <label className={`block text-[10px] font-mono uppercase tracking-wider mb-1.5 opacity-70 ${fonts.body}`}>
-                  Your Name *
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g., Jordan Smith"
-                  value={formData.name}
+                <label className={`block text-[10px] font-mono uppercase tracking-wider mb-1.5 opacity-70 ${fonts.body}`}>Your Name *</label>
+                <input 
+                  type="text" required placeholder="e.g., Jordan Smith" value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   className={`w-full px-4 py-3 text-sm outline-none transition-all ${getInputStyles()}`}
                 />
@@ -215,26 +242,17 @@ export default function UniversalLeadModal({
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className={`block text-[10px] font-mono uppercase tracking-wider mb-1.5 opacity-70 ${fonts.body}`}>
-                    Email Address *
-                  </label>
-                  <input
-                    type="email"
-                    required
-                    placeholder="jordan@example.com"
-                    value={formData.email}
+                  <label className={`block text-[10px] font-mono uppercase tracking-wider mb-1.5 opacity-70 ${fonts.body}`}>Email Address *</label>
+                  <input 
+                    type="email" required placeholder="jordan@example.com" value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     className={`w-full px-4 py-3 text-sm outline-none transition-all ${getInputStyles()}`}
                   />
                 </div>
                 <div>
-                  <label className={`block text-[10px] font-mono uppercase tracking-wider mb-1.5 opacity-70 ${fonts.body}`}>
-                    Phone Number
-                  </label>
-                  <input
-                    type="tel"
-                    placeholder="(555) 000-0000"
-                    value={formData.phone}
+                  <label className={`block text-[10px] font-mono uppercase tracking-wider mb-1.5 opacity-70 ${fonts.body}`}>Phone Number</label>
+                  <input 
+                    type="tel" placeholder="(555) 000-0000" value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                     className={`w-full px-4 py-3 text-sm outline-none transition-all ${getInputStyles()}`}
                   />
@@ -242,32 +260,20 @@ export default function UniversalLeadModal({
               </div>
 
               <div>
-                <label className={`block text-[10px] font-mono uppercase tracking-wider mb-1.5 opacity-70 ${fonts.body}`}>
-                  {getDetailsLabel()}
-                </label>
-                <textarea
-                  rows={3}
-                  required
-                  placeholder={getDetailsPlaceholder()}
+                <label className={`block text-[10px] font-mono uppercase tracking-wider mb-1.5 opacity-70 ${fonts.body}`}>Project Details & Notes *</label>
+                <textarea 
+                  rows={3} required placeholder="Tell us what you're looking for, ideal dates, or any specific questions..."
                   value={formData.details}
                   onChange={(e) => setFormData({ ...formData, details: e.target.value })}
                   className={`w-full px-4 py-3 text-sm outline-none resize-none transition-all ${getInputStyles()}`}
                 />
               </div>
 
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className={`w-full py-3.5 px-6 transition-all flex items-center justify-center gap-2 mt-2 disabled:opacity-50 text-xs uppercase tracking-widest ${getSubmitStyles()}`}
+              <button 
+                type="submit" disabled={isSubmitting}
+                className={`w-full py-3.5 px-6 transition-all flex items-center justify-center gap-2 mt-4 disabled:opacity-50 text-xs uppercase tracking-widest cursor-pointer ${getSubmitStyles()}`}
               >
-                {isSubmitting ? (
-                  <span>Transmitting...</span>
-                ) : (
-                  <>
-                    <span>Submit Request</span>
-                    <Send className="w-4 h-4" />
-                  </>
-                )}
+                {isSubmitting ? <span>Transmitting...</span> : <><span>Submit Request</span> <Send className="w-4 h-4" /></>}
               </button>
             </form>
           </div>

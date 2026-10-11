@@ -7,12 +7,18 @@ export interface Capability {
   isAlaCarte?: boolean; // 🚀 THE FIX: Tells TS this flag exists
 }
 
+// src/components/portfolio/content-engine/types.ts
 export interface GalleryItem {
   id: string;
   imageUrl: string;
   title?: string;
   description?: string;
   category?: string;
+  price?: string;
+  isVisible?: boolean;
+  isRaw?: boolean;
+  // ADD THIS LINE:
+  addons?: { name: string; price: string }[];
 }
 
 export interface ContentLayoutProps {
