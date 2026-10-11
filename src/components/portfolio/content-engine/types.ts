@@ -26,4 +26,10 @@ export interface ContentLayoutProps {
   galleryItems: GalleryItem[];
   contentLayout?: 'classic' | 'bento' | 'sticky' | 'accordion' | 'editorial' | 'menu' | 'lookbook';
   aboutLayout?: 'split' | 'editorial' | 'minimal' | 'card';
+  orderingUrl?: string;
+  
+  // ADD THESE THREE LINES:
+  storefrontSlug?: string;
+  businessName?: string;
+  contactEmail?: string;
 }

@@ -11,7 +11,7 @@ import ContentEngine from '@/components/portfolio/content-engine';
 import PrototypeTourGuide from '@/components/portfolio/PrototypeTourGuide';
 import StorefrontClientActions from '../../components/portfolio/StorefrontClientActions';
 import StagingReviewOverlay from '@/components/portfolio/staging-review/StagingReviewOverlay';
-import LocationPanel from '@/components/portfolio/LocationPanel'; 
+import LocationPanel from '@/components/portfolio/LocationPanel';
 import { Send } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
@@ -27,7 +27,6 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     .single();
 
   if (!store) return { title: 'Not Found' };
-
   const hasLogo = typeof store.brand_logo === 'string' && store.brand_logo.trim() !== '';
 
   return {
@@ -56,12 +55,8 @@ interface FormattedGalleryItem {
   addons?: { name: string; price: string }[];
 }
 
-const HERO_NAMES: Record<string, string> = {
-  'center': "Centered Focus", 'split-left': "Split-Left Structure", 'split-right': "Split-Right Structure", 'cinematic': "Cinematic Frame Layout", 'glass': "Frosted Glass Overlay"
-};
-const FLOW_NAMES: Record<string, string> = {
-  'classic': "Classic Flow Layout", 'bento': "Bento Grid System", 'sticky': "Sticky Scroll Engine", 'editorial': "Editorial Hover Stack", 'accordion': "Interactive Accordion Flow", 'menu': "Culinary Menu"
-};
+const HERO_NAMES: Record<string, string> = { 'center': "Centered Focus", 'split-left': "Split-Left Structure", 'split-right': "Split-Right Structure", 'cinematic': "Cinematic Frame Layout", 'glass': "Frosted Glass Overlay" };
+const FLOW_NAMES: Record<string, string> = { 'classic': "Classic Flow Layout", 'bento': "Bento Grid System", 'sticky': "Sticky Scroll Engine", 'editorial': "Editorial Hover Stack", 'accordion': "Interactive Accordion Flow", 'menu': "Culinary Menu", 'lookbook': "Lookbook Grid" };
 
 const InstagramIcon = ({ size = 24, ...props }: CustomIconProps) => ( <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg> );
 const FacebookIcon = ({ size = 24, ...props }: CustomIconProps) => ( <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg> );
@@ -103,23 +98,17 @@ export default async function DynamicStorefront({
   
   const theme = THEME_REGISTRY[store.theme_style || 'industrial'] || THEME_REGISTRY['industrial'];
   const layout = store.hero_layout || 'center';
-  
   const brandColor = store.brand_color || 'cyan-500';
+
   const secondaryBrandColor = store.secondary_brand_color || brandColor;
 
   const accentColorClass = theme.useBrandAccent ? `text-${brandColor}` : '';
-  
-  // 🚀 THE FIX: Safely paints the hero button completely in the secondary brand color
-  const buttonBgClass = theme.useBrandAccent 
-    ? `bg-${secondaryBrandColor} text-zinc-950 hover:scale-105 transition-all shadow-lg border-none` 
-    : `bg-${brandColor} text-zinc-950`;
-  
+  const buttonBgClass = theme.useBrandAccent ? `bg-${brandColor} text-zinc-950 hover:opacity-80 border-none` : `bg-${brandColor} text-zinc-950`;
   const lineAccent = theme.useBrandAccent ? `bg-linear-to-r from-${brandColor} to-${secondaryBrandColor}` : 'bg-current';
 
   const exploreLink = '#gallery'; 
 
   const hasAbout = !!store.about_bio || !!store.about_image || !!store.about_heading;
-  
   const galleryTitle = store.gallery_heading || STOREFRONT_DEFAULTS?.GALLERY_HEADING || "Featured Work";
   const heroButtonText = `View ${galleryTitle}`;
 
@@ -138,16 +127,9 @@ export default async function DynamicStorefront({
   const formattedGalleryItems: FormattedGalleryItem[] = rawGallery.map((item: unknown, index: number) => {
     if (typeof item === 'string') return { id: `gal-${index}`, imageUrl: item };
     
+    // Explicitly typed to avoid the any error
     const obj = item as {
-      id?: string;
-      imageUrl?: string;
-      title?: string;
-      description?: string;
-      category?: string;
-      price?: string;
-      isVisible?: boolean;
-      isRaw?: boolean;
-      addons?: { name: string; price: string }[];
+      id?: string; imageUrl?: string; title?: string; description?: string; category?: string; price?: string; isVisible?: boolean; isRaw?: boolean; addons?: { name: string; price: string }[];
     };
     
     return { 
@@ -167,18 +149,9 @@ export default async function DynamicStorefront({
     <main className={`min-h-screen flex flex-col selection:bg-${secondaryBrandColor}/30 ${theme.pageBg || 'bg-zinc-950'} relative`}>
       
       <HeroEngine 
-        layout={layout}
-        store={store}
-        theme={theme}
-        brandColor={brandColor}
-        secondaryBrandColor={secondaryBrandColor}
-        isHeroFixed={isHeroFixed}
-        hasValidLogo={hasValidLogo}
-        exploreLink={exploreLink}
-        heroButtonText={heroButtonText}
-        accentColorClass={accentColorClass}
-        buttonBgClass={buttonBgClass}
-        lineAccent={lineAccent}
+        layout={layout} store={store} theme={theme} brandColor={brandColor} secondaryBrandColor={secondaryBrandColor}
+        isHeroFixed={isHeroFixed} hasValidLogo={hasValidLogo} exploreLink={exploreLink} heroButtonText={heroButtonText}
+        accentColorClass={accentColorClass} buttonBgClass={buttonBgClass} lineAccent={lineAccent}
       />
 
       {hasAbout && (
@@ -186,14 +159,8 @@ export default async function DynamicStorefront({
           <AboutSection 
             data={{
               heading: store.about_heading || STOREFRONT_DEFAULTS?.ABOUT_HEADING || 'About Us', 
-              bio: store.about_bio,
-              imageUrl: store.about_image,
-              brandColor: brandColor,
-              secondaryBrandColor: secondaryBrandColor,
-              socials: activeSocials, 
-              isLightMode: theme.isLightMode || false, 
-              themeStyle: store.theme_style || 'industrial',
-              aboutLayout: store.about_layout || 'split'
+              bio: store.about_bio, imageUrl: store.about_image, brandColor: brandColor, secondaryBrandColor: secondaryBrandColor, socials: activeSocials, 
+              isLightMode: theme.isLightMode || false, themeStyle: store.theme_style || 'industrial', aboutLayout: store.about_layout || 'split'
             }} 
           />
         </div>
@@ -201,36 +168,32 @@ export default async function DynamicStorefront({
 
       {isHeroFixed && store.hero_image && (
         <div className="relative w-full h-[30vh] md:h-[40vh] border-y border-white/10 shadow-[inset_0_0_100px_rgba(0,0,0,0.8)]" style={{ clipPath: 'inset(0)' }}>
-          <div 
-            className="fixed inset-0 w-full h-full bg-cover bg-center opacity-50" 
-            style={{ backgroundImage: `url('${store.hero_image}')`, zIndex: -1 }} 
-          />
+          <div className="fixed inset-0 w-full h-full bg-cover bg-center opacity-50" style={{ backgroundImage: `url('${store.hero_image}')`, zIndex: -1 }} />
           {theme.useBrandAccent && <div className={`absolute top-0 left-0 w-full h-1 ${lineAccent} opacity-50`} />}
         </div>
       )}
 
       <div id="gallery">
         <ContentEngine 
-          layout={store.content_layout || 'classic'}
-          themeStyle={store.theme_style || 'industrial'}
-          brandColor={brandColor}
+          layout={store.content_layout || 'classic'} 
+          themeStyle={store.theme_style || 'industrial'} 
+          brandColor={brandColor} 
           secondaryBrandColor={secondaryBrandColor}
-          isLightMode={theme.isLightMode || false}
+          isLightMode={theme.isLightMode || false} 
           capabilitiesHeading={store.capabilities_heading || STOREFRONT_DEFAULTS?.CAPABILITIES_HEADING || "Services"} 
           galleryHeading={store.gallery_heading || STOREFRONT_DEFAULTS?.GALLERY_HEADING || "Featured Work"} 
-          capabilities={store.capabilities || []}
+          capabilities={store.capabilities || []} 
           galleryItems={formattedGalleryItems}
           orderingUrl={store.ordering_url}
+          
+          // 🚀 THE FIX: Passed all the missing routing props down to ContentEngine!
+          storefrontSlug={store.slug}
+          businessName={store.business_name}
+          contactEmail={store.contact_email}
         />
       </div>
 
-      <StorefrontClientActions 
-        store={store} 
-        brandColor={brandColor} 
-        secondaryBrandColor={secondaryBrandColor}
-        isLightMode={theme.isLightMode || false} 
-        themeStyle={store.theme_style || 'industrial'} 
-      />
+      <StorefrontClientActions store={store} brandColor={brandColor} secondaryBrandColor={secondaryBrandColor} isLightMode={theme.isLightMode || false} themeStyle={store.theme_style || 'industrial'} />
 
       <LocationPanel 
         businessName={store.business_name || 'Our Location'}
@@ -243,20 +206,12 @@ export default async function DynamicStorefront({
 
       <footer className="w-full py-8 px-6 border-t border-white/10 bg-zinc-950 text-[11px] font-mono text-zinc-500 uppercase tracking-widest flex flex-col md:flex-row items-center justify-between gap-6 relative z-20">
         <div className="flex items-center gap-4">
-          {hasValidLogo && (
-            <>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={store.brand_logo} alt="Brand Icon" className="h-6 w-auto object-contain opacity-50 grayscale" />
-            </>
-          )}
+          {hasValidLogo && ( <img src={store.brand_logo} alt="Brand Icon" className="h-6 w-auto object-contain opacity-50 grayscale" /> )}
           <span>&copy; {new Date().getFullYear()} {store.business_name || 'All Rights Reserved'}.</span>
         </div>
-
         <div className="flex items-center gap-1.5">
           <span>Powered by</span>
-          <a href="https://alternativesolutions.io" target="_blank" rel="noopener noreferrer" className="text-zinc-300 hover:text-cyan-400 font-bold transition-colors underline decoration-cyan-500/50 underline-offset-4">
-            Alternative Solutions
-          </a>
+          <a href="https://alternativesolutions.io" target="_blank" rel="noopener noreferrer" className="text-zinc-300 hover:text-cyan-400 font-bold transition-colors underline decoration-cyan-500/50 underline-offset-4">Alternative Solutions</a>
         </div>
       </footer>
 
