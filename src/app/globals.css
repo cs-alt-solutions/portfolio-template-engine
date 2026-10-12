@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
-/* TAILWIND V4 SAFELIST FOR DYNAMIC SAAS COLORS */
-@source inline("bg-slate-500 text-slate-500 border-slate-500 bg-red-500 text-red-500 border-red-500 bg-rose-500 text-rose-500 border-rose-500 bg-orange-500 text-orange-500 border-orange-500 bg-amber-500 text-amber-500 border-amber-500 bg-yellow-400 text-yellow-400 border-yellow-400 bg-lime-400 text-lime-400 border-lime-400 bg-emerald-500 text-emerald-500 border-emerald-500 bg-teal-500 text-teal-500 border-teal-500 bg-cyan-500 text-cyan-500 border-cyan-500 bg-blue-500 text-blue-500 border-blue-500 bg-indigo-500 text-indigo-500 border-indigo-500 bg-violet-500 text-violet-500 border-violet-500 bg-fuchsia-500 text-fuchsia-500 border-fuchsia-500 bg-pink-500 text-pink-500 border-pink-500");
+/* 🚨 TAILWIND V4 SAFELIST FOR DYNAMIC SAAS COLORS & CUSTOM BRAND INJECTIONS 🚨 */
+@source inline("bg-slate-500 text-slate-500 border-slate-500 bg-red-500 text-red-500 border-red-500 bg-rose-500 text-rose-500 border-rose-500 bg-orange-500 text-orange-500 border-orange-500 bg-amber-500 text-amber-500 border-amber-500 bg-yellow-400 text-yellow-400 border-yellow-400 bg-lime-400 text-lime-400 border-lime-400 bg-emerald-500 text-emerald-500 border-emerald-500 bg-teal-500 text-teal-500 border-teal-500 bg-cyan-500 text-cyan-500 border-cyan-500 bg-blue-500 text-blue-500 border-blue-500 bg-indigo-500 text-indigo-500 border-indigo-500 bg-violet-500 text-violet-500 border-violet-500 bg-fuchsia-500 text-fuchsia-500 border-fuchsia-500 bg-pink-500 text-pink-500 border-pink-500 bg-brand-primary text-brand-primary border-brand-primary from-brand-primary via-brand-primary to-brand-primary shadow-brand-primary shadow-brand-primary/20 shadow-brand-primary/30 shadow-brand-primary/40 bg-brand-primary/10 bg-brand-primary/20 border-brand-primary/10 border-brand-primary/20 border-brand-primary/30 hover:bg-brand-primary hover:text-brand-primary hover:border-brand-primary hover:text-zinc-950 bg-brand-secondary text-brand-secondary border-brand-secondary from-brand-secondary via-brand-secondary to-brand-secondary shadow-brand-secondary shadow-brand-secondary/20 shadow-brand-secondary/30 shadow-brand-secondary/40 bg-brand-secondary/10 bg-brand-secondary/20 bg-brand-secondary/25 border-brand-secondary/10 border-brand-secondary/20 border-brand-secondary/30 hover:bg-brand-secondary hover:text-brand-secondary hover:border-brand-secondary text-brand-secondary/80 text-brand-secondary/90 text-brand-primary/80 text-brand-primary/90");
 
 @theme {
   --color-slate-500: #64748b;
@@ -19,8 +19,10 @@
   --color-violet-500: #8b5cf6;
   --color-fuchsia-500: #d946ef;
   --color-pink-500: #ec4899;
+}
 
-  /* NEW: DYNAMIC VARIABLE INJECTORS */
+/* 🚀 NEW: INLINE VARIABLE RESOLUTION */
+@theme inline {
   --color-brand-primary: var(--brand-primary);
   --color-brand-secondary: var(--brand-secondary);
 }
