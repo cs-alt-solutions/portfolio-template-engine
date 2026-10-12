@@ -73,6 +73,17 @@ const SOCIAL_META: Record<string, { base: string; icon: React.ElementType }> = {
   telegram: { base: 'https://t.me/', icon: Send },
 };
 
+// 🚀 Helper function to convert DB values (like 'cyan-500' or '#ff0000') into pure hex codes
+const getHexValue = (val: string) => {
+  if (!val) return '#06b6d4';
+  if (val.startsWith('#')) return val;
+  const legacyMap: Record<string, string> = {
+    'cyan-500': '#06b6d4', 'fuchsia-500': '#d946ef', 'emerald-500': '#10b981',
+    'amber-500': '#f59e0b', 'rose-500': '#f43f5e', 'indigo-500': '#6366f1', 'zinc-500': '#71717a'
+  };
+  return legacyMap[val] || '#06b6d4';
+};
+
 export default async function DynamicStorefront({ 
   params,
   searchParams,
@@ -98,24 +109,33 @@ export default async function DynamicStorefront({
   
   const theme = THEME_REGISTRY[store.theme_style || 'industrial'] || THEME_REGISTRY['industrial'];
   const layout = store.hero_layout || 'center';
-  const brandColor = store.brand_color || 'cyan-500';
-  const secondaryBrandColor = store.secondary_brand_color || brandColor;
+  
+  // 1. Resolve raw database values to exact hex codes
+  const rawBrandColor = store.brand_color || 'cyan-500';
+  const rawSecondaryColor = store.secondary_brand_color || rawBrandColor;
+  
+  const primaryHex = getHexValue(rawBrandColor);
+  const secondaryHex = getHexValue(rawSecondaryColor);
+
+  // 2. We now permanently feed 'brand-primary' into the class generator, which maps to our new Tailwind variables!
+  const brandColor = 'brand-primary';
+  const secondaryBrandColor = 'brand-secondary';
 
   const isLightMode = theme.isLightMode || false;
 
-  // 🚀 THE FIX: Removed fragile dynamic background hover classes. 
-  // Forces a transparent background with pure border/text colors, using a sleek opacity fade on hover.
   const accentColorClass = theme.useBrandAccent 
     ? `text-${brandColor}` 
-    : `text-${secondaryBrandColor}`;
+    : (isLightMode ? 'text-zinc-900' : 'text-white');
 
   const buttonBgClass = theme.useBrandAccent 
-    ? `bg-${brandColor} text-zinc-950 hover:opacity-80 border-none shadow-lg transition-opacity duration-300` 
-    : `border-2 border-${secondaryBrandColor} text-${secondaryBrandColor} bg-transparent hover:opacity-60 shadow-sm transition-opacity duration-300`;
+    ? `bg-linear-to-r from-${brandColor} to-${secondaryBrandColor} text-zinc-950 hover:scale-105 transition-all shadow-lg shadow-${secondaryBrandColor}/20 border-none` 
+    : (isLightMode 
+        ? 'border-2 border-zinc-900 text-zinc-900 hover:bg-zinc-900 hover:text-white shadow-sm' 
+        : 'border-2 border-white text-white hover:bg-white hover:text-zinc-950 shadow-sm');
 
   const lineAccent = theme.useBrandAccent 
     ? `bg-linear-to-r from-${brandColor} to-${secondaryBrandColor}` 
-    : `bg-${secondaryBrandColor}`;
+    : (isLightMode ? 'bg-zinc-900' : 'bg-white');
 
   const exploreLink = '#gallery'; 
 
@@ -138,7 +158,6 @@ export default async function DynamicStorefront({
   const formattedGalleryItems: FormattedGalleryItem[] = rawGallery.map((item: unknown, index: number) => {
     if (typeof item === 'string') return { id: `gal-${index}`, imageUrl: item };
     
-    // Explicitly typed to avoid the any error
     const obj = item as {
       id?: string; imageUrl?: string; title?: string; description?: string; category?: string; price?: string; isVisible?: boolean; isRaw?: boolean; addons?: { name: string; price: string }[];
     };
@@ -157,7 +176,13 @@ export default async function DynamicStorefront({
   });
 
   return (
-    <main className={`min-h-screen flex flex-col selection:bg-${secondaryBrandColor}/30 ${theme.pageBg || 'bg-zinc-950'} relative`}>
+    <main 
+      className={`min-h-screen flex flex-col selection:bg-${secondaryBrandColor}/30 ${theme.pageBg || 'bg-zinc-950'} relative`}
+      style={{ 
+        '--brand-primary': primaryHex, 
+        '--brand-secondary': secondaryHex 
+      } as React.CSSProperties}
+    >
       
       <HeroEngine 
         layout={layout} store={store} theme={theme} brandColor={brandColor} secondaryBrandColor={secondaryBrandColor}
@@ -197,12 +222,10 @@ export default async function DynamicStorefront({
           galleryItems={formattedGalleryItems}
           orderingUrl={store.ordering_url}
           
-          // Routing props
           storefrontSlug={store.slug}
           businessName={store.business_name}
           contactEmail={store.contact_email}
 
-          // PARALLAX PROPS FOR LOOKBOOK:
           heroImage={store.hero_image}
           isHeroFixed={isHeroFixed}
         />
