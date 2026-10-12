@@ -16,7 +16,7 @@ export interface LeadPayload {
 
 export async function submitStorefrontLead(payload: LeadPayload) {
   try {
-    // 1. ROUTE TO EXISTING TABLE (Leaves the raw [INQUIRY TYPE] tag intact for your dashboard)
+    // 1. ROUTE TO EXISTING TABLE (Leaves the raw tags intact for your database ledger)
     const { error: dbError } = await supabase
       .from('storefront_leads')
       .insert([
@@ -42,22 +42,43 @@ export async function submitStorefrontLead(payload: LeadPayload) {
       return { success: true, warning: 'Lead saved, but email skipped.' };
     }
 
-    // 3. EMAIL DISPATCH
     const resend = new Resend(apiKey);
-    const recipientEmail = payload.contactEmail || process.env.FALLBACK_LEADS_EMAIL || 'support@alternativesolutions.io';
+    const ownerEmail = payload.contactEmail || process.env.FALLBACK_LEADS_EMAIL || 'support@alternativesolutions.io';
+    
+    // 🚀 THE INTERCEPTOR: If in Dev mode, route EVERYTHING to you automatically
+    const isLocal = process.env.NODE_ENV === 'development';
+    const testEmail = process.env.LOCAL_TEST_EMAIL;
+    const finalOwnerRecipient = (isLocal && testEmail) ? testEmail : ownerEmail;
+    const finalLeadRecipient = (isLocal && testEmail) ? testEmail : payload.email;
 
-    // 🚀 SMART PARSING: Extract the dynamic inquiry type we injected on the frontend
+    // 3. SMART PARSING
     const inquiryMatch = payload.details.match(/\[INQUIRY TYPE: (.*?)\]/);
     const inquiryType = inquiryMatch ? inquiryMatch[1] : 'Direct Inquiry';
-    
-    // Clean the ugly bracket tag out of the email body so it looks premium
-    const cleanDetails = payload.details.replace(/\[INQUIRY TYPE: .*?\]\n\n/, '');
 
-    const { error: mailError } = await resend.emails.send({
+    // Slice out the Add-ons for a dedicated UI block
+    const addonMatch = payload.details.match(/SELECTED ADD-ONS:\n([\s\S]*?)\n\n/);
+    const addonsList = addonMatch ? addonMatch[1].split('\n').map(a => a.replace('- ', '').trim()) : [];
+
+    // Clean the ugly tags out of the details so the paragraph looks premium
+    const cleanDetails = payload.details
+      .replace(/\[INQUIRY TYPE: .*?\]\n\n/, '')
+      .replace(/SELECTED ADD-ONS:\n[\s\S]*?\n\n/, '');
+
+    const addonsHtmlBlock = addonsList.length > 0 ? `
+      <p style="margin: 0 0 8px 0; color: #0f172a; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Selected Upgrades</p>
+      <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; padding: 16px; border-radius: 8px; margin-bottom: 24px;">
+        <ul style="margin: 0; padding-left: 20px; color: #0ea5e9; font-size: 14px; line-height: 1.6; font-weight: 600;">
+          ${addonsList.map(addon => `<li style="margin-bottom: 4px;"><span style="color: #0f172a;">${addon}</span></li>`).join('')}
+        </ul>
+      </div>
+    ` : '';
+
+    // 4. DISPATCH OWNER NOTIFICATION (The Alert)
+    const ownerEmailResult = resend.emails.send({
       from: `${payload.businessName} Leads <leads@alternativesolutions.io>`, 
-      to: [recipientEmail], 
+      to: [finalOwnerRecipient], 
       replyTo: payload.email,
-      subject: `New ${inquiryType}: ${payload.name} - ${payload.businessName}`,
+      subject: isLocal ? `[TEST] New ${inquiryType}: ${payload.name}` : `New ${inquiryType}: ${payload.name} - ${payload.businessName}`,
       html: `
         <!DOCTYPE html>
         <html>
@@ -103,6 +124,9 @@ export async function submitStorefrontLead(payload: LeadPayload) {
                           </td>
                         </tr>
                       </table>
+                      
+                      ${addonsHtmlBlock}
+
                       <p style="margin: 0 0 8px 0; color: #0f172a; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Project Scope & Notes</p>
                       <div style="border-left: 4px solid #0ea5e9; background-color: #f0f9ff; padding: 20px; border-radius: 0 8px 8px 0;">
                         <p style="margin: 0; color: #0c4a6e; font-size: 15px; line-height: 1.6; white-space: pre-wrap;">${cleanDetails}</p>
@@ -128,10 +152,55 @@ export async function submitStorefrontLead(payload: LeadPayload) {
       `,
     });
 
-    if (mailError) {
-      console.error('Resend Dispatch Failed:', mailError);
-      return { success: false, error: 'Email service rejected the transmission. See server logs.' };
-    }
+    // 5. DISPATCH END-USER CONFIRMATION (The Receipt)
+    const leadEmailResult = resend.emails.send({
+      from: `${payload.businessName} <hello@alternativesolutions.io>`, 
+      to: [finalLeadRecipient], 
+      replyTo: ownerEmail, // If the lead replies, it goes to the business owner
+      subject: isLocal ? `[TEST] Inquiry Received: ${payload.businessName}` : `Inquiry Received: ${payload.businessName}`,
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        </head>
+        <body style="margin: 0; padding: 0; background-color: #f4f4f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+          <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #f4f4f5; padding: 40px 20px;">
+            <tr>
+              <td align="center">
+                <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="max-w: 600px; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05); border: 1px solid #e4e4e7;">
+                  <tr>
+                    <td style="background-color: #0f172a; padding: 32px 40px; text-align: left;">
+                      <h1 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: 800; letter-spacing: -0.5px;">${payload.businessName}</h1>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 40px;">
+                      <h2 style="margin: 0 0 16px 0; color: #0f172a; font-size: 20px; font-weight: 700;">Request Received!</h2>
+                      <p style="margin: 0 0 24px 0; color: #3f3f46; font-size: 15px; line-height: 1.6;">
+                        Hi ${payload.name},<br><br>
+                        Thank you for reaching out. This is a confirmation that your <strong>${inquiryType}</strong> has been successfully securely routed to our team. We will review your project details and get back to you as soon as possible.
+                      </p>
+                      
+                      ${addonsHtmlBlock}
+
+                      <p style="margin: 0 0 8px 0; color: #0f172a; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Your Provided Notes:</p>
+                      <div style="border-left: 4px solid #e2e8f0; padding-left: 16px;">
+                        <p style="margin: 0; color: #64748b; font-size: 14px; line-height: 1.6; white-space: pre-wrap; font-style: italic;">${cleanDetails}</p>
+                      </div>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+        </body>
+        </html>
+      `,
+    });
+
+    await Promise.all([ownerEmailResult, leadEmailResult]);
 
     return { success: true };
   } catch (error) {
