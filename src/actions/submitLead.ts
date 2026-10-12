@@ -12,6 +12,8 @@ export interface LeadPayload {
   email: string;
   phone?: string;
   details: string;
+  brandColorHex?: string; // 🚀 Added for custom email branding
+  packagePrice?: string;  // 🚀 Added for the base rate
 }
 
 export async function submitStorefrontLead(payload: LeadPayload) {
@@ -64,12 +66,22 @@ export async function submitStorefrontLead(payload: LeadPayload) {
       .replace(/\[INQUIRY TYPE: .*?\]\n\n/, '')
       .replace(/SELECTED ADD-ONS:\n[\s\S]*?\n\n/, '');
 
+    const activeHex = payload.brandColorHex || '#0ea5e9'; // Fallback to cyan if not provided
+
     const addonsHtmlBlock = addonsList.length > 0 ? `
       <p style="margin: 0 0 8px 0; color: #0f172a; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Selected Upgrades</p>
       <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; padding: 16px; border-radius: 8px; margin-bottom: 24px;">
-        <ul style="margin: 0; padding-left: 20px; color: #0ea5e9; font-size: 14px; line-height: 1.6; font-weight: 600;">
+        <ul style="margin: 0; padding-left: 20px; color: ${activeHex}; font-size: 14px; line-height: 1.6; font-weight: 600;">
           ${addonsList.map(addon => `<li style="margin-bottom: 4px;"><span style="color: #0f172a;">${addon}</span></li>`).join('')}
         </ul>
+      </div>
+    ` : '';
+
+    const testWarningBanner = isLocal ? `
+      <div style="background-color: #fef08a; padding: 12px; border-radius: 6px; margin-bottom: 24px; border: 1px solid #facc15;">
+        <p style="margin: 0; color: #854d0e; font-size: 12px; font-weight: bold;">
+          Note: This lead was originally meant for ${ownerEmail}, but is routing to your test email during local development.
+        </p>
       </div>
     ` : '';
 
@@ -93,12 +105,15 @@ export async function submitStorefrontLead(payload: LeadPayload) {
                 <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="max-w: 600px; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05); border: 1px solid #e4e4e7;">
                   <tr>
                     <td style="background-color: #0f172a; padding: 32px 40px; text-align: left;">
-                      <p style="margin: 0; color: #38bdf8; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px;">${inquiryType}</p>
+                      <p style="margin: 0; color: ${activeHex}; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px;">${inquiryType}</p>
                       <h1 style="margin: 8px 0 0 0; color: #ffffff; font-size: 24px; font-weight: 800; letter-spacing: -0.5px;">${payload.businessName}</h1>
                     </td>
                   </tr>
                   <tr>
                     <td style="padding: 40px;">
+                      
+                      ${testWarningBanner}
+
                       <p style="margin: 0 0 24px 0; color: #3f3f46; font-size: 15px; line-height: 1.6;">
                         You have received a new potential project lead via your storefront. Simply reply directly to this email to respond to the client.
                       </p>
@@ -128,8 +143,8 @@ export async function submitStorefrontLead(payload: LeadPayload) {
                       ${addonsHtmlBlock}
 
                       <p style="margin: 0 0 8px 0; color: #0f172a; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Project Scope & Notes</p>
-                      <div style="border-left: 4px solid #0ea5e9; background-color: #f0f9ff; padding: 20px; border-radius: 0 8px 8px 0;">
-                        <p style="margin: 0; color: #0c4a6e; font-size: 15px; line-height: 1.6; white-space: pre-wrap;">${cleanDetails}</p>
+                      <div style="border-left: 4px solid ${activeHex}; background-color: #f8fafc; padding: 20px; border-radius: 0 8px 8px 0;">
+                        <p style="margin: 0; color: #334155; font-size: 15px; line-height: 1.6; white-space: pre-wrap;">${cleanDetails}</p>
                       </div>
                     </td>
                   </tr>
@@ -156,7 +171,7 @@ export async function submitStorefrontLead(payload: LeadPayload) {
     const leadEmailResult = resend.emails.send({
       from: `${payload.businessName} <hello@alternativesolutions.io>`, 
       to: [finalLeadRecipient], 
-      replyTo: ownerEmail, // If the lead replies, it goes to the business owner
+      replyTo: ownerEmail, // If the lead replies, it goes directly to the business owner
       subject: isLocal ? `[TEST] Inquiry Received: ${payload.businessName}` : `Inquiry Received: ${payload.businessName}`,
       html: `
         <!DOCTYPE html>
@@ -180,7 +195,7 @@ export async function submitStorefrontLead(payload: LeadPayload) {
                       <h2 style="margin: 0 0 16px 0; color: #0f172a; font-size: 20px; font-weight: 700;">Request Received!</h2>
                       <p style="margin: 0 0 24px 0; color: #3f3f46; font-size: 15px; line-height: 1.6;">
                         Hi ${payload.name},<br><br>
-                        Thank you for reaching out. This is a confirmation that your <strong>${inquiryType}</strong> has been successfully securely routed to our team. We will review your project details and get back to you as soon as possible.
+                        Thank you for reaching out. This is a confirmation that you are inquiring about booking the <strong style="color: ${activeHex};">${inquiryType}</strong> package. We will review your project details and get back to you as soon as possible.
                       </p>
                       
                       ${addonsHtmlBlock}
@@ -200,6 +215,7 @@ export async function submitStorefrontLead(payload: LeadPayload) {
       `,
     });
 
+    // Wait for both emails to successfully dispatch
     await Promise.all([ownerEmailResult, leadEmailResult]);
 
     return { success: true };
