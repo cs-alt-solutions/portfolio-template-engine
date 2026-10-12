@@ -99,12 +99,23 @@ export default async function DynamicStorefront({
   const theme = THEME_REGISTRY[store.theme_style || 'industrial'] || THEME_REGISTRY['industrial'];
   const layout = store.hero_layout || 'center';
   const brandColor = store.brand_color || 'cyan-500';
-
   const secondaryBrandColor = store.secondary_brand_color || brandColor;
 
-  const accentColorClass = theme.useBrandAccent ? `text-${brandColor}` : '';
-  const buttonBgClass = theme.useBrandAccent ? `bg-${brandColor} text-zinc-950 hover:opacity-80 border-none` : `bg-${brandColor} text-zinc-950`;
-  const lineAccent = theme.useBrandAccent ? `bg-linear-to-r from-${brandColor} to-${secondaryBrandColor}` : 'bg-current';
+  const isLightMode = theme.isLightMode || false;
+
+  // 🚀 THE FIX: Removed fragile dynamic background hover classes. 
+  // Forces a transparent background with pure border/text colors, using a sleek opacity fade on hover.
+  const accentColorClass = theme.useBrandAccent 
+    ? `text-${brandColor}` 
+    : `text-${secondaryBrandColor}`;
+
+  const buttonBgClass = theme.useBrandAccent 
+    ? `bg-${brandColor} text-zinc-950 hover:opacity-80 border-none shadow-lg transition-opacity duration-300` 
+    : `border-2 border-${secondaryBrandColor} text-${secondaryBrandColor} bg-transparent hover:opacity-60 shadow-sm transition-opacity duration-300`;
+
+  const lineAccent = theme.useBrandAccent 
+    ? `bg-linear-to-r from-${brandColor} to-${secondaryBrandColor}` 
+    : `bg-${secondaryBrandColor}`;
 
   const exploreLink = '#gallery'; 
 
@@ -160,7 +171,7 @@ export default async function DynamicStorefront({
             data={{
               heading: store.about_heading || STOREFRONT_DEFAULTS?.ABOUT_HEADING || 'About Us', 
               bio: store.about_bio, imageUrl: store.about_image, brandColor: brandColor, secondaryBrandColor: secondaryBrandColor, socials: activeSocials, 
-              isLightMode: theme.isLightMode || false, themeStyle: store.theme_style || 'industrial', aboutLayout: store.about_layout || 'split'
+              isLightMode: isLightMode, themeStyle: store.theme_style || 'industrial', aboutLayout: store.about_layout || 'split'
             }} 
           />
         </div>
@@ -179,7 +190,7 @@ export default async function DynamicStorefront({
           themeStyle={store.theme_style || 'industrial'} 
           brandColor={brandColor} 
           secondaryBrandColor={secondaryBrandColor}
-          isLightMode={theme.isLightMode || false} 
+          isLightMode={isLightMode} 
           capabilitiesHeading={store.capabilities_heading || STOREFRONT_DEFAULTS?.CAPABILITIES_HEADING || "Services"} 
           galleryHeading={store.gallery_heading || STOREFRONT_DEFAULTS?.GALLERY_HEADING || "Featured Work"} 
           capabilities={store.capabilities || []} 
@@ -191,20 +202,20 @@ export default async function DynamicStorefront({
           businessName={store.business_name}
           contactEmail={store.contact_email}
 
-          // 🚀 PARALLAX PROPS FOR LOOKBOOK:
+          // PARALLAX PROPS FOR LOOKBOOK:
           heroImage={store.hero_image}
           isHeroFixed={isHeroFixed}
         />
       </div>
 
-      <StorefrontClientActions store={store} brandColor={brandColor} secondaryBrandColor={secondaryBrandColor} isLightMode={theme.isLightMode || false} themeStyle={store.theme_style || 'industrial'} />
+      <StorefrontClientActions store={store} brandColor={brandColor} secondaryBrandColor={secondaryBrandColor} isLightMode={isLightMode} themeStyle={store.theme_style || 'industrial'} />
 
       <LocationPanel 
         businessName={store.business_name || 'Our Location'}
         mapEmbedUrl={store.map_embed_url}
         themeStyle={store.theme_style}
         brandColor={brandColor}
-        isLightMode={theme.isLightMode}
+        isLightMode={isLightMode}
         industryTag={store.industry_tag}
       />
 
