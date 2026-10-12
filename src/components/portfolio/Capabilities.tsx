@@ -24,6 +24,7 @@ interface CapabilitiesProps {
   themeStyle?: string;
   brandColor?: string;
   secondaryBrandColor?: string;
+  businessName?: string; // 🚨 ADDED
 }
 
 export default function Capabilities({ 
@@ -31,7 +32,8 @@ export default function Capabilities({
   galleryItems = [], 
   themeStyle = 'industrial', 
   brandColor = 'cyan-500',
-  secondaryBrandColor
+  secondaryBrandColor,
+  businessName
 }: CapabilitiesProps) {
   const [activeModalService, setActiveModalService] = useState<ModalServiceState | null>(null);
 
@@ -85,7 +87,7 @@ export default function Capabilities({
                       onClick={() => setActiveModalService({ title: item.title, images: attachedImages, desc: item.description })}
                       className={`inline-flex items-center gap-1.5 px-3 py-1.5 ${isSharpTheme ? 'rounded-sm' : 'rounded-full'} text-[10px] font-mono font-bold uppercase tracking-widest transition-all shadow-sm shrink-0 hover:scale-105 ${
                         isLightMode 
-                          ? `bg-zinc-900 text-white hover:bg-${activeSecondary} hover:text-zinc-950` 
+                          ? `bg-zinc-900 text-white hover:bg-${activeSecondary} hover:text-zinc-950`
                           : `bg-white/10 border border-white/20 text-white hover:bg-${activeSecondary} hover:text-zinc-950 hover:border-${activeSecondary}`
                       }`}
                       title="Click to view visual proof of work"
@@ -118,10 +120,9 @@ export default function Capabilities({
               {hasProof && (
                 <button
                   onClick={() => setActiveModalService({ title: item.title, images: attachedImages, desc: item.description })}
-                  // 🚀 THE FIX: A solid hover flood of the secondary color that is compliant with the safelist
                   className={`w-full mt-auto py-3 px-4 border ${isSharpTheme ? 'rounded-sm' : 'rounded-xl'} text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-all ${
                     isLightMode 
-                      ? `bg-zinc-100 border-zinc-300 text-zinc-800 hover:bg-${activeSecondary} hover:text-zinc-950 hover:border-transparent hover:shadow-lg` 
+                      ? `bg-zinc-100 border-zinc-300 text-zinc-800 hover:bg-${activeSecondary} hover:text-zinc-950 hover:border-transparent hover:shadow-lg`
                       : `bg-black/40 border-white/10 text-zinc-300 hover:bg-${activeSecondary} hover:text-zinc-950 hover:border-transparent hover:shadow-lg`
                   }`}
                 >
@@ -141,6 +142,7 @@ export default function Capabilities({
         description={activeModalService?.desc}
         themeStyle={themeStyle}
         brandColor={brandColor}
+        businessName={businessName} // 🚨 PASSING PROP TO FIX ERROR
       />
     </div>
   );

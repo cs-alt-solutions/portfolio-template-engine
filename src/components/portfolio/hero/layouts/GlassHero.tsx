@@ -10,11 +10,10 @@ export default function GlassHero({
   hasValidLogo,
   exploreLink,
   heroButtonText,
-  buttonBgClass,
   lineAccent
 }: HeroEngineProps) {
   const safeTheme = theme || {};
-  
+
   const positionClassMap: Record<string, string> = {
     'top': 'object-top',
     'center': 'object-center',
@@ -22,7 +21,7 @@ export default function GlassHero({
     'left': 'object-left',
     'right': 'object-right',
   };
-  
+
   const bgPositionMap: Record<string, string> = {
     'top': 'top center',
     'center': 'center center',
@@ -33,8 +32,8 @@ export default function GlassHero({
 
   const activePosition = positionClassMap[store?.hero_position || 'center'] || 'object-center';
   const activeBgPosition = bgPositionMap[store?.hero_position || 'center'] || 'center center';
-  const logoSizePref = store?.logo_size || 'large';
 
+  const logoSizePref = store?.logo_size || 'large';
   const getLogoClasses = (size: string) => {
     const base = "block w-auto max-w-full object-contain drop-shadow-2xl transition-all duration-300 mx-auto mb-4 md:mb-6";
     switch(size) {
@@ -62,11 +61,9 @@ export default function GlassHero({
           <div className="w-full h-full bg-zinc-900 bg-[url('/grid.svg')] opacity-20" />
         )}
         
-        {/* The original dark overlay to guarantee text legibility and that moody vibe */}
         <div className="absolute inset-0 bg-zinc-950/40" />
       </div>
 
-      {/* The original Glass formula: highly translucent white (white/5), heavy blur, and soft shadow */}
       <div className="relative z-10 w-full max-w-4xl mx-auto p-10 md:p-16 bg-white/5 backdrop-blur-2xl border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)] flex flex-col items-center justify-center text-center rounded-4xl">
         {safeTheme.useBrandAccent && <div className={`absolute top-0 left-0 w-full h-1.5 ${lineAccent}`} />}
         

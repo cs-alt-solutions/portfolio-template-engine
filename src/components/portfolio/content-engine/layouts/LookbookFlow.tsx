@@ -25,16 +25,10 @@ interface ModalServiceState {
   addons?: { name: string; price: string }[];
 }
 
-const parseItemData = (rawText: string = '') => {
-  const match = rawText.match(/(.+?)(?:\s*[-|: ]*\s*)(\$[\d.]+)$/);
-  if (match) return { text: match[1].trim(), price: match[2] };
-  return { text: rawText.trim(), price: null };
-};
-
 const SmartDeliverable = ({ text, colorClass, isLightMode }: { text: string, colorClass: string, isLightMode: boolean }) => {
   const lower = text.toLowerCase();
   let Icon = CheckCircle2;
-  
+
   if (lower.includes('hour') || lower.includes('time') || lower.includes('minute')) Icon = Clock;
   else if (lower.includes('photo') || lower.includes('image') || lower.includes('shot')) Icon = Camera;
   else if (lower.includes('product') || lower.includes('item')) Icon = Package;
@@ -60,17 +54,16 @@ export default function LookbookFlow({
   storefrontSlug, businessName, contactEmail,
   heroImage, isHeroFixed 
 }: ContentLayoutProps) {
+  
   const [activeModalService, setActiveModalService] = useState<ModalServiceState | null>(null);
   const [activeBooking, setActiveBooking] = useState<string | null>(null);
-  const [preselectedAddons, setPreselectedAddons] = useState<string[]>([]);
 
   const fonts = getFonts(themeStyle);
   const theme = THEME_REGISTRY[themeStyle] || THEME_REGISTRY['industrial'];
   const brandTextColor = `text-${brandColor}`;
   const activeSecondary = secondaryBrandColor || brandColor;
   const shapeRadius = theme.radius || 'rounded-none';
-  
-  const hasCaps = capabilities && capabilities.length > 0;
+
   const packages = (capabilities || []).filter(c => !c.isAlaCarte);
   const alaCarte = (capabilities || []).filter(c => c.isAlaCarte);
 
@@ -93,7 +86,7 @@ export default function LookbookFlow({
             themeStyle={themeStyle} 
             brandColor={brandColor} 
             secondaryBrandColor={secondaryBrandColor} 
-            isLightMode={isLightMode} 
+            isLightMode={isLightMode}
             layout="structured"
           />
         </div>
@@ -110,7 +103,7 @@ export default function LookbookFlow({
           </div>
         ) : (
           <div className="w-full max-w-4xl mx-auto flex items-center justify-center mb-20 opacity-30">
-            <div className={`w-full h-px bg-gradient-to-r from-transparent via-${brandColor} to-transparent`} />
+            <div className={`w-full h-px bg-linear-to-r from-transparent via-${brandColor} to-transparent`} />
           </div>
         )
       )}
@@ -171,7 +164,7 @@ export default function LookbookFlow({
                         )}
                       </div>
                       
-                      <div className="h-[3rem] mb-6 shrink-0">
+                      <div className="h-12 mb-6 shrink-0">
                         {cap.description ? (
                           <p className={`text-sm leading-relaxed line-clamp-2 ${fonts.body} ${isLightMode ? 'text-zinc-600' : 'text-zinc-400'} ${['elegant', 'organic'].includes(themeStyle) ? 'italic' : ''}`}>
                             {cap.description}
@@ -192,7 +185,7 @@ export default function LookbookFlow({
                         onClick={() => setActiveBooking(cap.title)}
                         className={`w-full py-4 px-4 mt-auto text-[11px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all border cursor-pointer ${shapeRadius === 'rounded-none' ? 'rounded-none' : 'rounded-xl'} ${
                         isLightMode 
-                          ? `bg-zinc-950 border-zinc-900 text-white hover:bg-${activeSecondary} hover:text-zinc-950 hover:border-transparent shadow-lg` 
+                          ? `bg-zinc-950 border-zinc-900 text-white hover:bg-${activeSecondary} hover:text-zinc-950 hover:border-transparent shadow-lg`
                           : `bg-white border-white text-zinc-950 hover:bg-${activeSecondary} hover:text-zinc-950 hover:border-transparent shadow-lg`
                       }`}>
                         Book This Package <ArrowRight className="w-3.5 h-3.5" />
@@ -253,8 +246,8 @@ export default function LookbookFlow({
         addons={activeModalService?.addons}
         themeStyle={themeStyle}
         brandColor={brandColor}
-        onBook={(selected) => {
-          setPreselectedAddons(selected);
+        businessName={businessName}
+        onBook={() => {
           setActiveBooking(activeModalService?.title || null);
         }}
       />

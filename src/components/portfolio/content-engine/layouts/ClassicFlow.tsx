@@ -6,7 +6,7 @@ import Capabilities from '../../Capabilities';
 import GalleryGrid from '../../gallery/GalleryGrid';
 
 export default function ClassicFlow({
-  themeStyle, brandColor, secondaryBrandColor, isLightMode, capabilitiesHeading, galleryHeading, capabilities, galleryItems
+  themeStyle, brandColor, secondaryBrandColor, isLightMode, capabilitiesHeading, galleryHeading, capabilities, galleryItems, businessName // 🚨 ADDED
 }: ContentLayoutProps) {
   const fonts = getFonts(themeStyle);
   const brandTextColor = `text-${brandColor}`;
@@ -28,7 +28,8 @@ export default function ClassicFlow({
             galleryItems={galleryItems} 
             themeStyle={themeStyle} 
             brandColor={brandColor} 
-            secondaryBrandColor={secondaryBrandColor} // 🚀 THE FIX: Pass the color down to the cards
+            secondaryBrandColor={secondaryBrandColor}
+            businessName={businessName} // 🚨 PASSING PROP
           />
         </div>
       )}
@@ -39,7 +40,14 @@ export default function ClassicFlow({
             <h3 className={`text-4xl md:text-5xl mb-12 text-center ${brandTextColor} ${fonts.heading}`}>
               {galleryHeading || 'Proof of Work'}
             </h3>
-            <GalleryGrid items={unattachedGallery} themeStyle={themeStyle} brandColor={brandColor} secondaryBrandColor={secondaryBrandColor} isLightMode={isLightMode} />
+            <GalleryGrid 
+              items={unattachedGallery} 
+              themeStyle={themeStyle} 
+              brandColor={brandColor} 
+              secondaryBrandColor={secondaryBrandColor} 
+              isLightMode={isLightMode} 
+              businessName={businessName} // 🚨 PASSING PROP
+            />
           </div>
         </div>
       )}

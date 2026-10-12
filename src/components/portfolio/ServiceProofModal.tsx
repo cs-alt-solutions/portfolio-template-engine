@@ -1,9 +1,10 @@
+/* eslint-disable @next/next/no-img-element */
 // src/components/portfolio/ServiceProofModal.tsx
 'use client';
 
 import React, { useState } from 'react';
 import { X, ImageIcon, ArrowRight, CheckCircle2, ZoomIn } from 'lucide-react';
-import { getFonts, getThemeBullet } from './content-engine/utils';
+import { getFonts, getThemeBullet, ImageWatermark } from './content-engine/utils';
 import { THEME_REGISTRY } from '@/utils/themes';
 
 export interface GalleryItem {
@@ -24,6 +25,7 @@ interface ServiceProofModalProps {
   addons?: { name: string; price: string }[];
   themeStyle?: string;
   brandColor?: string;
+  businessName?: string;
   onBook?: (selectedAddons: string[]) => void;
 }
 
@@ -37,11 +39,13 @@ export default function ServiceProofModal({
   addons = [],
   themeStyle = 'industrial',
   brandColor = 'cyan-500',
+  businessName,
   onBook
 }: ServiceProofModalProps) {
+  
   const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
   const [zoomedImage, setZoomedImage] = useState<string | null>(null);
-
+  
   if (!isOpen) return null;
 
   const fonts = getFonts(themeStyle);
@@ -59,7 +63,6 @@ export default function ServiceProofModal({
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8 bg-black/85 backdrop-blur-md animate-in fade-in zoom-in-95 duration-200">
         <div className={`bg-zinc-950 border border-zinc-800 ${shapeRadius} w-full max-w-5xl max-h-[85vh] flex flex-col overflow-hidden shadow-2xl relative`}>
           
-          {/* Modal Header */}
           <div className="flex items-center justify-between p-6 border-b border-zinc-800 bg-zinc-900/50 shrink-0">
             <div>
               <span className={`text-[10px] font-mono uppercase tracking-widest px-2.5 py-1 ${shapeRadius === 'rounded-none' ? 'rounded-none' : 'rounded-full'} bg-white/10 border border-white/20 text-white`}>
@@ -77,10 +80,8 @@ export default function ServiceProofModal({
             </button>
           </div>
 
-          {/* Modal Content Area */}
           <div className="p-6 overflow-y-auto custom-scrollbar flex-1 flex flex-col lg:flex-row gap-8">
             
-            {/* LEFT: Details & Upgrades (Only renders if data exists) */}
             {(description || (bullets && bullets.length > 0) || (addons && addons.length > 0)) && (
               <div className="w-full lg:w-1/3 flex flex-col gap-6">
                 {(description || (bullets && bullets.length > 0)) && (
@@ -132,7 +133,6 @@ export default function ServiceProofModal({
               </div>
             )}
 
-            {/* RIGHT: Visual Proof Gallery */}
             <div className="w-full flex-1">
               {images && images.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -141,15 +141,17 @@ export default function ServiceProofModal({
                       key={i} 
                       type="button"
                       onClick={() => setZoomedImage(img.imageUrl)}
-                      className="flex flex-col group text-left cursor-zoom-in w-full outline-none"
+                      className="flex flex-col group text-left cursor-zoom-in w-full outline-none relative"
                     >
                       <div className={`relative w-full aspect-square ${shapeRadius} overflow-hidden bg-zinc-900 border border-zinc-800 mb-3`}>
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img 
                           src={img.imageUrl} 
                           alt={img.title || `${title} work`}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                          onContextMenu={(e) => e.preventDefault()}
+                          draggable="false"
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 select-none pointer-events-none" 
                         />
+                        <ImageWatermark text={businessName} />
                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
                           <ZoomIn className="w-8 h-8 text-white drop-shadow-md" />
                         </div>
@@ -170,9 +172,9 @@ export default function ServiceProofModal({
                 </div>
               )}
             </div>
-          </div>
 
-          {/* Modal Footer with Booking Injection */}
+          </div>
+          
           <div className="p-4 border-t border-zinc-800 bg-zinc-900/80 flex flex-col sm:flex-row items-center justify-between gap-4 shrink-0">
             <div className="flex items-center gap-3 w-full justify-end">
               <button
@@ -194,24 +196,29 @@ export default function ServiceProofModal({
               )}
             </div>
           </div>
+
         </div>
       </div>
 
-      {/* FULL SCREEN IMAGE LIGHTBOX */}
       {zoomedImage && (
         <div 
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-xl p-4 md:p-8 animate-in fade-in duration-200 cursor-zoom-out"
+          className="fixed inset-0 z-100 flex items-center justify-center bg-black/95 backdrop-blur-xl p-4 md:p-8 animate-in fade-in duration-200 cursor-zoom-out"
           onClick={() => setZoomedImage(null)}
         >
           <button className="absolute top-6 right-6 p-2 bg-black/50 text-white/50 hover:text-white rounded-full transition-colors border border-white/10 hover:border-white/30 z-10">
             <X size={24} />
           </button>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img 
-            src={zoomedImage} 
-            alt="Expanded view" 
-            className="w-auto h-auto max-w-full max-h-full object-contain drop-shadow-2xl rounded-sm"
-          />
+          
+          <div className="relative w-auto h-auto max-w-full max-h-full">
+            <img 
+              src={zoomedImage} 
+              alt="Expanded view"
+              onContextMenu={(e) => e.preventDefault()}
+              draggable="false"
+              className="w-full h-full object-contain drop-shadow-2xl rounded-sm select-none pointer-events-none"
+            />
+            <ImageWatermark text={businessName} />
+          </div>
         </div>
       )}
     </>

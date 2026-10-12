@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 /* src/app/[slug]/page.tsx */
 import React, { SVGProps } from 'react';
 import { Metadata } from 'next';
@@ -73,7 +74,6 @@ const SOCIAL_META: Record<string, { base: string; icon: React.ElementType }> = {
   telegram: { base: 'https://t.me/', icon: Send },
 };
 
-// 🚀 Helper function to convert DB values (like 'cyan-500' or '#ff0000') into pure hex codes
 const getHexValue = (val: string) => {
   if (!val) return '#06b6d4';
   if (val.startsWith('#')) return val;
@@ -110,14 +110,12 @@ export default async function DynamicStorefront({
   const theme = THEME_REGISTRY[store.theme_style || 'industrial'] || THEME_REGISTRY['industrial'];
   const layout = store.hero_layout || 'center';
   
-  // 1. Resolve raw database values to exact hex codes
   const rawBrandColor = store.brand_color || 'cyan-500';
   const rawSecondaryColor = store.secondary_brand_color || rawBrandColor;
   
   const primaryHex = getHexValue(rawBrandColor);
   const secondaryHex = getHexValue(rawSecondaryColor);
 
-  // 2. We now permanently feed 'brand-primary' into the class generator, which maps to our new Tailwind variables!
   const brandColor = 'brand-primary';
   const secondaryBrandColor = 'brand-secondary';
 

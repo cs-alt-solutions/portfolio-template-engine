@@ -43,3 +43,24 @@ export const getThemeBullet = (style: string, colorClass: string) => {
   }
   return <CheckCircle2 className={`shrink-0 mt-1 ${colorClass}`} size={20} strokeWidth={2} />;
 };
+
+// 🚀 NEW: Dynamic SVG Watermark Overlay
+export const ImageWatermark = ({ text = "PROTECTED" }: { text?: string }) => {
+  const safeText = text || "PROTECTED";
+  const patternId = `wm-${safeText.replace(/[^a-zA-Z0-9]/g, '') || 'default'}`;
+  
+  return (
+    <div className="absolute inset-0 pointer-events-none z-30 overflow-hidden select-none opacity-20 mix-blend-overlay">
+      <svg width="100%" height="100%">
+        <defs>
+          <pattern id={patternId} x="0" y="0" width="250" height="150" patternUnits="userSpaceOnUse" patternTransform="rotate(-30)">
+            <text x="50%" y="50%" dominantBaseline="middle" textAnchor="middle" fill="white" className="text-lg font-black uppercase tracking-[0.2em]">
+              {safeText}
+            </text>
+          </pattern>
+        </defs>
+        <rect x="0" y="0" width="100%" height="100%" fill={`url(#${patternId})`} />
+      </svg>
+    </div>
+  );
+};
