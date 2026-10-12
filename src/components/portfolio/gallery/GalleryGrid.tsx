@@ -55,15 +55,12 @@ export default function GalleryGrid({
   return (
     <div id="gallery" className={`w-full py-20 ${bgColor}`}>
       <div className="container mx-auto px-6 max-w-7xl">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12">
-          <div className="max-w-2xl">
-            <h2 className={`${theme.accentText} ${theme.useBrandAccent ? `text-${brandColor}` : ''} font-mono text-sm tracking-[0.2em] uppercase mb-3`}>
-              Our Work
-            </h2>
-            <h3 className={`text-3xl font-black ${isLightMode ? 'text-stone-900' : 'text-white'}`}>
-              {galleryHeading || 'Recent Projects'}
-            </h3>
-          </div>
+        
+        <div className="mb-12 text-center">
+          {/* We removed the blue "Our Work" sub-heading entirely for a cleaner, high-end Lookbook vibe */}
+          <h2 className={`text-3xl md:text-5xl tracking-tighter ${isLightMode ? 'text-zinc-900' : 'text-white'} ${fonts.heading}`}>
+            {galleryHeading || 'Featured Work'}
+          </h2>
         </div>
 
         {/* 🚀 DYNAMIC LAYOUT ENGINE */}

@@ -186,10 +186,14 @@ export default async function DynamicStorefront({
           galleryItems={formattedGalleryItems}
           orderingUrl={store.ordering_url}
           
-          // 🚀 THE FIX: Passed all the missing routing props down to ContentEngine!
+          // Routing props
           storefrontSlug={store.slug}
           businessName={store.business_name}
           contactEmail={store.contact_email}
+
+          // 🚀 PARALLAX PROPS FOR LOOKBOOK:
+          heroImage={store.hero_image}
+          isHeroFixed={isHeroFixed}
         />
       </div>
 

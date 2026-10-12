@@ -38,7 +38,8 @@ const SmartDeliverable = ({ text, colorClass, isLightMode }: { text: string, col
 
 export default function LookbookFlow({
   themeStyle, brandColor, secondaryBrandColor, isLightMode, capabilitiesHeading, galleryHeading, capabilities, galleryItems,
-  storefrontSlug, businessName, contactEmail
+  storefrontSlug, businessName, contactEmail,
+  heroImage, isHeroFixed // 🚀 NEW: Catch the hero data
 }: ContentLayoutProps) {
   const [activeBooking, setActiveBooking] = useState<string | null>(null);
 
@@ -52,16 +53,15 @@ export default function LookbookFlow({
   const packages = (capabilities || []).filter(c => !c.isAlaCarte);
   const alaCarte = (capabilities || []).filter(c => c.isAlaCarte);
 
-  // Filter the gallery items to ONLY pass valid items to the Project Folders grid
   const validGalleryItems = (galleryItems || []).filter(img => img.isVisible !== false);
   const hasGallery = validGalleryItems.length > 0;
 
   return (
     <div className="w-full bg-inherit pt-24 pb-32">
       
-      {/* 1. PORTFOLIO GALLERY (MOVED TO TOP) */}
+      {/* 1. PORTFOLIO GALLERY */}
       {hasGallery && (
-        <div className="mb-24">
+        <div className="mb-16">
           <GalleryGrid 
             items={validGalleryItems} 
             galleryHeading={galleryHeading || 'Project Portfolios'} 
@@ -74,11 +74,20 @@ export default function LookbookFlow({
         </div>
       )}
 
-      {/* --- THE PRONOUNCED STRUCTURAL GAP --- */}
+      {/* --- 🚀 THE NEW PARALLAX WINDOW GAP --- */}
       {hasGallery && packages.length > 0 && (
-        <div className="w-full max-w-4xl mx-auto flex items-center justify-center mb-24 opacity-30">
-          <div className={`w-full h-px bg-gradient-to-r from-transparent via-${brandColor} to-transparent`} />
-        </div>
+        isHeroFixed && heroImage ? (
+          <div className="relative w-full h-[30vh] md:h-[40vh] border-y border-white/10 shadow-[inset_0_0_100px_rgba(0,0,0,0.8)] mb-20" style={{ clipPath: 'inset(0)' }}>
+            <div 
+              className="fixed inset-0 w-full h-full bg-cover bg-center opacity-40" 
+              style={{ backgroundImage: `url('${heroImage}')`, zIndex: -1 }} 
+            />
+          </div>
+        ) : (
+          <div className="w-full max-w-4xl mx-auto flex items-center justify-center mb-20 opacity-30">
+            <div className={`w-full h-px bg-gradient-to-r from-transparent via-${brandColor} to-transparent`} />
+          </div>
+        )
       )}
 
       <div className="max-w-7xl mx-auto px-6">

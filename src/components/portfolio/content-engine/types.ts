@@ -36,4 +36,6 @@ export interface ContentLayoutProps {
   storefrontSlug?: string;
   businessName?: string;
   contactEmail?: string;
+  heroImage?: string;    // 🚀 Add this
+  isHeroFixed?: boolean; // 🚀 Add this
 }
