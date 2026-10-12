@@ -5,6 +5,7 @@ import React, { useState } from 'react';
 import UniversalLeadModal from '@/components/portfolio/UniversalLeadModal';
 import { STOREFRONT_DEFAULTS } from '@/utils/glossary';
 import { getFonts } from './content-engine/utils';
+import { THEME_REGISTRY } from '@/utils/themes';
 
 interface StorefrontClientActionsProps {
   store: {
@@ -41,8 +42,12 @@ export default function StorefrontClientActions({
   const buttonText = store.secondary_cta || STOREFRONT_DEFAULTS.SECONDARY_CTA || "Get in Touch";
   
   const activeSecondary = secondaryBrandColor || brandColor;
-
   const fonts = getFonts(themeStyle);
+  
+  // 🚀 THE FIX: Pull the shape rules directly from the Master Theme Registry
+  const theme = THEME_REGISTRY[themeStyle] || THEME_REGISTRY['industrial'];
+  const shapeRadius = theme.radius || 'rounded-none';
+
   const isNeo = themeStyle === 'neo';
   const isCyber = themeStyle === 'cyberpunk';
   const isMidnight = themeStyle === 'midnight';
@@ -53,22 +58,23 @@ export default function StorefrontClientActions({
     if (isCyber) return 'bg-black/90 border-y border-white/20 text-white font-mono shadow-[0_0_30px_rgba(255,255,255,0.05)]';
     if (isMidnight) return 'bg-zinc-950/80 backdrop-blur-2xl border-y border-white/10 text-white shadow-2xl';
     if (isLightMode) return 'bg-zinc-100/95 border-y border-zinc-200 text-zinc-900 shadow-inner';
+    
     return 'bg-zinc-900/90 border-y border-zinc-800 text-white shadow-2xl';
   };
 
   const getButtonStyles = () => {
-    // 🚀 THE FIX: A solid, vibrant pop of the secondary color that bypasses the safelist issue
     const secondaryPop = `bg-${activeSecondary} text-zinc-950 hover:scale-105 border-none shadow-xl`;
-
-    if (themeStyle === 'elegant') return 'bg-zinc-950 text-white border border-zinc-800 hover:bg-zinc-800 rounded-sm font-serif tracking-widest shadow-lg';
-    if (themeStyle === 'organic') return `${secondaryPop} rounded-full font-serif tracking-wide`;
-    if (themeStyle === 'editorial') return 'bg-black text-white border-2 border-black hover:bg-zinc-800 rounded-none font-sans font-black tracking-[0.2em]';
-    if (isNeo) return 'bg-white text-black border-4 border-black rounded-none shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 font-black';
-    if (isCyber) return `bg-black text-${activeSecondary} border border-current shadow-[0_0_15px_currentColor] hover:bg-white hover:text-black rounded-none font-mono font-bold`;
-    if (isLightMode) return `${secondaryPop} rounded-xl font-black`;
     
-    // Default Industrial / Base fallback
-    return `${secondaryPop} rounded-xl font-black`;
+    // Applying shapeRadius universally to all buttons
+    if (themeStyle === 'elegant') return `bg-zinc-950 text-white border border-zinc-800 hover:bg-zinc-800 ${shapeRadius} font-serif tracking-widest shadow-lg`;
+    if (themeStyle === 'organic') return `${secondaryPop} ${shapeRadius} font-serif tracking-wide`;
+    if (themeStyle === 'editorial') return `bg-black text-white border-2 border-black hover:bg-zinc-800 ${shapeRadius} font-sans font-black tracking-[0.2em]`;
+    if (isNeo) return `bg-white text-black border-4 border-black ${shapeRadius} shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 font-black`;
+    if (isCyber) return `bg-black text-${activeSecondary} border border-current shadow-[0_0_15px_currentColor] hover:bg-white hover:text-black ${shapeRadius} font-mono font-bold`;
+    if (isLightMode) return `${secondaryPop} ${shapeRadius} font-black`;
+    
+    // Default Industrial / Base fallback (Now correctly inherits rounded-none!)
+    return `${secondaryPop} ${shapeRadius} font-black`;
   };
 
   return (

@@ -5,6 +5,7 @@ import React, { useState } from 'react';
 import { X, Send, CheckCircle2, Sparkles, AlertCircle, ChevronDown } from 'lucide-react';
 import { getFonts } from './content-engine/utils';
 import { submitStorefrontLead } from '@/actions/submitLead';
+import { THEME_REGISTRY } from '@/utils/themes';
 
 interface UniversalLeadModalProps {
   isOpen: boolean;
@@ -36,7 +37,6 @@ export default function UniversalLeadModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-  
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -67,9 +67,11 @@ export default function UniversalLeadModal({
     setErrorMessage('');
 
     let combinedDetails = `[INQUIRY TYPE: ${effectiveInquiryType.toUpperCase()}]\n\n`;
+    
     if (selectedAddons.length > 0) {
       combinedDetails += `SELECTED ADD-ONS:\n${selectedAddons.map(a => `- ${a}`).join('\n')}\n\n`;
     }
+    
     combinedDetails += formData.details;
 
     try {
@@ -100,13 +102,10 @@ export default function UniversalLeadModal({
   const isNeo = themeStyle === 'neo';
   const isCyber = themeStyle === 'cyberpunk';
   const isMidnight = themeStyle === 'midnight';
-  
-  const radius = themeStyle === 'elegant' ? 'rounded-sm' : 
-                 ['industrial', 'neo', 'cyberpunk', 'editorial'].includes(themeStyle) ? 'rounded-none' : 
-                 themeStyle === 'minimal' ? 'rounded-3xl' : 'rounded-2xl';
-                 
-  const inputRadius = themeStyle === 'elegant' ? 'rounded-sm' : 
-                      ['industrial', 'neo', 'cyberpunk', 'editorial'].includes(themeStyle) ? 'rounded-none' : 'rounded-xl';
+
+  // 🚀 THE FIX: Link strictly to the Theme Registry for shapes
+  const theme = THEME_REGISTRY[themeStyle] || THEME_REGISTRY['industrial'];
+  const shapeRadius = theme.radius || 'rounded-none';
 
   const getModalStyles = () => {
     if (themeStyle === 'elegant') return 'bg-white text-zinc-900 border border-zinc-200 shadow-[0_20px_50px_rgba(0,0,0,0.15)]';
@@ -118,26 +117,27 @@ export default function UniversalLeadModal({
   };
 
   const getInputStyles = () => {
-    if (themeStyle === 'elegant') return `bg-zinc-50 border border-zinc-300 text-zinc-900 focus:bg-white focus:border-zinc-800 ${inputRadius}`;
-    if (isNeo) return `bg-white border-2 border-black text-black focus:bg-yellow-100 ${inputRadius}`;
-    if (isCyber) return `bg-black/80 border border-white/20 text-white focus:border-${brandColor} font-mono ${inputRadius}`;
-    if (isLightMode) return `bg-slate-50 border border-slate-300 text-slate-900 focus:bg-white ${inputRadius}`;
-    return `bg-zinc-950 border border-zinc-800 text-white focus:bg-zinc-900 ${inputRadius}`;
+    if (themeStyle === 'elegant') return `bg-zinc-50 border border-zinc-300 text-zinc-900 focus:bg-white focus:border-zinc-800 ${shapeRadius}`;
+    if (isNeo) return `bg-white border-2 border-black text-black focus:bg-yellow-100 ${shapeRadius}`;
+    if (isCyber) return `bg-black/80 border border-white/20 text-white focus:border-brand-primary font-mono ${shapeRadius}`;
+    if (isLightMode) return `bg-slate-50 border border-slate-300 text-slate-900 focus:bg-white ${shapeRadius}`;
+    return `bg-zinc-950 border border-zinc-800 text-white focus:bg-zinc-900 ${shapeRadius}`;
   };
 
   const getSubmitStyles = () => {
-    if (themeStyle === 'elegant') return `bg-zinc-950 text-white hover:bg-zinc-800 font-serif tracking-widest shadow-md ${inputRadius}`;
-    if (isNeo) return `bg-white text-black border-4 border-black font-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 ${inputRadius}`;
-    if (isCyber) return `bg-black text-white border border-current shadow-[0_0_15px_currentColor] hover:bg-white hover:text-black font-mono font-bold ${inputRadius}`;
+    if (themeStyle === 'elegant') return `bg-zinc-950 text-white hover:bg-zinc-800 font-serif tracking-widest shadow-md ${shapeRadius}`;
+    if (isNeo) return `bg-white text-black border-4 border-black font-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 ${shapeRadius}`;
+    if (isCyber) return `bg-black text-white border border-current shadow-[0_0_15px_currentColor] hover:bg-white hover:text-black font-mono font-bold ${shapeRadius}`;
     
     const isDarkTone = ['blue-500', 'indigo-500', 'violet-500', 'fuchsia-500', 'pink-500', 'red-500', 'rose-500', 'orange-500', 'slate-500', 'zinc-700', 'zinc-800', 'stone-700'].includes(brandColor);
     const textClass = isDarkTone ? 'text-white font-black' : 'text-zinc-950 font-black';
-    return `bg-${brandColor} ${textClass} border border-white/20 shadow-lg hover:opacity-90 active:scale-[0.99] ${inputRadius}`;
+
+    return `bg-brand-primary ${textClass} border border-white/20 shadow-lg hover:opacity-90 active:scale-[0.99] ${shapeRadius}`;
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className={`relative w-full max-w-lg p-6 md:p-8 transition-all max-h-[90vh] overflow-y-auto custom-scrollbar ${radius} ${getModalStyles()}`}>
+      <div className={`relative w-full max-w-lg p-6 md:p-8 transition-all max-h-[90vh] overflow-y-auto custom-scrollbar ${shapeRadius} ${getModalStyles()}`}>
         
         <button 
           type="button"
@@ -165,7 +165,7 @@ export default function UniversalLeadModal({
         ) : (
           <div>
             <div className="mb-6 space-y-1">
-              <div className="flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-cyan-500">
+              <div className="flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-brand-primary">
                 <Sparkles className="w-3.5 h-3.5" />
                 <span>Direct Inquiry</span>
               </div>
@@ -184,7 +184,6 @@ export default function UniversalLeadModal({
 
             <form onSubmit={handleSubmit} className="space-y-4">
               
-              {/* 🚀 THE FIX: Topic Selection */}
               {inquiryOptions && inquiryOptions.length > 0 && (
                 <div>
                   <label className={`block text-[10px] font-mono uppercase tracking-wider mb-1.5 opacity-70 ${fonts.body}`}>Topic *</label>
@@ -203,7 +202,6 @@ export default function UniversalLeadModal({
                 </div>
               )}
 
-              {/* 🚀 THE FIX: Available Add-ons moved directly under the Topic selection! */}
               {addonOptions && addonOptions.length > 0 && (
                 <div className={`pt-2 mt-1 pb-2`}>
                   <label className={`block text-[10px] font-mono uppercase tracking-wider mb-2 opacity-70 ${fonts.body}`}>
@@ -218,7 +216,7 @@ export default function UniversalLeadModal({
                           onClick={() => toggleAddon(addon.title)}
                           className="flex items-center gap-3 cursor-pointer group select-none"
                         >
-                          <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${isChecked ? `bg-${brandColor} border-${brandColor}` : isLightMode ? 'border-zinc-300' : 'border-zinc-700 bg-zinc-950'}`}>
+                          <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${isChecked ? `bg-brand-primary border-brand-primary` : isLightMode ? 'border-zinc-300' : 'border-zinc-700 bg-zinc-950'}`}>
                             {isChecked && <CheckCircle2 className={`w-3 h-3 ${['blue-500', 'indigo-500'].includes(brandColor) ? 'text-white' : 'text-zinc-950'}`} />}
                           </div>
                           <span className={`text-sm ${fonts.body} ${isLightMode ? 'text-zinc-800 group-hover:text-zinc-950' : 'text-zinc-300 group-hover:text-white'} transition-colors`}>
