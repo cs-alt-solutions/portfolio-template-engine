@@ -1,4 +1,4 @@
-// src/components/portfolio/content-engine/layouts/LookbookFlow.tsx
+/* src/components/portfolio/content-engine/layouts/LookbookFlow.tsx */
 'use client';
 
 import React, { useState } from 'react';
@@ -6,11 +6,30 @@ import { ContentLayoutProps } from '../types';
 import { getFonts } from '../utils';
 import { THEME_REGISTRY } from '@/utils/themes';
 import { 
-  ImageIcon, ArrowRight, Clock, Camera, 
+  ImageIcon, Maximize2, ArrowRight, Clock, Camera, 
   Package, MapPin, Wand2, Video, Calendar, CheckCircle2, Plus 
 } from 'lucide-react';
+import ServiceProofModal, { GalleryItem } from '../../ServiceProofModal';
 import UniversalLeadModal from '../../UniversalLeadModal';
 import GalleryGrid from '../../gallery/GalleryGrid';
+
+interface ExtendedGalleryItem extends GalleryItem {
+  addons?: { name: string; price: string }[];
+}
+
+interface ModalServiceState {
+  title: string;
+  images: ExtendedGalleryItem[];
+  desc?: string;
+  bullets?: string[];
+  addons?: { name: string; price: string }[];
+}
+
+const parseItemData = (rawText: string = '') => {
+  const match = rawText.match(/(.+?)(?:\s*[-|: ]*\s*)(\$[\d.]+)$/);
+  if (match) return { text: match[1].trim(), price: match[2] };
+  return { text: rawText.trim(), price: null };
+};
 
 const SmartDeliverable = ({ text, colorClass, isLightMode }: { text: string, colorClass: string, isLightMode: boolean }) => {
   const lower = text.toLowerCase();
@@ -39,9 +58,11 @@ const SmartDeliverable = ({ text, colorClass, isLightMode }: { text: string, col
 export default function LookbookFlow({
   themeStyle, brandColor, secondaryBrandColor, isLightMode, capabilitiesHeading, galleryHeading, capabilities, galleryItems,
   storefrontSlug, businessName, contactEmail,
-  heroImage, isHeroFixed // 🚀 NEW: Catch the hero data
+  heroImage, isHeroFixed 
 }: ContentLayoutProps) {
+  const [activeModalService, setActiveModalService] = useState<ModalServiceState | null>(null);
   const [activeBooking, setActiveBooking] = useState<string | null>(null);
+  const [preselectedAddons, setPreselectedAddons] = useState<string[]>([]);
 
   const fonts = getFonts(themeStyle);
   const theme = THEME_REGISTRY[themeStyle] || THEME_REGISTRY['industrial'];
@@ -53,18 +74,22 @@ export default function LookbookFlow({
   const packages = (capabilities || []).filter(c => !c.isAlaCarte);
   const alaCarte = (capabilities || []).filter(c => c.isAlaCarte);
 
+  const getAttachedImages = (serviceTitle: string): ExtendedGalleryItem[] => {
+    return (galleryItems || []).filter((item: GalleryItem) => item.category === serviceTitle) as ExtendedGalleryItem[];
+  };
+
   const validGalleryItems = (galleryItems || []).filter(img => img.isVisible !== false);
   const hasGallery = validGalleryItems.length > 0;
 
   return (
     <div className="w-full bg-inherit pt-24 pb-32">
       
-      {/* 1. PORTFOLIO GALLERY */}
+      {/* 1. PORTFOLIO GALLERY (Top) */}
       {hasGallery && (
         <div className="mb-16">
           <GalleryGrid 
             items={validGalleryItems} 
-            galleryHeading={galleryHeading || 'Project Portfolios'} 
+            galleryHeading={galleryHeading || 'Featured Work'} 
             themeStyle={themeStyle} 
             brandColor={brandColor} 
             secondaryBrandColor={secondaryBrandColor} 
@@ -74,7 +99,7 @@ export default function LookbookFlow({
         </div>
       )}
 
-      {/* --- 🚀 THE NEW PARALLAX WINDOW GAP --- */}
+      {/* 2. THE PARALLAX WINDOW GAP (Middle) */}
       {hasGallery && packages.length > 0 && (
         isHeroFixed && heroImage ? (
           <div className="relative w-full h-[30vh] md:h-[40vh] border-y border-white/10 shadow-[inset_0_0_100px_rgba(0,0,0,0.8)] mb-20" style={{ clipPath: 'inset(0)' }}>
@@ -90,36 +115,48 @@ export default function LookbookFlow({
         )
       )}
 
+      {/* 3. LOOKBOOK PACKAGES (Bottom) */}
       <div className="max-w-7xl mx-auto px-6">
         
-        {/* 2. PACKAGES */}
         {packages.length > 0 && (
           <div className="mb-20">
             <div className="mb-12 text-center">
-              <span className={`text-xs font-mono font-bold uppercase tracking-[0.3em] ${brandTextColor} block mb-2`}>
-                Package Pricing
-              </span>
-              <h2 className={`text-4xl md:text-5xl lg:text-6xl tracking-tighter ${isLightMode ? 'text-zinc-900' : 'text-white'} ${fonts.heading}`}>
+              <h2 className={`text-4xl md:text-5xl lg:text-6xl tracking-tighter ${brandTextColor} ${fonts.heading}`}>
                 {capabilitiesHeading || 'Collections'}
               </h2>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
               {packages.map((cap, i) => {
-                const attachedImages = validGalleryItems.filter(img => img.category === cap.title);
+                const attachedImages = getAttachedImages(cap.title);
                 const coverImage = cap.coverImage || (attachedImages.length > 0 ? attachedImages[0].imageUrl : null);
+                const packageAddons = attachedImages.flatMap((img: ExtendedGalleryItem) => img.addons || []);
                 
                 return (
                   <div key={i} className={`flex flex-col h-full group ${isLightMode ? 'bg-white' : 'bg-zinc-900/40'} border ${isLightMode ? 'border-zinc-200' : 'border-white/5'} ${shapeRadius} overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300`}>
                     
-                    <div className="relative w-full aspect-4/3 overflow-hidden bg-zinc-900/20 shrink-0">
+                    {/* The image is the only part that triggers the gallery modal */}
+                    <div 
+                      className="relative w-full aspect-4/3 overflow-hidden cursor-pointer bg-zinc-800 shrink-0"
+                      onClick={() => setActiveModalService({ title: cap.title, images: attachedImages, desc: cap.description, bullets: cap.bullets, addons: packageAddons })}
+                    >
                       {coverImage ? (
-                        <img src={coverImage} alt={cap.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy" />
+                        <>
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={coverImage} alt={cap.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy" />
+                          <div className={`absolute inset-0 bg-${activeSecondary} mix-blend-color opacity-0 group-hover:opacity-20 transition-opacity duration-500`} />
+                        </>
                       ) : (
-                        <div className="w-full h-full flex flex-col items-center justify-center text-zinc-500/50 border border-dashed border-zinc-700/50 m-2 rounded-lg">
-                          <ImageIcon size={24} className="mb-2 opacity-50" />
+                        <div className="w-full h-full flex flex-col items-center justify-center text-zinc-500 bg-zinc-900/50">
+                          <ImageIcon size={32} className="mb-2 opacity-50" />
+                          <span className="text-[10px] uppercase tracking-widest font-bold opacity-50">No Cover</span>
                         </div>
                       )}
+                      
+                      <div className="absolute top-4 right-4 z-20 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-full flex items-center gap-1.5 border border-white/10 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 transform translate-y-2 group-hover:translate-y-0">
+                        <Maximize2 size={12} className={`text-${activeSecondary}`} />
+                        <span className="text-[9px] text-white font-bold tracking-widest uppercase">View Gallery</span>
+                      </div>
                     </div>
 
                     <div className="p-6 md:p-8 flex flex-col flex-1">
@@ -168,14 +205,17 @@ export default function LookbookFlow({
           </div>
         )}
 
-        {/* 3. ADDITIONAL ADD-ONS */}
+        {/* 4. ADDITIONAL ADD-ONS */}
         {alaCarte.length > 0 && (
           <div className={`mt-20 mb-28 max-w-4xl mx-auto border p-8 md:p-12 shadow-xl backdrop-blur-md ${isLightMode ? 'bg-zinc-50/50 border-zinc-200' : 'bg-black/30 border-zinc-800/80'} ${shapeRadius}`}>
             <div className="text-center mb-10">
                <div className={`inline-flex items-center gap-2 px-3 py-1 border text-[10px] font-mono font-bold uppercase tracking-widest mb-3 ${shapeRadius === 'rounded-none' ? 'rounded-none' : 'rounded-full'} ${isLightMode ? 'bg-zinc-100 border-zinc-200 text-zinc-500' : 'bg-zinc-900 border-zinc-800 text-zinc-400'}`}>
                   <Plus size={12} /> Flexible Upgrades
                </div>
-               <h3 className={`text-3xl md:text-4xl ${fonts.heading} ${isLightMode ? 'text-zinc-900' : 'text-white'}`}>Additional Add-ons</h3>
+               <h3 className={`text-3xl md:text-4xl ${fonts.heading} text-${activeSecondary}`}>Additional Add-ons</h3>
+               <p className={`text-xs md:text-sm mt-2 font-light ${fonts.body} ${isLightMode ? 'text-zinc-600' : 'text-zinc-400'}`}>
+                 Customize your shoot with any of these standalone enhancements.
+               </p>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -192,7 +232,7 @@ export default function LookbookFlow({
                         )}
                      </div>
                      {cap.price && (
-                        <span className={`text-base font-black shrink-0 px-3 py-1 border font-mono ${brandTextColor} ${shapeRadius === 'rounded-none' ? 'rounded-none' : 'rounded-xl'} ${isLightMode ? 'bg-zinc-100 border-zinc-200' : 'bg-zinc-900 border-zinc-800'}`}>
+                        <span className={`text-base font-black shrink-0 px-3 py-1 border font-mono text-${activeSecondary} ${shapeRadius === 'rounded-none' ? 'rounded-none' : 'rounded-xl'} ${isLightMode ? 'bg-zinc-100 border-zinc-200' : 'bg-zinc-900 border-zinc-800'}`}>
                           {cap.price}
                         </span>
                      )}
@@ -202,6 +242,22 @@ export default function LookbookFlow({
           </div>
         )}
       </div>
+
+      <ServiceProofModal
+        isOpen={!!activeModalService}
+        onClose={() => setActiveModalService(null)}
+        title={activeModalService?.title || ''}
+        images={activeModalService?.images || []}
+        description={activeModalService?.desc}
+        bullets={activeModalService?.bullets}
+        addons={activeModalService?.addons}
+        themeStyle={themeStyle}
+        brandColor={brandColor}
+        onBook={(selected) => {
+          setPreselectedAddons(selected);
+          setActiveBooking(activeModalService?.title || null);
+        }}
+      />
 
       <UniversalLeadModal
         isOpen={!!activeBooking}
