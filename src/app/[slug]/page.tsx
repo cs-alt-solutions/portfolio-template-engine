@@ -226,6 +226,7 @@ export default async function DynamicStorefront({
 
           heroImage={store.hero_image}
           isHeroFixed={isHeroFixed}
+          operationalTerms={store.operational_terms}
         />
       </div>
 

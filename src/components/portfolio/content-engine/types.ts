@@ -1,12 +1,11 @@
 // src/components/portfolio/content-engine/types.ts
-
 export interface Capability {
   title: string;
   description: string;
   bullets?: string[];
   price?: string;
   isAlaCarte?: boolean;
-  coverImage?: string; // 🚀 Added to support decoupled cover photos
+  coverImage?: string;
 }
 
 export interface GalleryItem {
@@ -14,7 +13,7 @@ export interface GalleryItem {
   imageUrl: string;
   title?: string;
   description?: string;
-  category?: string; // 🚀 This now acts as the Project Folder Name
+  category?: string;
   price?: string;
   isVisible?: boolean;
   isRaw?: boolean;
@@ -36,6 +35,7 @@ export interface ContentLayoutProps {
   storefrontSlug?: string;
   businessName?: string;
   contactEmail?: string;
-  heroImage?: string;    // 🚀 Add this
-  isHeroFixed?: boolean; // 🚀 Add this
+  heroImage?: string;
+  isHeroFixed?: boolean;
+  operationalTerms?: { title: string; description: string; fees?: { name: string; price: string }[] }[];
 }
