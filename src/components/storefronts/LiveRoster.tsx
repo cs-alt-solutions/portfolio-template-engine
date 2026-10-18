@@ -1,4 +1,4 @@
-// src/components/storefronts/LiveRoster.tsx
+/* src/components/storefronts/LiveRoster.tsx */
 import React from 'react';
 import { supabase } from '@/utils/supabase';
 import ShowroomGallery from './ShowroomGallery';
@@ -26,7 +26,8 @@ export default async function LiveRoster() {
   const { data: storefrontsData, error } = await supabase
     .from('storefronts')
     .select('*')
-    .eq('status', 'ACTIVE')
+    .eq('is_template', false) // 🚀 Safety net: keeps prototypes off the real client roster
+    .in('status', ['ACTIVE', 'LIVE', 'IN_REVIEW', 'AWAITING_ASSETS']) // 🚀 THE FIX: Pulls in both live and limbo clients
     .order('created_at', { ascending: false });
 
   if (error) {
