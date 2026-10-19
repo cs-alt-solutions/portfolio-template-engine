@@ -1,9 +1,10 @@
-// src/components/storefronts/ShowroomGallery.tsx
+/* src/components/storefronts/ShowroomGallery.tsx */
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { StorefrontData } from './LiveRoster';
-import { Sparkles, BriefcaseBusiness } from 'lucide-react';
+import { Sparkles, BriefcaseBusiness, Utensils, Store } from 'lucide-react';
 
 export default function ShowroomGallery({ sites }: { sites: StorefrontData[] }) {
   const [activeFilter, setActiveFilter] = useState('All Builds');
@@ -32,7 +33,7 @@ export default function ShowroomGallery({ sites }: { sites: StorefrontData[] }) 
         {/* --- THE SIDEBAR FILTER --- */}
         <aside className="w-full lg:w-56 shrink-0 lg:sticky lg:top-24 h-fit z-20">
           <h4 className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest mb-4"> Explore The Grid </h4>
-          <div className="flex flex-row lg:flex-col gap-2 overflow-x-auto pb-4 lg:pb-0 scrollbar-hide">
+          <div className="flex flex-row lg:flex-col gap-2 overflow-x-auto pb-4 lg:pb-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']">
             {categories.map((cat) => (
               <button
                 key={cat}
@@ -49,16 +50,21 @@ export default function ShowroomGallery({ sites }: { sites: StorefrontData[] }) 
           </div>
         </aside>
 
-        {/* --- THE MAIN GRID (Now a 2-Column Wide Layout) --- */}
-        <div className="flex-1 grid grid-cols-1 xl:grid-cols-2 gap-8 lg:gap-10 perspective-[1000px]">
+        {/* --- THE MAIN GRID --- */}
+        <div className="flex-1 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 perspective-[1000px]">
           {displayedSites.map((site) => {
             const hasLogo = !!site.brand_logo;
             const hasHero = !!site.hero_image; 
             const initial = site.business_name ? site.business_name.charAt(0).toUpperCase() : '?';
             const pulseColor = site.brand_color || '#22d3ee'; 
             
+            // 🚀 SMART ROUTING: Determine if they need a Service List or a Brand Story
+            const industry = site.industry_tag?.toLowerCase() || '';
+            const isCulinary = industry === 'culinary';
+            const isStoryDriven = isCulinary || industry === 'e-commerce' || industry === 'general';
+            
+            // Prepare Service Data (if applicable)
             const rawServices = (site.capabilities as { title?: string; description?: string }[]) || [];
-            // We can show slightly fewer services if needed since the card is shorter horizontally
             const servicesToShow = Array.isArray(rawServices) ? rawServices.slice(0, 3) : [];
             
             const targetUrl = site.custom_domain 
@@ -70,95 +76,144 @@ export default function ShowroomGallery({ sites }: { sites: StorefrontData[] }) 
               : `${engineUrl.replace('https://', '')}/${site.slug}`;
 
             return (
-              // FIX: Changed from h-88 to a wider, cinematic height (h-72) for the business card ratio
-              <div key={site.id as string} className="group relative h-72 w-full rounded-2xl">
+              <div key={site.id as string} className="group relative h-88 w-full rounded-2xl">
                 
                 <div className="relative w-full h-full transition-transform duration-700 transform-3d group-hover:transform-[rotateY(180deg)]">
                   
-                  {/* --- FRONT FACE (Cinematic Billboard) --- */}
+                  {/* ==================================================== */}
+                  {/* --- FRONT FACE (CINEMATIC LAYERED PRESENTATION) ---  */}
+                  {/* ==================================================== */}
                   <a 
                     href={targetUrl} 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="absolute inset-0 w-full h-full rounded-2xl overflow-hidden border border-zinc-800/50 bg-[#0a0a0c] backface-hidden cursor-pointer"
+                    className="absolute inset-0 w-full h-full rounded-2xl overflow-hidden border border-zinc-800/50 bg-[#0a0a0c] backface-hidden cursor-pointer shadow-lg"
                   >
-                    <div className="absolute top-5 right-5 z-30 flex items-center gap-2 bg-black/50 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/5 shadow-xl">
+                    {/* Live Indicator */}
+                    <div className="absolute top-4 right-4 z-30 flex items-center gap-2 bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/5">
                       <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: pulseColor, boxShadow: `0 0 12px ${pulseColor}` }} />
-                      <span className="text-[10px] font-bold tracking-widest text-zinc-200 uppercase">Live</span>
+                      <span className="text-[10px] font-bold tracking-widest text-zinc-300 uppercase">Live</span>
                     </div>
 
-                    {hasLogo ? (
-                      <div className="absolute inset-0 flex items-center justify-center p-8 pb-20 z-10">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={site.brand_logo as string} alt={site.business_name as string} className="max-w-[50%] max-h-[50%] object-contain filter drop-shadow-2xl transition-transform duration-700 group-hover:scale-105" />
-                      </div>
-                    ) : hasHero ? (
-                      <div className="absolute inset-0 w-full h-full z-10">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={site.hero_image as string} alt={site.business_name as string} className="w-full h-full object-cover opacity-60 transition-transform duration-700 group-hover:scale-105" />
-                      </div>
-                    ) : (
-                      <div className="absolute inset-0 flex items-center justify-center pb-20 z-10">
-                        <div className="text-8xl font-black text-zinc-800/50 transition-colors duration-500 group-hover:text-zinc-700"> {initial} </div>
-                      </div>
-                    )}
+                    {/* BACKGROUND LAYER */}
+                    <div className="absolute inset-0 z-0 bg-zinc-950">
+                      {hasHero && (
+                        <img 
+                          src={site.hero_image as string} 
+                          alt="Background" 
+                          className="w-full h-full object-cover opacity-30 transition-transform duration-1000 group-hover:scale-110" 
+                        />
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/80 to-transparent" />
+                    </div>
 
-                    <div className="absolute inset-x-0 bottom-0 p-6 pt-24 bg-linear-to-t from-[#050505] via-[#050505]/90 to-transparent z-20">
-                      <h3 className="text-2xl font-black text-white mb-1 tracking-tight">
+                    {/* FOREGROUND LAYER: The Logo */}
+                    <div className="absolute inset-0 flex items-center justify-center px-6 pb-16 z-10">
+                      {hasLogo ? (
+                        <img 
+                          src={site.brand_logo as string} 
+                          alt={site.business_name as string} 
+                          className="max-w-[55%] max-h-[55%] object-contain filter drop-shadow-[0_0_30px_rgba(0,0,0,0.8)] transition-transform duration-700 group-hover:scale-110" 
+                        />
+                      ) : (
+                        <div className="text-8xl font-black text-white/20 transition-colors duration-500 group-hover:text-white/30"> 
+                          {initial} 
+                        </div>
+                      )}
+                    </div>
+
+                    {/* TEXT LAYER */}
+                    <div className="absolute inset-x-0 bottom-0 p-5 pt-16 z-20 flex flex-col justify-end">
+                      <h3 className="text-lg font-bold text-white mb-0.5 drop-shadow-md leading-tight line-clamp-2">
                         {site.business_name as string}
                       </h3>
-                      <p className="text-sm text-zinc-300 font-light truncate">
+                      <p className="text-xs text-zinc-300 line-clamp-2 drop-shadow-md mt-0.5">
                         {site.tagline as string || "View Live Storefront"}
                       </p>
+                      {site.industry_tag && (
+                        <div className="mt-2">
+                          <span className="inline-block px-2 py-1 text-[9px] font-bold uppercase tracking-wider text-zinc-400 bg-black/50 backdrop-blur-md rounded border border-zinc-700/50">
+                            {site.industry_tag as string}
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </a>
 
-                  {/* --- BACK FACE (Split Business Card Layout) --- */}
-                  <div className="absolute inset-0 w-full h-full rounded-2xl border border-zinc-800 bg-[#0c0d10] flex overflow-hidden backface-hidden transform-[rotateY(180deg)] shadow-xl shadow-cyan-500/5">
+                  {/* ==================================================== */}
+                  {/* --- BACK FACE (THE TRUE BUSINESS CARD) ---           */}
+                  {/* ==================================================== */}
+                  <div className="absolute inset-0 w-full h-full rounded-2xl border border-zinc-800 bg-[#0c0d10] p-7 flex flex-col justify-between backface-hidden transform-[rotateY(180deg)] shadow-xl shadow-cyan-500/5">
                     
-                    {/* Left Column: Identity & Action */}
-                    <div className="w-5/12 p-6 flex flex-col justify-between border-r border-zinc-800/80 bg-[#0a0b0e]">
-                      <div>
-                        <div className="w-12 h-12 mb-4 shrink-0 flex items-center justify-center rounded-full border border-zinc-700 bg-zinc-800" style={{ boxShadow: `0 0 16px ${pulseColor}22` }}>
-                          <BriefcaseBusiness className="w-6 h-6" style={{ color: pulseColor }} />
-                        </div>
-                        <h3 className="text-xl font-bold text-white leading-tight line-clamp-2 mb-1"> {site.business_name as string} </h3>
-                        <p className="text-[10px] font-mono text-zinc-500 truncate lowercase"> {displayUrl} </p>
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 shrink-0 flex items-center justify-center rounded-full border border-zinc-700 bg-zinc-900 overflow-hidden" style={{ boxShadow: `0 0 16px ${pulseColor}22` }}>
+                        {hasLogo ? (
+                          <img 
+                            src={site.brand_logo as string} 
+                            alt="Logo" 
+                            className="w-full h-full object-cover p-1.5" 
+                          />
+                        ) : (
+                          <BriefcaseBusiness className="w-5 h-5" style={{ color: pulseColor }} />
+                        )}
                       </div>
+                      
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-lg font-bold text-white leading-tight line-clamp-2"> {site.business_name as string} </h3>
+                        <p className="text-[10px] font-mono text-zinc-500 lowercase leading-tight mt-1 line-clamp-2"> {displayUrl} </p>
+                      </div>
+                    </div>
 
+                    <div className="flex-1 pt-6 pb-2 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']">
+                      
+                      {/* 🚀 CONTEXTUAL LAYOUT: Brand Story vs Service Matrix */}
+                      {isStoryDriven ? (
+                        <div className="animate-in fade-in duration-500">
+                          <p className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest mb-3 flex items-center gap-2">
+                            <Store className="w-3.5 h-3.5 shrink-0" style={{ color: pulseColor }} />
+                            The Story
+                          </p>
+                          <p className="text-sm text-zinc-300 leading-relaxed">
+                            {/* Uses the about_text from DB if available, otherwise expands on the tagline */}
+                            {(site.about_text as string) || (site.tagline as string) || "A local visionary building their digital footprint on the Alternative Solutions network."}
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="animate-in fade-in duration-500">
+                          <p className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest mb-3 flex items-center gap-2">
+                            <Sparkles className="w-3.5 h-3.5 shrink-0" style={{ color: pulseColor }} />
+                            Featured Services
+                          </p>
+                          <div className="space-y-3">
+                            {servicesToShow.length > 0 ? (
+                              servicesToShow.map((service, index) => (
+                                <div key={index} className="flex gap-2.5">
+                                  <div className="w-1 h-1 shrink-0 mt-1.5 rounded-full" style={{ backgroundColor: pulseColor }} />
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-semibold text-zinc-100 leading-tight">{service.title || 'Service'}</p>
+                                    <p className="text-xs text-zinc-400 leading-snug mt-1 pr-2">{service.description || ''}</p>
+                                  </div>
+                                </div>
+                              ))
+                            ) : (
+                              <p className="text-xs text-zinc-600 italic">Exploring custom offerings...</p>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                      
+                    </div>
+
+                    <div className="border-t border-zinc-800/80 pt-4 flex justify-center shrink-0">
                       <a 
                         href={targetUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="w-full py-3 rounded-lg text-sm font-bold tracking-tight bg-white text-black hover:bg-zinc-200 transition text-center mt-4"
+                        className="w-full py-2.5 rounded-lg text-sm font-bold tracking-tight bg-white text-black hover:bg-zinc-200 transition text-center block"
                       >
-                        Visit Site
+                        {isCulinary ? 'Explore Menu' : 'Visit Site'}
                       </a>
                     </div>
-
-                    {/* Right Column: Capabilities */}
-                    <div className="w-7/12 p-6 flex flex-col">
-                      <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-4 flex items-center gap-2">
-                        <Sparkles className="w-3.5 h-3.5" style={{ color: pulseColor }} />
-                        Featured Services
-                      </p>
-                      <div className="space-y-3.5 flex-1 overflow-y-auto pr-2 scrollbar-hide">
-                        {servicesToShow.length > 0 ? (
-                          servicesToShow.map((service, index) => (
-                            <div key={index} className="flex gap-3">
-                              <div className="w-1.5 h-1.5 shrink-0 mt-1.5 rounded-full" style={{ backgroundColor: pulseColor, boxShadow: `0 0 8px ${pulseColor}` }} />
-                              <div className="flex-1">
-                                <p className="text-sm font-bold text-zinc-100 leading-none mb-1">{service.title || 'Service'}</p>
-                                <p className="text-xs text-zinc-400 line-clamp-2 leading-snug">{service.description || ''}</p>
-                              </div>
-                            </div>
-                          ))
-                        ) : (
-                          <p className="text-sm text-zinc-600 italic">Exploring custom offerings...</p>
-                        )}
-                      </div>
-                    </div>
-
                   </div>
 
                 </div>
