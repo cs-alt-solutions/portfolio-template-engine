@@ -1,4 +1,4 @@
-// src/components/portfolio/content-engine/layouts/MenuFlow.tsx
+/* src/components/portfolio/content-engine/layouts/MenuFlow.tsx */
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -214,7 +214,6 @@ const TextCard = ({ item, isLightMode, fonts, brandColor, secondaryBrandColor, b
             </div>
           </div>
         </div>
-
       </div>
     </div>
   );
@@ -382,9 +381,18 @@ export default function MenuFlow({
             <div key={`menu-${i}`} id={`category-${slugify(section.title)}`} className="flex flex-col relative w-full scroll-mt-32">
               
               <div className="flex flex-col items-center text-center border-b border-zinc-800 dark:border-zinc-200/20 pb-8 mb-10">
-                <h3 className={`text-4xl md:text-5xl ${isLightMode ? 'text-zinc-900' : 'text-zinc-100'} ${fonts.heading} mb-4`}>
-                  {section.title}
-                </h3>
+                <div className="flex flex-col md:flex-row items-center gap-4 mb-4">
+                  <h3 className={`text-4xl md:text-5xl ${isLightMode ? 'text-zinc-900' : 'text-zinc-100'} ${fonts.heading}`}>
+                    {section.title}
+                  </h3>
+                  
+                  {/* 🚀 THE TIMEFRAME BADGE */}
+                  {section.price && (
+                    <span className={`px-3 py-1 rounded-full text-xs font-black uppercase tracking-widest border bg-${brandColor}/10 text-${brandColor} border-${brandColor}/20`}>
+                      {section.price}
+                    </span>
+                  )}
+                </div>
                 
                 {section.description && (
                   <p className={`text-base md:text-lg max-w-2xl opacity-80 leading-relaxed ${fonts.body} ${isLightMode ? 'text-zinc-700' : 'text-zinc-400'} ${['elegant', 'organic'].includes(themeStyle) ? 'italic' : ''}`}>
