@@ -1,49 +1,30 @@
 /* src/middleware.ts */
 import { NextResponse, type NextRequest } from 'next/server';
-import { createServerClient, type CookieOptions } from '@supabase/ssr';
+import { createClient } from '@supabase/supabase-js';
 
 export async function middleware(request: NextRequest) {
   const url = request.nextUrl;
   const hostname = request.headers.get('host') || '';
 
   // 1. Identify your core platform/Vercel domains
-  // If traffic hits here, we don't need to rewrite a custom domain
   const isPlatformDomain = 
     hostname.includes('vercel.app') || 
     hostname.includes('localhost') || 
     hostname.includes('alternativesolutions.io');
 
-  let supabaseResponse = NextResponse.next({
-    request: { headers: request.headers },
-  });
-
+  // If they are hitting the main directory, let them through immediately
   if (isPlatformDomain) {
-    return supabaseResponse;
+    return NextResponse.next();
   }
 
   // 2. CUSTOM DOMAIN ROUTING
-  // Initialize Supabase Client
-  const supabase = createServerClient(
+  // Initialize the standard, edge-friendly Supabase client (No SSR cookies needed!)
+  const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get(name: string) { return request.cookies.get(name)?.value; },
-        set(name: string, value: string, options: CookieOptions) {
-          request.cookies.set({ name, value, ...options });
-          supabaseResponse = NextResponse.next({ request: { headers: request.headers } });
-          supabaseResponse.cookies.set({ name, value, ...options });
-        },
-        remove(name: string, options: CookieOptions) {
-          request.cookies.set({ name, value: '', ...options });
-          supabaseResponse = NextResponse.next({ request: { headers: request.headers } });
-          supabaseResponse.cookies.set({ name, value: '', ...options });
-        },
-      },
-    }
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
 
-  // Strip 'www.' so the database lookup matches 'blazenbloomstudios.com' exactly
+  // Strip 'www.' so the database lookup matches exactly
   const cleanHostname = hostname.replace(/^www\./, '');
 
   // Ask the database: "Does anyone own this domain?"
@@ -59,21 +40,17 @@ export async function middleware(request: NextRequest) {
     
     // Found it! Seamlessly rewrite to their specific /[slug] route under the hood
     return NextResponse.rewrite(
-      new URL(`/${storeData.slug}${cleanPath}`, request.url),
-      { request: { headers: request.headers } }
+      new URL(`/${storeData.slug}${cleanPath}`, request.url)
     );
   }
 
-  return supabaseResponse;
+  // If no domain is found, pass them through (or you could render a 404)
+  return NextResponse.next();
 }
 
 export const config = {
   matcher: [
-    // Match all request paths except for the ones starting with:
-    // - _next/static (static files)
-    // - _next/image (image optimization files)
-    // - favicon.ico (favicon file)
-    // - files with extensions (like .svg, .png, .jpg, etc.)
+    // Match all paths except static assets
     '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 };
