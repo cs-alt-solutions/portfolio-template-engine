@@ -10,7 +10,8 @@ import StickyScrollFlow from './layouts/StickyScrollFlow';
 import EditorialHoverFlow from './layouts/EditorialHoverFlow';
 import AccordionFlow from './layouts/AccordionFlow';
 import MenuFlow from './layouts/MenuFlow';
-import LookbookFlow from './layouts/LookbookFlow'; // 🚀 ADDED NEW LOOKBOOK IMPORT
+import LookbookFlow from './layouts/LookbookFlow';
+import HubFlow from './layouts/HubFlow'; // 🚀 ADDED NEW DEPARTMENT HUB IMPORT
 
 interface ContentEngineProps extends ContentLayoutProps {
   layout: string;
@@ -25,7 +26,8 @@ export default function ContentEngine(props: ContentEngineProps) {
     editorial: EditorialHoverFlow,
     accordion: AccordionFlow,
     menu: MenuFlow,
-    lookbook: LookbookFlow, // 🚀 ADDED TO REGISTRY
+    lookbook: LookbookFlow,
+    hub: HubFlow, // 🚀 REGISTERED DEPARTMENT HUB
     classic: ClassicFlow,
   };
 
