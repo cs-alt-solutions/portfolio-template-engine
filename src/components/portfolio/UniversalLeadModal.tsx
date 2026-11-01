@@ -5,26 +5,24 @@ import React, { useState } from 'react';
 import { X, Send, CheckCircle2, Sparkles, AlertCircle, ChevronDown } from 'lucide-react';
 import { getFonts } from './content-engine/utils';
 import { submitStorefrontLead } from '@/actions/submitLead';
-import { THEME_REGISTRY } from '@/utils/themes';
 
+// 🚀 THE FIX: Strictly typed the addonOptions array and removed the unused ctaLabel
 interface UniversalLeadModalProps {
   isOpen: boolean;
   onClose: () => void;
-  ctaLabel: string;
   businessName: string;
   storefrontSlug?: string; 
-  contactEmail?: string;     
+  contactEmail?: string;   
   brandColor?: string;
   isLightMode?: boolean;
   themeStyle?: string;
   inquiryOptions?: string[];
-  addonOptions?: { title: string, price?: string }[];
+  addonOptions?: Array<{ title?: string; name?: string; price?: string } | string>;
 }
 
 export default function UniversalLeadModal({
   isOpen,
   onClose,
-  ctaLabel = 'Get in Touch',
   businessName = 'Our Team',
   storefrontSlug = 'platform-direct',
   contactEmail = '',
@@ -48,28 +46,18 @@ export default function UniversalLeadModal({
 
   const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
 
-  const effectiveInquiryType = inquiryOptions && inquiryOptions.length > 0 
-    ? (inquiryOptions.includes(formData.inquiryType) ? formData.inquiryType : inquiryOptions[0]) 
+  // DERIVED STATE: Single source of truth for the dropdown
+  const effectiveInquiryType = inquiryOptions && inquiryOptions.length > 0
+    ? (inquiryOptions.includes(formData.inquiryType) ? formData.inquiryType : inquiryOptions[0])
     : 'General Inquiry';
 
   if (!isOpen) return null;
 
-  // Resolves the tailwind class to an actual Hex Code for the email templates
-  const getHexValue = (val: string) => {
-    if (!val) return '#06b6d4';
-    if (val.startsWith('#')) return val;
-    const legacyMap: Record<string, string> = {
-      'cyan-500': '#06b6d4', 'fuchsia-500': '#d946ef', 'emerald-500': '#10b981',
-      'amber-500': '#f59e0b', 'rose-500': '#f43f5e', 'indigo-500': '#6366f1', 'zinc-500': '#71717a'
-    };
-    return legacyMap[val] || '#06b6d4';
-  };
-
-  const toggleAddon = (addonTitle: string) => {
-    if (selectedAddons.includes(addonTitle)) {
-      setSelectedAddons(selectedAddons.filter(a => a !== addonTitle));
+  const toggleAddon = (addonText: string) => {
+    if (selectedAddons.includes(addonText)) {
+      setSelectedAddons(selectedAddons.filter(a => a !== addonText));
     } else {
-      setSelectedAddons([...selectedAddons, addonTitle]);
+      setSelectedAddons([...selectedAddons, addonText]);
     }
   };
 
@@ -80,7 +68,7 @@ export default function UniversalLeadModal({
 
     let combinedDetails = `[INQUIRY TYPE: ${effectiveInquiryType.toUpperCase()}]\n\n`;
     if (selectedAddons.length > 0) {
-      combinedDetails += `SELECTED ADD-ONS:\n${selectedAddons.map(a => `- ${a}`).join('\n')}\n\n`;
+      combinedDetails += `SELECTED OPTIONS:\n${selectedAddons.map(a => `- ${a}`).join('\n')}\n\n`;
     }
     combinedDetails += formData.details;
 
@@ -93,7 +81,6 @@ export default function UniversalLeadModal({
         email: formData.email,
         phone: formData.phone,
         details: combinedDetails,
-        brandColorHex: getHexValue(brandColor || ''),
       });
 
       if (response.success) {
@@ -113,7 +100,7 @@ export default function UniversalLeadModal({
   const isNeo = themeStyle === 'neo';
   const isCyber = themeStyle === 'cyberpunk';
   const isMidnight = themeStyle === 'midnight';
-  
+
   const radius = themeStyle === 'elegant' ? 'rounded-sm' : 
                  ['industrial', 'neo', 'cyberpunk', 'editorial'].includes(themeStyle) ? 'rounded-none' : 
                  themeStyle === 'minimal' ? 'rounded-3xl' : 'rounded-2xl';
@@ -133,7 +120,7 @@ export default function UniversalLeadModal({
   const getInputStyles = () => {
     if (themeStyle === 'elegant') return `bg-zinc-50 border border-zinc-300 text-zinc-900 focus:bg-white focus:border-zinc-800 ${inputRadius}`;
     if (isNeo) return `bg-white border-2 border-black text-black focus:bg-yellow-100 ${inputRadius}`;
-    if (isCyber) return `bg-black/80 border border-white/20 text-white focus:border-brand-primary font-mono ${inputRadius}`;
+    if (isCyber) return `bg-black/80 border border-white/20 text-white focus:border-${brandColor} font-mono ${inputRadius}`;
     if (isLightMode) return `bg-slate-50 border border-slate-300 text-slate-900 focus:bg-white ${inputRadius}`;
     return `bg-zinc-950 border border-zinc-800 text-white focus:bg-zinc-900 ${inputRadius}`;
   };
@@ -145,17 +132,29 @@ export default function UniversalLeadModal({
     
     const isDarkTone = ['blue-500', 'indigo-500', 'violet-500', 'fuchsia-500', 'pink-500', 'red-500', 'rose-500', 'orange-500', 'slate-500', 'zinc-700', 'zinc-800', 'stone-700'].includes(brandColor || '');
     const textClass = isDarkTone ? 'text-white font-black' : 'text-zinc-950 font-black';
-    return `bg-brand-primary ${textClass} border border-white/20 shadow-lg hover:opacity-90 active:scale-[0.99] ${inputRadius}`;
+    return `bg-${brandColor} ${textClass} border border-white/20 shadow-lg hover:opacity-90 active:scale-[0.99] ${inputRadius}`;
+  };
+
+  const getDetailsPlaceholder = () => {
+    if (effectiveInquiryType === 'Job Application / Hiring') return "Tell us about your experience and the position you're looking for...";
+    if (effectiveInquiryType === 'General Inquiry') return "How can we help you today?";
+    if (effectiveInquiryType === 'Other') return "Tell us more about what you need...";
+    return "Tell us what you're looking for, ideal dates, or any specific questions...";
+  };
+
+  const getDetailsLabel = () => {
+    if (effectiveInquiryType === 'Job Application / Hiring') return "Experience & Background *";
+    if (effectiveInquiryType === 'General Inquiry' || effectiveInquiryType === 'Other') return "How can we help? *";
+    return "Project Details & Notes *";
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
       <div className={`relative w-full max-w-lg p-6 md:p-8 transition-all max-h-[90vh] overflow-y-auto custom-scrollbar ${radius} ${getModalStyles()}`}>
         
-        <button 
-          type="button"
+        <button
           onClick={onClose}
-          className={`absolute top-4 right-4 p-2 transition-colors cursor-pointer ${isNeo ? 'text-black hover:bg-black hover:text-white border-2 border-black rounded-none' : 'text-zinc-400 hover:text-white rounded-full'}`}
+          className={`absolute top-4 right-4 p-2 transition-colors ${isNeo ? 'text-black hover:bg-black hover:text-white border-2 border-black rounded-none' : 'text-zinc-400 hover:text-white rounded-full'}`}
         >
           <X className="w-5 h-5" />
         </button>
@@ -167,10 +166,9 @@ export default function UniversalLeadModal({
             <p className={`text-sm opacity-80 max-w-xs mx-auto ${fonts.body}`}>
               Thank you, {formData.name}. {businessName} has logged your details and will be in touch shortly.
             </p>
-            <button 
-              type="button"
+            <button
               onClick={() => { setIsSubmitted(false); onClose(); }}
-              className={`mt-6 px-6 py-2.5 font-medium transition-all text-xs uppercase tracking-wider cursor-pointer ${isNeo ? 'bg-black text-white border-2 border-black rounded-none font-bold' : 'bg-zinc-800 text-white hover:bg-zinc-700 rounded-sm'}`}
+              className={`mt-6 px-6 py-2.5 font-medium transition-all text-xs uppercase tracking-wider ${isNeo ? 'bg-black text-white border-2 border-black rounded-none font-bold' : 'bg-zinc-800 text-white hover:bg-zinc-700 rounded-sm'}`}
             >
               Back to Website
             </button>
@@ -178,11 +176,11 @@ export default function UniversalLeadModal({
         ) : (
           <div>
             <div className="mb-6 space-y-1">
-              <div className="flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-brand-primary">
+              <div className="flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-cyan-500">
                 <Sparkles className="w-3.5 h-3.5" />
-                <span>Direct Inquiry</span>
+                <span>Secure Form</span>
               </div>
-              <h2 className={`text-2xl md:text-3xl font-black tracking-tight ${fonts.heading}`}>{ctaLabel}</h2>
+              <h2 className={`text-2xl md:text-3xl font-black tracking-tight ${fonts.heading}`}>Direct Inquiry</h2>
               <p className={`text-xs md:text-sm opacity-80 ${fonts.body}`}>
                 Fill out the details below to connect directly with {businessName}.
               </p>
@@ -199,10 +197,12 @@ export default function UniversalLeadModal({
               
               {inquiryOptions && inquiryOptions.length > 0 && (
                 <div>
-                  <label className={`block text-[10px] font-mono uppercase tracking-wider mb-1.5 opacity-70 ${fonts.body}`}>Topic *</label>
+                  <label className={`block text-[10px] font-mono uppercase tracking-wider mb-1.5 opacity-70 ${fonts.body}`}>
+                    Topic *
+                  </label>
                   <div className="relative">
-                    <select 
-                      value={effectiveInquiryType} 
+                    <select
+                      value={effectiveInquiryType}
                       onChange={(e) => setFormData({ ...formData, inquiryType: e.target.value })}
                       className={`w-full px-4 py-3 text-sm outline-none transition-all appearance-none cursor-pointer ${getInputStyles()}`}
                     >
@@ -218,22 +218,25 @@ export default function UniversalLeadModal({
               {addonOptions && addonOptions.length > 0 && (
                 <div className={`pt-2 mt-1 pb-2`}>
                   <label className={`block text-[10px] font-mono uppercase tracking-wider mb-2 opacity-70 ${fonts.body}`}>
-                    Available Add-ons
+                    Available Options
                   </label>
                   <div className="space-y-2">
-                    {addonOptions.map((addon) => {
-                      const isChecked = selectedAddons.includes(addon.title);
+                    {addonOptions.map((addon, idx) => {
+                      const itemText = typeof addon === 'string' ? addon : (addon.title || addon.name || `Option ${idx + 1}`);
+                      const itemPrice = typeof addon === 'object' ? addon.price : null;
+                      const isChecked = selectedAddons.includes(itemText);
+                      
                       return (
                         <div 
-                          key={addon.title} 
-                          onClick={() => toggleAddon(addon.title)}
+                          key={`${itemText}-${idx}`} 
+                          onClick={() => toggleAddon(itemText)}
                           className="flex items-center gap-3 cursor-pointer group select-none"
                         >
-                          <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${isChecked ? `bg-brand-primary border-brand-primary` : isLightMode ? 'border-zinc-300' : 'border-zinc-700 bg-zinc-950'}`}>
+                          <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${isChecked ? `bg-${brandColor} border-${brandColor}` : isLightMode ? 'border-zinc-300' : 'border-zinc-700 bg-zinc-950'}`}>
                             {isChecked && <CheckCircle2 className={`w-3 h-3 ${['blue-500', 'indigo-500'].includes(brandColor || '') ? 'text-white' : 'text-zinc-950'}`} />}
                           </div>
                           <span className={`text-sm ${fonts.body} ${isLightMode ? 'text-zinc-800 group-hover:text-zinc-950' : 'text-zinc-300 group-hover:text-white'} transition-colors`}>
-                            {addon.title} {addon.price && <span className="opacity-60 ml-1">({addon.price})</span>}
+                            {itemText} {itemPrice && <span className="opacity-60 ml-1">({itemPrice})</span>}
                           </span>
                         </div>
                       );
@@ -243,9 +246,14 @@ export default function UniversalLeadModal({
               )}
 
               <div>
-                <label className={`block text-[10px] font-mono uppercase tracking-wider mb-1.5 opacity-70 ${fonts.body}`}>Your Name *</label>
-                <input 
-                  type="text" required placeholder="e.g., Jordan Smith" value={formData.name}
+                <label className={`block text-[10px] font-mono uppercase tracking-wider mb-1.5 opacity-70 ${fonts.body}`}>
+                  Your Name *
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g., Jordan Smith"
+                  value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   className={`w-full px-4 py-3 text-sm outline-none transition-all ${getInputStyles()}`}
                 />
@@ -253,17 +261,26 @@ export default function UniversalLeadModal({
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className={`block text-[10px] font-mono uppercase tracking-wider mb-1.5 opacity-70 ${fonts.body}`}>Email Address *</label>
-                  <input 
-                    type="email" required placeholder="jordan@example.com" value={formData.email}
+                  <label className={`block text-[10px] font-mono uppercase tracking-wider mb-1.5 opacity-70 ${fonts.body}`}>
+                    Email Address *
+                  </label>
+                  <input
+                    type="email"
+                    required
+                    placeholder="jordan@example.com"
+                    value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     className={`w-full px-4 py-3 text-sm outline-none transition-all ${getInputStyles()}`}
                   />
                 </div>
                 <div>
-                  <label className={`block text-[10px] font-mono uppercase tracking-wider mb-1.5 opacity-70 ${fonts.body}`}>Phone Number</label>
-                  <input 
-                    type="tel" placeholder="(555) 000-0000" value={formData.phone}
+                  <label className={`block text-[10px] font-mono uppercase tracking-wider mb-1.5 opacity-70 ${fonts.body}`}>
+                    Phone Number
+                  </label>
+                  <input
+                    type="tel"
+                    placeholder="(555) 000-0000"
+                    value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                     className={`w-full px-4 py-3 text-sm outline-none transition-all ${getInputStyles()}`}
                   />
@@ -271,20 +288,32 @@ export default function UniversalLeadModal({
               </div>
 
               <div>
-                <label className={`block text-[10px] font-mono uppercase tracking-wider mb-1.5 opacity-70 ${fonts.body}`}>Project Details & Notes *</label>
-                <textarea 
-                  rows={3} required placeholder="Tell us what you're looking for, ideal dates, or any specific questions..."
+                <label className={`block text-[10px] font-mono uppercase tracking-wider mb-1.5 opacity-70 ${fonts.body}`}>
+                  {getDetailsLabel()}
+                </label>
+                <textarea
+                  rows={3}
+                  required
+                  placeholder={getDetailsPlaceholder()}
                   value={formData.details}
                   onChange={(e) => setFormData({ ...formData, details: e.target.value })}
                   className={`w-full px-4 py-3 text-sm outline-none resize-none transition-all ${getInputStyles()}`}
                 />
               </div>
 
-              <button 
-                type="submit" disabled={isSubmitting}
-                className={`w-full py-3.5 px-6 transition-all flex items-center justify-center gap-2 mt-4 disabled:opacity-50 text-xs uppercase tracking-widest cursor-pointer ${getSubmitStyles()}`}
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className={`w-full py-3.5 px-6 transition-all flex items-center justify-center gap-2 mt-2 disabled:opacity-50 text-xs uppercase tracking-widest ${getSubmitStyles()}`}
               >
-                {isSubmitting ? <span>Transmitting...</span> : <><span>Submit Request</span> <Send className="w-4 h-4" /></>}
+                {isSubmitting ? (
+                  <span>Transmitting...</span>
+                ) : (
+                  <>
+                    <span>Submit Request</span>
+                    <Send className="w-4 h-4" />
+                  </>
+                )}
               </button>
             </form>
           </div>

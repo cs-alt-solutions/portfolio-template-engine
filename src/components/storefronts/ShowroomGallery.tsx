@@ -2,7 +2,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import Link from 'next/link';
 import { StorefrontData } from './LiveRoster';
 import { Sparkles, BriefcaseBusiness, Utensils, Store } from 'lucide-react';
 
