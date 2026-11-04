@@ -11,7 +11,7 @@ import EditorialHoverFlow from './layouts/EditorialHoverFlow';
 import AccordionFlow from './layouts/AccordionFlow';
 import MenuFlow from './layouts/MenuFlow';
 import LookbookFlow from './layouts/LookbookFlow';
-import HubFlow from './layouts/HubFlow'; // 🚀 ADDED NEW DEPARTMENT HUB IMPORT
+import HubFlow from './layouts/HubFlow'; // 🚀 DEPARTMENT HUB FLOW
 
 interface ContentEngineProps extends ContentLayoutProps {
   layout: string;
@@ -27,7 +27,7 @@ export default function ContentEngine(props: ContentEngineProps) {
     accordion: AccordionFlow,
     menu: MenuFlow,
     lookbook: LookbookFlow,
-    hub: HubFlow, // 🚀 REGISTERED DEPARTMENT HUB
+    hub: HubFlow, // 🚀 REGISTERED
     classic: ClassicFlow,
   };
 

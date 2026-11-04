@@ -6,13 +6,13 @@ import { notFound } from 'next/navigation';
 import { supabase } from '@/utils/supabase';
 import { THEME_REGISTRY } from '@/utils/themes';
 import { STOREFRONT_DEFAULTS } from '@/utils/glossary';
+
 import HeroEngine from '@/components/portfolio/hero/HeroEngine';
 import AboutSection from '@/components/portfolio/AboutSection';
 import ContentEngine from '@/components/portfolio/content-engine';
 import PrototypeTourGuide from '@/components/portfolio/PrototypeTourGuide';
 import StorefrontClientActions from '../../components/portfolio/StorefrontClientActions';
 import StagingReviewOverlay from '@/components/portfolio/staging-review/StagingReviewOverlay';
-import LocationPanel from '@/components/portfolio/LocationPanel';
 import { Send } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
@@ -231,15 +231,6 @@ export default async function DynamicStorefront({
       </div>
 
       <StorefrontClientActions store={store} brandColor={brandColor} secondaryBrandColor={secondaryBrandColor} isLightMode={isLightMode} themeStyle={store.theme_style || 'industrial'} />
-
-      <LocationPanel 
-        businessName={store.business_name || 'Our Location'}
-        mapEmbedUrl={store.map_embed_url}
-        themeStyle={store.theme_style}
-        brandColor={brandColor}
-        isLightMode={isLightMode}
-        industryTag={store.industry_tag}
-      />
 
       <footer className="w-full py-8 px-6 border-t border-white/10 bg-zinc-950 text-[11px] font-mono text-zinc-500 uppercase tracking-widest flex flex-col md:flex-row items-center justify-between gap-6 relative z-20">
         <div className="flex items-center gap-4">
