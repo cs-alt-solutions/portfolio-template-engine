@@ -104,6 +104,9 @@ export default async function DynamicStorefront({
 
   if (error || !store) notFound();
 
+  // The Engine Mode Fork
+  const isHubMode = store.engine_mode === 'hub' || store.content_layout === 'hub';
+
   const isHeroFixed = store.is_hero_fixed === true;
   const hasValidLogo = typeof store.brand_logo === 'string' && store.brand_logo.trim() !== '';
   
@@ -139,7 +142,8 @@ export default async function DynamicStorefront({
 
   const hasAbout = !!store.about_bio || !!store.about_image || !!store.about_heading;
   const galleryTitle = store.gallery_heading || STOREFRONT_DEFAULTS?.GALLERY_HEADING || "Featured Work";
-  const heroButtonText = `View ${galleryTitle}`;
+  
+  const heroButtonText = isHubMode ? "Explore Departments" : `View ${galleryTitle}`;
 
   const rawSocialLinks = store.social_links || {};
   const activeSocials: SocialPlatform[] = Object.entries(rawSocialLinks)
@@ -186,51 +190,100 @@ export default async function DynamicStorefront({
         layout={layout} store={store} theme={theme} brandColor={brandColor} secondaryBrandColor={secondaryBrandColor}
         isHeroFixed={isHeroFixed} hasValidLogo={hasValidLogo} exploreLink={exploreLink} heroButtonText={heroButtonText}
         accentColorClass={accentColorClass} buttonBgClass={buttonBgClass} lineAccent={lineAccent}
+        isHubMode={isHubMode}
       />
 
-      {hasAbout && (
-        <div id="about" className="container mx-auto px-6 py-20">
-          <AboutSection 
-            data={{
-              heading: store.about_heading || STOREFRONT_DEFAULTS?.ABOUT_HEADING || 'About Us', 
-              bio: store.about_bio, imageUrl: store.about_image, brandColor: brandColor, secondaryBrandColor: secondaryBrandColor, socials: activeSocials, 
-              isLightMode: isLightMode, themeStyle: store.theme_style || 'industrial', aboutLayout: store.about_layout || 'split'
-            }} 
-          />
-        </div>
+      {/* 🚀 CONDITIONAL ARCHITECTURE PIPELINE 🚀 */}
+      {isHubMode ? (
+        <>
+          {/* HUB TIER: Departments directly overlap Hero -> THEN Parallax Gap -> THEN About Footer */}
+          <div id="gallery">
+            <ContentEngine 
+              layout="hub" 
+              themeStyle={store.theme_style || 'industrial'} 
+              brandColor={brandColor} 
+              secondaryBrandColor={secondaryBrandColor}
+              isLightMode={isLightMode} 
+              capabilitiesHeading={store.capabilities_heading || "Explore Departments"} 
+              galleryHeading={store.gallery_heading || "Departments"} 
+              capabilities={store.capabilities || []} 
+              galleryItems={formattedGalleryItems}
+              orderingUrl={store.ordering_url}
+              storefrontSlug={store.slug}
+              businessName={store.business_name}
+              contactEmail={store.contact_email}
+              heroImage={store.hero_image}
+              isHeroFixed={isHeroFixed}
+              operationalTerms={store.operational_terms}
+            />
+          </div>
+
+          {/* 🚀 THE FIX: The Parallax Gap is now correctly positioned AFTER the Departments */}
+          {isHeroFixed && store.hero_image && (
+            <div className="relative w-full h-[30vh] md:h-[40vh] border-y border-white/10 shadow-[inset_0_0_100px_rgba(0,0,0,0.8)]" style={{ clipPath: 'inset(0)' }}>
+              <div className="fixed inset-0 w-full h-full bg-cover bg-center opacity-50" style={{ backgroundImage: `url('${store.hero_image}')`, zIndex: -1 }} />
+              {theme.useBrandAccent && <div className={`absolute top-0 left-0 w-full h-1 ${lineAccent} opacity-50`} />}
+            </div>
+          )}
+
+          {hasAbout && (
+            <div id="about" className="container mx-auto px-6 py-24 border-t border-white/10 bg-zinc-950/50">
+              <AboutSection 
+                data={{
+                  heading: store.about_heading || STOREFRONT_DEFAULTS?.ABOUT_HEADING || 'About Us', 
+                  bio: store.about_bio, imageUrl: store.about_image, brandColor: brandColor, secondaryBrandColor: secondaryBrandColor, socials: activeSocials, 
+                  isLightMode: isLightMode, themeStyle: store.theme_style || 'industrial', aboutLayout: store.about_layout || 'split'
+                }} 
+              />
+            </div>
+          )}
+        </>
+      ) : (
+        <>
+          {/* STANDARD TIER: Classic flow (Hero -> Parallax Gap -> About -> Services -> Action Banner) */}
+          {isHeroFixed && store.hero_image && (
+            <div className="relative w-full h-[30vh] md:h-[40vh] border-y border-white/10 shadow-[inset_0_0_100px_rgba(0,0,0,0.8)]" style={{ clipPath: 'inset(0)' }}>
+              <div className="fixed inset-0 w-full h-full bg-cover bg-center opacity-50" style={{ backgroundImage: `url('${store.hero_image}')`, zIndex: -1 }} />
+              {theme.useBrandAccent && <div className={`absolute top-0 left-0 w-full h-1 ${lineAccent} opacity-50`} />}
+            </div>
+          )}
+
+          {hasAbout && (
+            <div id="about" className="container mx-auto px-6 py-20">
+              <AboutSection 
+                data={{
+                  heading: store.about_heading || STOREFRONT_DEFAULTS?.ABOUT_HEADING || 'About Us', 
+                  bio: store.about_bio, imageUrl: store.about_image, brandColor: brandColor, secondaryBrandColor: secondaryBrandColor, socials: activeSocials, 
+                  isLightMode: isLightMode, themeStyle: store.theme_style || 'industrial', aboutLayout: store.about_layout || 'split'
+                }} 
+              />
+            </div>
+          )}
+
+          <div id="gallery">
+            <ContentEngine 
+              layout={store.content_layout || 'classic'} 
+              themeStyle={store.theme_style || 'industrial'} 
+              brandColor={brandColor} 
+              secondaryBrandColor={secondaryBrandColor}
+              isLightMode={isLightMode} 
+              capabilitiesHeading={store.capabilities_heading || STOREFRONT_DEFAULTS?.CAPABILITIES_HEADING || "Services"} 
+              galleryHeading={store.gallery_heading || STOREFRONT_DEFAULTS?.GALLERY_HEADING || "Featured Work"} 
+              capabilities={store.capabilities || []} 
+              galleryItems={formattedGalleryItems}
+              orderingUrl={store.ordering_url}
+              storefrontSlug={store.slug}
+              businessName={store.business_name}
+              contactEmail={store.contact_email}
+              heroImage={store.hero_image}
+              isHeroFixed={isHeroFixed}
+              operationalTerms={store.operational_terms}
+            />
+          </div>
+
+          <StorefrontClientActions store={store} brandColor={brandColor} secondaryBrandColor={secondaryBrandColor} isLightMode={isLightMode} themeStyle={store.theme_style || 'industrial'} />
+        </>
       )}
-
-      {isHeroFixed && store.hero_image && (
-        <div className="relative w-full h-[30vh] md:h-[40vh] border-y border-white/10 shadow-[inset_0_0_100px_rgba(0,0,0,0.8)]" style={{ clipPath: 'inset(0)' }}>
-          <div className="fixed inset-0 w-full h-full bg-cover bg-center opacity-50" style={{ backgroundImage: `url('${store.hero_image}')`, zIndex: -1 }} />
-          {theme.useBrandAccent && <div className={`absolute top-0 left-0 w-full h-1 ${lineAccent} opacity-50`} />}
-        </div>
-      )}
-
-      <div id="gallery">
-        <ContentEngine 
-          layout={store.content_layout || 'classic'} 
-          themeStyle={store.theme_style || 'industrial'} 
-          brandColor={brandColor} 
-          secondaryBrandColor={secondaryBrandColor}
-          isLightMode={isLightMode} 
-          capabilitiesHeading={store.capabilities_heading || STOREFRONT_DEFAULTS?.CAPABILITIES_HEADING || "Services"} 
-          galleryHeading={store.gallery_heading || STOREFRONT_DEFAULTS?.GALLERY_HEADING || "Featured Work"} 
-          capabilities={store.capabilities || []} 
-          galleryItems={formattedGalleryItems}
-          orderingUrl={store.ordering_url}
-          
-          storefrontSlug={store.slug}
-          businessName={store.business_name}
-          contactEmail={store.contact_email}
-
-          heroImage={store.hero_image}
-          isHeroFixed={isHeroFixed}
-          operationalTerms={store.operational_terms}
-        />
-      </div>
-
-      <StorefrontClientActions store={store} brandColor={brandColor} secondaryBrandColor={secondaryBrandColor} isLightMode={isLightMode} themeStyle={store.theme_style || 'industrial'} />
 
       <footer className="w-full py-8 px-6 border-t border-white/10 bg-zinc-950 text-[11px] font-mono text-zinc-500 uppercase tracking-widest flex flex-col md:flex-row items-center justify-between gap-6 relative z-20">
         <div className="flex items-center gap-4">

@@ -2,9 +2,9 @@
 /* src/components/portfolio/content-engine/layouts/HubFlow.tsx */
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ArrowRight, CheckCircle2, ArrowUpRight } from 'lucide-react';
+import { ArrowRight, CheckCircle2, ArrowUpRight, Sparkles } from 'lucide-react';
 import UniversalLeadModal from '../../UniversalLeadModal';
 import { getFonts } from '../utils';
 import { THEME_REGISTRY } from '@/utils/themes';
@@ -37,12 +37,9 @@ interface HubFlowProps {
   brandColor?: string;
   secondaryBrandColor?: string;
   isLightMode?: boolean;
-  capabilitiesHeading?: string;
-  galleryHeading?: string;
   businessName?: string;
   storefrontSlug?: string;
   contactEmail?: string;
-  orderingUrl?: string;
 }
 
 export const slugifyDept = (text: string) =>
@@ -58,7 +55,6 @@ export default function HubFlow({
   themeStyle = 'industrial',
   brandColor = 'brand-primary',
   isLightMode = false,
-  capabilitiesHeading,
   businessName = 'Our Business',
   storefrontSlug = 'platform-direct',
   contactEmail = '',
@@ -85,9 +81,21 @@ export default function HubFlow({
   const [activeIndex, setActiveIndex] = useState(0);
   const [selectedDept, setSelectedDept] = useState<Capability | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
 
   const fonts = getFonts(themeStyle || 'industrial');
   const theme = THEME_REGISTRY[themeStyle || 'industrial'] || THEME_REGISTRY['industrial'];
+
+  // Auto-advancing live reel
+  useEffect(() => {
+    if (departments.length <= 1 || isPaused) return;
+
+    const timer = setInterval(() => {
+      setActiveIndex((current) => (current + 1) % departments.length);
+    }, 5000);
+
+    return () => clearInterval(timer);
+  }, [departments.length, isPaused]);
 
   if (departments.length === 0) {
     return (
@@ -117,166 +125,113 @@ export default function HubFlow({
     ? [selectedDept.title, ...departments.map((d) => d.title).filter((t) => t !== selectedDept.title)]
     : departments.map((d) => d.title).filter(Boolean);
 
-  const displayHeading =
-    !capabilitiesHeading || capabilitiesHeading === 'My Services' || capabilitiesHeading === 'Services'
-      ? 'Explore Our Departments'
-      : capabilitiesHeading;
-
   return (
-    <div className={`w-full py-20 px-4 md:px-8 ${theme?.pageBg || 'bg-zinc-950'}`}>
-      <div className="max-w-6xl mx-auto space-y-10">
+    <div className="w-full pb-16 md:pb-24 px-4 md:px-8 relative z-20">
+      
+      {/* Container with a clean offset spacing from the hero */}
+      <div className="w-full max-w-6xl mx-auto relative z-30 pt-6 md:pt-10 flex flex-col gap-8">
         
-        {/* Clean Section Header */}
-        <div className="text-center space-y-3 max-w-2xl mx-auto">
-          <h2 className={`text-3xl md:text-5xl font-black tracking-tight text-white ${fonts.heading}`}>
-            {displayHeading}
-          </h2>
-          <div className="w-16 h-1 bg-brand-primary mx-auto rounded-full opacity-80" />
-        </div>
-
-        {/* 1. Top Department Selector Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* 1. HORIZONTAL DEPARTMENT REEL SELECTOR (Pills at the top) */}
+        <div 
+          className="flex flex-wrap items-center justify-center gap-3"
+          onMouseEnter={() => setIsPaused(true)}
+          onMouseLeave={() => setIsPaused(false)}
+        >
           {departments.map((dept, idx) => {
             const isActive = idx === activeIndexSafe;
-            const deptCover =
-              dept.coverImage ||
-              safeGallery.find((g) => g && g.category === dept.title && g.imageUrl)?.imageUrl;
-
+            
             return (
-              <div
+              <button
                 key={idx}
                 onClick={() => setActiveIndex(idx)}
-                className={`group relative rounded-2xl overflow-hidden border transition-all duration-300 cursor-pointer min-h-36 p-5 flex flex-col justify-between bg-zinc-900/40 ${
+                className={`px-5 py-3 rounded-xl border text-xs font-bold uppercase tracking-wider transition-all duration-300 backdrop-blur-md flex items-center gap-2 cursor-pointer ${
                   isActive
-                    ? 'border-brand-primary ring-2 ring-brand-primary shadow-xl scale-[1.01]'
-                    : 'border-white/10 opacity-70 hover:opacity-100 hover:border-white/25'
+                    ? 'bg-brand-primary text-zinc-950 border-brand-primary shadow-[0_0_20px_rgba(var(--brand-primary-rgb),0.4)] scale-105'
+                    : 'bg-zinc-900/80 text-zinc-300 border-white/10 hover:bg-zinc-800 hover:text-white'
                 }`}
               >
-                {deptCover && (
-                  <div className="absolute inset-0 z-0 overflow-hidden">
-                    <img
-                      src={deptCover}
-                      alt={dept.title}
-                      className="w-full h-full object-cover opacity-35 group-hover:scale-105 transition-transform duration-500"
-                    />
-                    <div className="absolute inset-0 bg-linear-to-t from-black/95 via-black/50 to-black/20" />
-                  </div>
-                )}
-
-                <div className="relative z-10 flex items-center justify-between">
-                  <span
-                    className={`px-2.5 py-0.5 rounded text-[9px] font-mono font-bold uppercase tracking-widest border ${
-                      isActive
-                        ? 'bg-brand-primary text-white border-white/30'
-                        : 'bg-black/65 text-zinc-300 border-white/10'
-                    }`}
-                  >
-                    {isActive ? 'Viewing' : `0${idx + 1}`}
-                  </span>
-                </div>
-
-                <div className="relative z-10 mt-6">
-                  <h3 className={`text-base font-bold text-white leading-snug ${fonts.heading}`}>
-                    {dept.title}
-                  </h3>
-                </div>
-              </div>
+                <span className="font-mono opacity-70">0{idx + 1}</span>
+                <span>{dept.title}</span>
+              </button>
             );
           })}
         </div>
 
-        {/* 2. Department Preview Stage */}
+        {/* 2. THE PICTURE-FIRST CINEMATIC STAGE (Image on top, details below) */}
         {activeDept && (
-          <div className="rounded-3xl border p-6 md:p-10 transition-all duration-500 shadow-2xl bg-zinc-900/40 border-white/10">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-              
-              <div className="lg:col-span-7 space-y-6">
-                <div className="space-y-2">
-                  <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-400">
-                    Selected Department
+          <div 
+            className="rounded-[2.5rem] border border-white/10 bg-zinc-950/95 backdrop-blur-2xl overflow-hidden shadow-2xl transition-all duration-500 animate-in fade-in zoom-in-95 flex flex-col"
+            onMouseEnter={() => setIsPaused(true)}
+            onMouseLeave={() => setIsPaused(false)}
+          >
+            {/* Picture on Top */}
+            <div className="relative w-full aspect-video md:aspect-[21/9] bg-black overflow-hidden border-b border-white/10">
+              {activeCover ? (
+                <>
+                  <img
+                    key={activeCover}
+                    src={activeCover}
+                    alt={activeDept.title}
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-[5s] ease-in-out scale-100 hover:scale-105 animate-in fade-in duration-700"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/20 to-transparent" />
+                </>
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-zinc-900">
+                  <span className="text-xs font-mono uppercase tracking-widest text-zinc-500">
+                    {activeDept.title} Visual
                   </span>
+                </div>
+              )}
+              
+              {activeDept.price && (
+                <div className="absolute top-6 right-6 px-4 py-2 rounded-lg bg-black/80 backdrop-blur-md border border-white/10 text-brand-primary font-mono font-bold text-sm shadow-xl">
+                  {activeDept.price}
+                </div>
+              )}
+            </div>
 
-                  <h3 className={`text-2xl md:text-4xl font-black tracking-tight text-white ${fonts.heading}`}>
-                    {activeDept.title}
-                  </h3>
-
-                  {activeDept.description && (
-                    <p className={`text-sm md:text-base text-zinc-300 leading-relaxed pt-1 ${fonts.body}`}>
-                      {activeDept.description}
-                    </p>
-                  )}
+            {/* Details Below the Picture */}
+            <div className="p-8 md:p-12 flex flex-col md:flex-row md:items-center justify-between gap-8 relative z-10">
+              <div className="space-y-3 max-w-2xl">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-mono uppercase tracking-widest bg-white/5 border border-white/10 text-brand-primary">
+                  <Sparkles className="w-3 h-3 animate-pulse" />
+                  <span>Featured Department Stage</span>
                 </div>
 
-                {/* Deliverables Grid */}
-                {activeDept.bullets && activeDept.bullets.filter(Boolean).length > 0 && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-                    {activeDept.bullets.filter(Boolean).map((bullet, bIdx) => (
-                      <div
-                        key={bIdx}
-                        className="p-4 rounded-xl bg-black/30 border border-white/10 flex items-start gap-3"
-                      >
-                        <CheckCircle2 className="w-4 h-4 text-brand-primary shrink-0 mt-0.5" />
-                        <span className={`text-xs leading-relaxed text-zinc-200 ${fonts.body}`}>
-                          {bullet}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
+                <h3 className={`text-3xl md:text-4xl font-black tracking-tight text-white leading-tight ${fonts.heading}`}>
+                  {activeDept.title}
+                </h3>
+
+                {activeDept.description && (
+                  <p className={`text-sm md:text-base text-zinc-300 leading-relaxed ${fonts.body}`}>
+                    {activeDept.description}
+                  </p>
                 )}
-
-                {/* Clean Two-Button Action Row (High Contrast) */}
-                <div className="pt-4 flex flex-wrap items-center gap-4">
-                  <button
-                    type="button"
-                    onClick={() => handleOpenModal(activeDept)}
-                    className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-xl text-xs font-black uppercase tracking-widest bg-brand-primary text-white border border-white/25 hover:brightness-110 transition-all cursor-pointer shadow-lg"
-                  >
-                    <span>Request Info / Book</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
-
-                  <Link
-                    href={`/${storefrontSlug || 'store'}/${activeDeptSlug}`}
-                    prefetch={true}
-                    className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl text-xs font-bold uppercase tracking-widest bg-zinc-900 hover:bg-zinc-800 text-zinc-200 hover:text-white border border-white/15 transition-all"
-                  >
-                    <span>Open Full Page</span>
-                    <ArrowUpRight className="w-4 h-4 text-brand-primary" />
-                  </Link>
-                </div>
               </div>
 
-              {/* Clickable Spotlight Image */}
-              <div className="lg:col-span-5">
+              {/* Action Buttons */}
+              <div className="flex flex-wrap items-center gap-3 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => handleOpenModal(activeDept)}
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl text-xs font-black uppercase tracking-widest bg-brand-primary text-zinc-950 border-none hover:brightness-110 transition-all shadow-[0_0_20px_rgba(var(--brand-primary-rgb),0.3)] cursor-pointer"
+                >
+                  <span>Quick Inquiry</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+
                 <Link
                   href={`/${storefrontSlug || 'store'}/${activeDeptSlug}`}
                   prefetch={true}
-                  className="block group relative aspect-4/3 w-full rounded-2xl overflow-hidden border border-white/10 bg-zinc-900 shadow-xl"
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl text-xs font-bold uppercase tracking-widest bg-zinc-900 hover:bg-zinc-800 text-zinc-200 hover:text-white border border-white/10 transition-all shadow-md"
                 >
-                  {activeCover ? (
-                    <>
-                      <img
-                        src={activeCover}
-                        alt={activeDept.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      />
-                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                        <span className="px-4 py-2 rounded-full bg-black/80 text-white text-[10px] font-mono uppercase tracking-widest border border-white/20 flex items-center gap-1.5">
-                          Open Department Page <ArrowUpRight className="w-3.5 h-3.5 text-brand-primary" />
-                        </span>
-                      </div>
-                    </>
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <span className="text-xs font-mono uppercase tracking-widest text-zinc-500">
-                        {activeDept.title}
-                      </span>
-                    </div>
-                  )}
+                  <span>Open Full Page</span>
+                  <ArrowUpRight className="w-4 h-4 text-brand-primary" />
                 </Link>
               </div>
-
             </div>
+
           </div>
         )}
 

@@ -1,8 +1,8 @@
+/* src/components/portfolio/hero/HeroEngine.tsx */
 'use client';
 
 import React from 'react';
 import { ThemeDefinition } from '@/utils/themes';
-
 import CenterHero from './layouts/CenterHero';
 import SplitLeftHero from './layouts/SplitLeftHero';
 import SplitRightHero from './layouts/SplitRightHero';
@@ -34,6 +34,7 @@ export interface HeroEngineProps {
   accentColorClass: string;
   buttonBgClass: string;
   lineAccent: string;
+  isHubMode?: boolean; // 🚀 Added to compress the hero for the portal
 }
 
 export const getRawBgColor = (pageBg: string = '', isLightMode: boolean = false) => {
