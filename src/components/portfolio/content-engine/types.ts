@@ -29,7 +29,7 @@ export interface ContentLayoutProps {
   isLightMode: boolean;
   capabilitiesHeading: string;
   galleryHeading: string;
-  capabilities: (string | Capability)[];
+  capabilities: Capability[];
   galleryItems: GalleryItem[];
   orderingUrl?: string;
   storefrontSlug?: string;

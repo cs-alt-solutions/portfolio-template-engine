@@ -2,7 +2,7 @@
 'use client';
 
 import React from 'react';
-import { ContentLayoutProps } from './types';
+import { ContentLayoutProps, Capability } from './types';
 
 import ClassicFlow from './layouts/ClassicFlow';
 import BentoGridFlow from './layouts/BentoGridFlow';
@@ -13,8 +13,9 @@ import MenuFlow from './layouts/MenuFlow';
 import LookbookFlow from './layouts/LookbookFlow'; 
 import HubFlow from './layouts/HubFlow'; 
 
-interface ContentEngineProps extends ContentLayoutProps {
+interface ContentEngineProps extends Omit<ContentLayoutProps, 'capabilities'> {
   layout: string;
+  capabilities: (string | Capability)[];
 }
 
 export default function ContentEngine(props: ContentEngineProps) {
@@ -30,7 +31,11 @@ export default function ContentEngine(props: ContentEngineProps) {
     classic: ClassicFlow,
   };
 
+  const normalizedCapabilities: Capability[] = (props.capabilities || []).map((item) =>
+    typeof item === 'string' ? { title: item, description: '' } : item
+  );
+
   const SelectedFlow = FlowRegistry[props.layout] || ClassicFlow;
 
-  return <SelectedFlow {...props} />;
+  return <SelectedFlow {...props} capabilities={normalizedCapabilities} />;
 }
