@@ -3,10 +3,11 @@
 export interface Capability {
   title: string;
   description: string;
-  bullets?: string[];
   price?: string;
-  isAlaCarte?: boolean;
+  bullets?: string[];
+  isAlaCarte?: boolean; 
   coverImage?: string;
+  addons?: { title: string; price?: string; description?: string }[]; 
 }
 
 export interface GalleryItem {
@@ -16,27 +17,26 @@ export interface GalleryItem {
   description?: string;
   category?: string;
   price?: string;
-  isVisible?: boolean;
-  isRaw?: boolean;
-  addons?: { name: string; price: string }[];
+  isVisible?: boolean; 
+  isRaw?: boolean; 
+  addons?: { name: string; price: string }[]; 
 }
 
 export interface ContentLayoutProps {
   themeStyle: string;
   brandColor: string;
-  secondaryBrandColor?: string;
+  secondaryBrandColor?: string; 
   isLightMode: boolean;
   capabilitiesHeading: string;
   galleryHeading: string;
-  capabilities: Capability[];
+  capabilities: (string | Capability)[];
   galleryItems: GalleryItem[];
-  contentLayout?: 'classic' | 'bento' | 'sticky' | 'accordion' | 'editorial' | 'menu' | 'lookbook' | 'hub';
-  aboutLayout?: 'split' | 'editorial' | 'minimal' | 'card';
   orderingUrl?: string;
   storefrontSlug?: string;
-  businessName?: string;
   contactEmail?: string;
+  businessName?: string;
   heroImage?: string;
   isHeroFixed?: boolean;
   operationalTerms?: { title: string; description: string; fees?: { name: string; price: string }[] }[];
+  industryTag?: string;
 }

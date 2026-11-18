@@ -1,149 +1,226 @@
-// src/components/portfolio/Capabilities.tsx
+/* src/components/portfolio/Capabilities.tsx */
 'use client';
 
 import React, { useState } from 'react';
-import { getFonts, getThemeBullet } from './content-engine/utils';
-import { Info, Image as ImageIcon, ArrowRight } from 'lucide-react';
+import { THEME_REGISTRY } from '@/utils/themes';
+import { STOREFRONT_DEFAULTS } from '@/utils/glossary';
+import { Eye, Sparkles } from 'lucide-react';
 import ServiceProofModal, { GalleryItem } from './ServiceProofModal';
 
 export interface Capability {
   title: string;
   description: string;
+  price?: string;
   bullets?: string[];
-}
-
-interface ModalServiceState {
-  title: string;
-  images: GalleryItem[];
-  desc?: string;
+  isAlaCarte?: boolean;
 }
 
 interface CapabilitiesProps {
-  items?: Capability[];
+  heading?: string;
+  items: (string | Capability)[];
   galleryItems?: GalleryItem[];
   themeStyle?: string;
   brandColor?: string;
   secondaryBrandColor?: string;
-  businessName?: string; // 🚨 ADDED
+  businessName?: string; 
 }
 
 export default function Capabilities({ 
+  heading, 
   items, 
-  galleryItems = [], 
+  galleryItems = [],
   themeStyle = 'industrial', 
   brandColor = 'cyan-500',
   secondaryBrandColor,
-  businessName
+  businessName = 'Client' 
 }: CapabilitiesProps) {
-  const [activeModalService, setActiveModalService] = useState<ModalServiceState | null>(null);
+  const [selectedServiceForProof, setSelectedServiceForProof] = useState<string | null>(null);
 
   if (!items || items.length === 0) return null;
 
-  const isLightMode = ['elegant', 'minimal', 'organic', 'editorial'].includes(themeStyle);
-  const isNeo = themeStyle === 'neo';
-  const isCyber = themeStyle === 'cyberpunk';
-  const isIndustrial = themeStyle === 'industrial';
-  const isMidnight = themeStyle === 'midnight';
+  const theme = THEME_REGISTRY[themeStyle] || THEME_REGISTRY['industrial'];
+  const isLightMode = Boolean(theme.isLightMode);
 
-  const fonts = getFonts(themeStyle);
-  const brandTextColor = `text-${brandColor}`;
   const activeSecondary = secondaryBrandColor || brandColor;
+  const isCustomHex = activeSecondary.startsWith('#');
+  const secHex = isCustomHex ? activeSecondary : undefined;
 
-  const getCardStyles = () => {
-    if (themeStyle === 'elegant') return 'bg-white border border-zinc-200 hover:border-zinc-400 hover:shadow-[0_20px_50px_rgba(0,0,0,0.08)] rounded-sm p-8 md:p-10 transition-all hover:-translate-y-1';
-    if (themeStyle === 'organic') return 'bg-[#EAE5D9] border border-[#4A5D4E]/10 hover:border-[#4A5D4E]/40 hover:shadow-xl rounded-[30px] p-8 md:p-10 transition-all hover:-translate-y-1';
-    if (themeStyle === 'editorial') return 'bg-transparent border-t-2 border-b-2 border-black hover:bg-black/5 rounded-none p-8 md:p-10 transition-all';
-    if (isNeo) return 'bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-1 hover:shadow-none rounded-none p-8 md:p-10 transition-all';
-    if (isIndustrial) return 'bg-zinc-900 border-2 border-zinc-700 shadow-[8px_8px_0_0_rgba(0,0,0,0.5)] hover:-translate-y-1 rounded-none p-8 md:p-10 transition-all';
-    if (isMidnight) return 'bg-zinc-900/30 backdrop-blur-2xl border border-white/5 shadow-2xl hover:bg-zinc-900/40 hover:shadow-[0_0_30px_rgba(255,255,255,0.05)] hover:-translate-y-1 rounded-2xl p-8 md:p-10 transition-all';
-    if (isCyber) return `bg-black/60 border border-white/10 hover:border-${brandColor} hover:shadow-[0_0_30px_rgba(var(--tw-colors-${brandColor}),0.2)] rounded-none p-8 md:p-10 transition-all`;
-    if (isLightMode) return 'bg-white/50 border border-stone-200 hover:border-stone-300 hover:shadow-2xl rounded-3xl hover:-translate-y-1 p-8 md:p-10 transition-all';
-    
-    return 'bg-zinc-900/60 border border-zinc-800 hover:border-zinc-700 hover:bg-zinc-900/80 hover:shadow-2xl rounded-3xl hover:-translate-y-1 p-8 md:p-10 transition-all';
+  const isBrutalist = themeStyle?.startsWith('neo');
+  const isEditorial = themeStyle === 'editorial';
+
+  const secAccent = (isBrutalist || isEditorial)
+    ? (isLightMode ? 'text-black' : 'text-white')
+    : (isCustomHex ? 'text-(--sec-brand-hex)' : `text-${activeSecondary}`);
+
+  const secBorder = (isBrutalist || isEditorial)
+    ? (isLightMode ? 'border-black' : 'border-white')
+    : (isCustomHex ? 'border-(--sec-brand-hex)' : `border-${activeSecondary}`);
+
+  const cardSurface = (theme as unknown as { cardStyle?: string; cardBg?: string }).cardStyle || 
+                      (theme as unknown as { cardBg?: string }).cardBg || 
+                      (isLightMode ? 'bg-white border border-zinc-200 rounded-2xl' : 'bg-zinc-900/60 border border-white/10 rounded-2xl');
+
+  const normalizedItems: Capability[] = items.map(item => 
+    typeof item === 'string' ? { title: item, description: '' } : item
+  );
+
+  const packages = normalizedItems.filter(item => !item.isAlaCarte);
+  const addons = normalizedItems.filter(item => item.isAlaCarte);
+
+  const parsedGallery: GalleryItem[] = galleryItems.map(item => 
+    typeof item === 'string' ? { imageUrl: item, title: '', description: '', category: '' } : item
+  );
+
+  const activeProofImages = selectedServiceForProof 
+    ? parsedGallery.filter(img => img.category?.toLowerCase() === selectedServiceForProof.toLowerCase())
+    : [];
+
+  // Build props safely for ServiceProofModal regardless of which prop signature it expects
+  const modalProps = {
+    isOpen: !!selectedServiceForProof,
+    onClose: () => setSelectedServiceForProof(null),
+    serviceName: selectedServiceForProof || '',
+    serviceTitle: selectedServiceForProof || '',
+    images: activeProofImages,
+    themeStyle,
+    brandColor: activeSecondary,
+    isLightMode,
+    businessName,
+    theme,
   };
 
-  const isSharpTheme = isIndustrial || isNeo || isCyber || themeStyle === 'editorial' || themeStyle === 'elegant';
-
-  const getAttachedImages = (serviceTitle: string): GalleryItem[] => {
-    return (galleryItems || []).filter((item: GalleryItem) => item.category === serviceTitle);
-  };
+  const SafeServiceProofModal = ServiceProofModal as unknown as React.ComponentType<typeof modalProps>;
 
   return (
-    <div className="w-full max-w-6xl mx-auto">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {items.map((item, i) => {
-          const attachedImages = getAttachedImages(item.title);
-          const hasProof = attachedImages.length > 0;
+    <section className={`py-24 px-6 border-t border-white/5 relative z-10 ${theme.pageBg}`}>
+      <div className="max-w-7xl mx-auto">
+        {heading && (
+          <div className="flex flex-col items-center text-center mb-16">
+            <h2 
+              className={`${theme.accentText} ${secAccent} mb-4 flex items-center justify-center gap-3`}
+              style={secHex ? { color: secHex } : undefined}
+            >
+              <div className="w-2 h-2 rounded-full bg-current opacity-70" />
+              {STOREFRONT_DEFAULTS.CAPABILITIES_HEADING || 'What We Do'}
+              <div className="w-2 h-2 rounded-full bg-current opacity-70" />
+            </h2>
+            <h3 className={`text-4xl md:text-5xl ${theme.primaryText}`}>{heading}</h3>
+          </div>
+        )}
 
-          return (
-            <div key={i} className={`flex flex-col justify-between h-full ${getCardStyles()}`}>
-              <div>
-                <div className="flex items-start justify-between gap-4 mb-4">
-                  <h4 className={`text-2xl md:text-3xl ${fonts.heading} ${isLightMode ? 'text-zinc-900' : 'text-zinc-100'}`}>
-                    {item.title}
-                  </h4>
-                  {hasProof && (
-                    <button
-                      onClick={() => setActiveModalService({ title: item.title, images: attachedImages, desc: item.description })}
-                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 ${isSharpTheme ? 'rounded-sm' : 'rounded-full'} text-[10px] font-mono font-bold uppercase tracking-widest transition-all shadow-sm shrink-0 hover:scale-105 ${
-                        isLightMode 
-                          ? `bg-zinc-900 text-white hover:bg-${activeSecondary} hover:text-zinc-950`
-                          : `bg-white/10 border border-white/20 text-white hover:bg-${activeSecondary} hover:text-zinc-950 hover:border-${activeSecondary}`
-                      }`}
-                      title="Click to view visual proof of work"
-                    >
-                      <Info className="w-3.5 h-3.5" />
-                      <span className="hidden sm:inline">Proof ({attachedImages.length})</span>
-                      <span className="sm:hidden">{attachedImages.length}</span>
-                    </button>
-                  )}
-                </div>
-                
-                {item.description && (
-                  <p className={`text-base md:text-lg leading-relaxed mb-6 ${fonts.body} ${isLightMode ? 'text-zinc-600' : 'text-zinc-300'} ${['elegant', 'organic'].includes(themeStyle) ? 'italic' : ''}`}>
-                    {item.description}
-                  </p>
-                )}
-                
-                {item.bullets && item.bullets.length > 0 && (
-                  <ul className={`space-y-4 pt-6 border-t ${isLightMode ? 'border-zinc-200' : 'border-zinc-800'} ${fonts.body} mb-6`}>
-                    {item.bullets.map((b, bIdx) => (
-                      <li key={bIdx} className="flex items-start gap-4">
-                        {getThemeBullet(themeStyle, bIdx % 2 === 0 ? brandTextColor : `text-${activeSecondary}`)}
-                        <span className={`text-base md:text-lg leading-relaxed ${isLightMode ? 'text-zinc-800' : 'text-zinc-200'}`}>{b}</span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-              
-              {hasProof && (
-                <button
-                  onClick={() => setActiveModalService({ title: item.title, images: attachedImages, desc: item.description })}
-                  className={`w-full mt-auto py-3 px-4 border ${isSharpTheme ? 'rounded-sm' : 'rounded-xl'} text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-all ${
-                    isLightMode 
-                      ? `bg-zinc-100 border-zinc-300 text-zinc-800 hover:bg-${activeSecondary} hover:text-zinc-950 hover:border-transparent hover:shadow-lg`
-                      : `bg-black/40 border-white/10 text-zinc-300 hover:bg-${activeSecondary} hover:text-zinc-950 hover:border-transparent hover:shadow-lg`
+        {/* 1. CORE PACKAGES GRID */}
+        {packages.length > 0 && (
+          <div className="flex flex-wrap justify-center gap-6">
+            {packages.map((item, idx) => {
+              const matchingImages = parsedGallery.filter(
+                img => img.category && img.category.toLowerCase() === item.title.toLowerCase()
+              );
+              const hasProof = matchingImages.length > 0;
+              const hasBullets = item.bullets && item.bullets.filter(b => b.trim() !== '').length > 0;
+
+              return (
+                <div 
+                  key={idx} 
+                  onClick={() => { if (hasProof) setSelectedServiceForProof(item.title); }}
+                  style={hasProof && secHex ? { borderColor: secHex } : undefined}
+                  className={`w-full md:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)] p-8 transition-all duration-300 relative overflow-hidden flex flex-col justify-between ${cardSurface} ${
+                    hasProof ? `cursor-pointer group hover:-translate-y-1 hover:${secBorder}` : ''
                   }`}
                 >
-                  <ImageIcon className="w-4 h-4" /> View Gallery <ArrowRight className="w-3.5 h-3.5" />
-                </button>
-              )}
+                  <div>
+                    <div className="flex justify-between items-start mb-6">
+                      <div 
+                        className={`text-xs font-mono opacity-40 px-2.5 py-1 rounded border border-current ${secAccent}`}
+                        style={secHex ? { color: secHex, borderColor: secHex } : undefined}
+                      >
+                        0{idx + 1}
+                      </div>
+                      
+                      <div className="flex items-center gap-2">
+                        {item.price && (
+                          <span 
+                            className={`px-3 py-1 rounded-full text-xs font-mono font-bold tracking-wider border border-current/20 bg-current/5 ${secAccent}`}
+                            style={secHex ? { color: secHex, borderColor: `${secHex}40`, backgroundColor: `${secHex}10` } : undefined}
+                          >
+                            {item.price}
+                          </span>
+                        )}
+                        {hasProof && (
+                          <div 
+                            className={`flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest px-2.5 py-1 rounded-full border border-current/20 bg-current/5 opacity-70 group-hover:opacity-100 transition-opacity ${secAccent}`}
+                            style={secHex ? { color: secHex, borderColor: `${secHex}40`, backgroundColor: `${secHex}10` } : undefined}
+                          >
+                            <Eye size={12} /> Proof ({matchingImages.length})
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <h4 className={`text-xl font-bold mb-3 ${theme.primaryText} transition-colors`}>
+                      {item.title}
+                    </h4>
+                    
+                    {item.description && (
+                      <p className={`text-sm leading-relaxed ${isLightMode ? 'text-zinc-600' : 'text-zinc-400'}`}>
+                        {item.description}
+                      </p>
+                    )}
+                  </div>
+
+                  {hasBullets && (
+                    <ul className="mt-6 space-y-2.5 border-t border-current/10 pt-5">
+                      {item.bullets!.filter(b => b.trim() !== '').map((bullet, bIdx) => (
+                        <li key={bIdx} className={`text-xs flex items-start gap-2.5 ${isLightMode ? 'text-zinc-700' : 'text-zinc-300'}`}>
+                          <span 
+                            className={`mt-1.5 w-1.5 h-1.5 rounded-full bg-current shrink-0 ${secAccent}`} 
+                            style={secHex ? { backgroundColor: secHex } : undefined}
+                          />
+                          <span className="leading-relaxed">{bullet}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* 2. FLEXIBLE UPGRADES (ADD-ONS) GRID */}
+        {addons.length > 0 && (
+          <div className="mt-16 pt-16 border-t border-white/5">
+            <div className="flex items-center justify-center gap-2 mb-8">
+              <Sparkles className={`w-4 h-4 ${secAccent}`} style={secHex ? { color: secHex } : undefined} />
+              <h4 className={`text-sm font-bold uppercase tracking-widest ${theme.primaryText}`}>Flexible Upgrades & Add-ons</h4>
             </div>
-          );
-        })}
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-5xl mx-auto">
+              {addons.map((addon, idx) => (
+                <div key={idx} className={`p-5 rounded-xl border border-white/5 flex flex-col justify-between gap-3 ${cardSurface} opacity-90 hover:opacity-100 transition-opacity`}>
+                  <div className="flex items-start justify-between gap-2">
+                    <span className={`font-bold text-sm ${theme.primaryText}`}>{addon.title}</span>
+                    {addon.price && (
+                      <span 
+                        className={`text-xs font-mono font-bold px-2 py-0.5 rounded bg-current/10 shrink-0 ${secAccent}`}
+                        style={secHex ? { color: secHex, backgroundColor: `${secHex}15` } : undefined}
+                      >
+                        {addon.price}
+                      </span>
+                    )}
+                  </div>
+                  {addon.description && (
+                    <p className={`text-xs leading-relaxed ${isLightMode ? 'text-zinc-600' : 'text-zinc-400'}`}>
+                      {addon.description}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
-      <ServiceProofModal
-        isOpen={!!activeModalService}
-        onClose={() => setActiveModalService(null)}
-        title={activeModalService?.title || ''}
-        images={activeModalService?.images || []}
-        description={activeModalService?.desc}
-        themeStyle={themeStyle}
-        brandColor={brandColor}
-        businessName={businessName} // 🚨 PASSING PROP TO FIX ERROR
-      />
-    </div>
+      <SafeServiceProofModal {...modalProps} />
+    </section>
   );
 }

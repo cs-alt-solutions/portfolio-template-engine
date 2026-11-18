@@ -9,13 +9,12 @@ import BentoGridFlow from './layouts/BentoGridFlow';
 import StickyScrollFlow from './layouts/StickyScrollFlow';
 import EditorialHoverFlow from './layouts/EditorialHoverFlow';
 import AccordionFlow from './layouts/AccordionFlow';
-import MenuFlow from './layouts/MenuFlow';
-import LookbookFlow from './layouts/LookbookFlow';
-import HubFlow from './layouts/HubFlow'; // 🚀 DEPARTMENT HUB FLOW
+import MenuFlow from './layouts/MenuFlow'; 
+import LookbookFlow from './layouts/LookbookFlow'; 
+import HubFlow from './layouts/HubFlow'; 
 
 interface ContentEngineProps extends ContentLayoutProps {
   layout: string;
-  orderingUrl?: string;
 }
 
 export default function ContentEngine(props: ContentEngineProps) {
@@ -27,7 +26,7 @@ export default function ContentEngine(props: ContentEngineProps) {
     accordion: AccordionFlow,
     menu: MenuFlow,
     lookbook: LookbookFlow,
-    hub: HubFlow, // 🚀 REGISTERED
+    hub: HubFlow, 
     classic: ClassicFlow,
   };
 

@@ -13,6 +13,7 @@ import ContentEngine from '@/components/portfolio/content-engine';
 import PrototypeTourGuide from '@/components/portfolio/PrototypeTourGuide';
 import StorefrontClientActions from '../../components/portfolio/StorefrontClientActions';
 import StagingReviewOverlay from '@/components/portfolio/staging-review/StagingReviewOverlay';
+import StorefrontAnalyticsBeacon from '@/components/portfolio/StorefrontAnalyticsBeacon';
 import { Send } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
@@ -95,6 +96,7 @@ export default async function DynamicStorefront({
   const slug = resolvedParams.slug;
   const resolvedSearchParams = await searchParams;
   const isCanvasMode = resolvedSearchParams?.mode === 'canvas';
+  const isAuditMode = resolvedSearchParams?.mode === 'audit';
 
   const { data: store, error } = await supabase
     .from('storefronts')
@@ -185,6 +187,13 @@ export default async function DynamicStorefront({
         '--brand-secondary': secondaryHex 
       } as React.CSSProperties}
     >
+      {/* NATIVE PER-STOREFRONT ANALYTICS BEACON */}
+      <StorefrontAnalyticsBeacon 
+        storefrontId={store.id} 
+        slug={store.slug} 
+        isCanvasMode={isCanvasMode} 
+        isAuditMode={isAuditMode} 
+      />
       
       <HeroEngine 
         layout={layout} store={store} theme={theme} brandColor={brandColor} secondaryBrandColor={secondaryBrandColor}
@@ -193,7 +202,7 @@ export default async function DynamicStorefront({
         isHubMode={isHubMode}
       />
 
-      {/* 🚀 CONDITIONAL ARCHITECTURE PIPELINE 🚀 */}
+      {/* CONDITIONAL ARCHITECTURE PIPELINE */}
       {isHubMode ? (
         <>
           {/* HUB TIER: Departments directly overlap Hero -> THEN Parallax Gap -> THEN About Footer */}
@@ -215,10 +224,10 @@ export default async function DynamicStorefront({
               heroImage={store.hero_image}
               isHeroFixed={isHeroFixed}
               operationalTerms={store.operational_terms}
+              industryTag={store.industry_tag}
             />
           </div>
 
-          {/* 🚀 THE FIX: The Parallax Gap is now correctly positioned AFTER the Departments */}
           {isHeroFixed && store.hero_image && (
             <div className="relative w-full h-[30vh] md:h-[40vh] border-y border-white/10 shadow-[inset_0_0_100px_rgba(0,0,0,0.8)]" style={{ clipPath: 'inset(0)' }}>
               <div className="fixed inset-0 w-full h-full bg-cover bg-center opacity-50" style={{ backgroundImage: `url('${store.hero_image}')`, zIndex: -1 }} />
@@ -278,6 +287,7 @@ export default async function DynamicStorefront({
               heroImage={store.hero_image}
               isHeroFixed={isHeroFixed}
               operationalTerms={store.operational_terms}
+              industryTag={store.industry_tag}
             />
           </div>
 

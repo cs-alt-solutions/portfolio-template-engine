@@ -1,9 +1,22 @@
+/* src/app/layout.tsx */
 import type { Metadata } from "next";
+import { Geist, Geist_Mono } from "next/font/google";
+import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
 
+const geistSans = Geist({
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
+});
+
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
+
 export const metadata: Metadata = {
-  title: "ASIO Premium Network",
-  description: "Built by Alternative Solutions",
+  title: "Alternative Solutions | Storefront Engine",
+  description: "Bespoke multi-tenant digital storefronts powered by Alternative Solutions.",
 };
 
 export default function RootLayout({
@@ -12,10 +25,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      {/* We moved the background color and text color directly onto the body tag! */}
-      <body className="bg-zinc-950 text-zinc-50 antialiased overflow-x-hidden">
+    <html
+      lang="en"
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+    >
+      <body className="min-h-full flex flex-col">
         {children}
+        <Analytics />
       </body>
     </html>
   );
