@@ -8,6 +8,7 @@ import { THEME_REGISTRY } from '@/utils/themes';
 import { STOREFRONT_DEFAULTS } from '@/utils/glossary';
 
 import HeroEngine from '@/components/portfolio/hero/HeroEngine';
+import HubStage from '@/components/portfolio/HubStage';
 import AboutSection from '@/components/portfolio/AboutSection';
 import ContentEngine from '@/components/portfolio/content-engine';
 import PrototypeTourGuide from '@/components/portfolio/PrototypeTourGuide';
@@ -66,7 +67,8 @@ const HERO_NAMES: Record<string, string> = {
   'editorial-frame': 'Editorial Frame',
   'arch-spotlight': 'Arch Spotlight',
   'bento-hero': 'Bento Collage',
-  'bottom-dock': 'Floating Dock',
+  'bottom-dock': 'Bottom Dock',
+  'top-dock': 'Top Dock',
   'minimal-type': 'Kinetic Type',
 };
 
@@ -211,51 +213,40 @@ export default async function DynamicStorefront({
         isAuditMode={isAuditMode}
       />
 
-      <HeroEngine
-        layout={layout}
-        store={store}
-        theme={theme}
-        brandColor={brandColor}
-        secondaryBrandColor={secondaryBrandColor}
-        isHeroFixed={isHeroFixed}
-        hasValidLogo={hasValidLogo}
-        exploreLink={exploreLink}
-        heroButtonText={heroButtonText}
-        accentColorClass={accentColorClass}
-        buttonBgClass={buttonBgClass}
-        lineAccent={lineAccent}
-        isHubMode={isHubMode}
-        galleryItems={formattedGalleryItems}
-      />
-
       {isHubMode ? (
         <>
-          <div id="gallery">
-            <ContentEngine
-              layout="hub"
-              themeStyle={store.theme_style || 'industrial'}
-              brandColor={brandColor}
-              secondaryBrandColor={secondaryBrandColor}
-              isLightMode={isLightMode}
-              capabilitiesHeading={store.capabilities_heading || 'Explore Departments'}
-              galleryHeading={store.gallery_heading || 'Departments'}
-              capabilities={store.capabilities || []}
-              galleryItems={formattedGalleryItems}
-              orderingUrl={store.ordering_url}
-              storefrontSlug={store.slug}
-              businessName={store.business_name}
-              contactEmail={store.contact_email}
-              heroImage={store.hero_image}
-              isHeroFixed={isHeroFixed}
-              operationalTerms={store.operational_terms}
-              industryTag={store.industry_tag}
-            />
-          </div>
+          {/* HUB TIER: Synchronized Hero Backdrop + Image-Free Department Switcher */}
+          <HubStage
+            heroProps={{
+              layout,
+              store,
+              theme,
+              brandColor,
+              secondaryBrandColor,
+              isHeroFixed,
+              hasValidLogo,
+              exploreLink,
+              heroButtonText,
+              accentColorClass,
+              buttonBgClass,
+              lineAccent,
+              galleryItems: formattedGalleryItems,
+            }}
+            capabilities={store.capabilities || []}
+            galleryItems={formattedGalleryItems}
+            themeStyle={store.theme_style || 'industrial'}
+            brandColor={brandColor}
+            secondaryBrandColor={secondaryBrandColor}
+            isLightMode={isLightMode}
+            businessName={store.business_name}
+            storefrontSlug={store.slug}
+            contactEmail={store.contact_email}
+          />
 
           {isHeroFixed && store.hero_image && (
             <div className="relative w-full h-[30vh] md:h-[40vh] border-y border-white/10 shadow-[inset_0_0_100px_rgba(0,0,0,0.8)]" style={{ clipPath: 'inset(0)' }}>
-              <div className="fixed inset-0 w-full h-full bg-cover bg-center opacity-50" style={{ backgroundImage: `url('${store.hero_image}')`, zIndex: -1 }} />
-              {theme.useBrandAccent && <div className={`absolute top-0 left-0 w-full h-1 ${lineAccent} opacity-50`} />}
+              <div className="fixed inset-0 w-full h-full bg-cover bg-center opacity-50 pointer-events-none" style={{ backgroundImage: `url('${store.hero_image}')` }} />
+              {theme.useBrandAccent && <div className={`absolute top-0 left-0 w-full h-1 z-10 ${lineAccent} opacity-50`} />}
             </div>
           )}
 
@@ -284,10 +275,28 @@ export default async function DynamicStorefront({
         </>
       ) : (
         <>
+          {/* STANDARD TIER: Classic Flow */}
+          <HeroEngine
+            layout={layout}
+            store={store}
+            theme={theme}
+            brandColor={brandColor}
+            secondaryBrandColor={secondaryBrandColor}
+            isHeroFixed={isHeroFixed}
+            hasValidLogo={hasValidLogo}
+            exploreLink={exploreLink}
+            heroButtonText={heroButtonText}
+            accentColorClass={accentColorClass}
+            buttonBgClass={buttonBgClass}
+            lineAccent={lineAccent}
+            isHubMode={false}
+            galleryItems={formattedGalleryItems}
+          />
+
           {isHeroFixed && store.hero_image && (
             <div className="relative w-full h-[30vh] md:h-[40vh] border-y border-white/10 shadow-[inset_0_0_100px_rgba(0,0,0,0.8)]" style={{ clipPath: 'inset(0)' }}>
-              <div className="fixed inset-0 w-full h-full bg-cover bg-center opacity-50" style={{ backgroundImage: `url('${store.hero_image}')`, zIndex: -1 }} />
-              {theme.useBrandAccent && <div className={`absolute top-0 left-0 w-full h-1 ${lineAccent} opacity-50`} />}
+              <div className="fixed inset-0 w-full h-full bg-cover bg-center opacity-50 pointer-events-none" style={{ backgroundImage: `url('${store.hero_image}')` }} />
+              {theme.useBrandAccent && <div className={`absolute top-0 left-0 w-full h-1 z-10 ${lineAccent} opacity-50`} />}
             </div>
           )}
 

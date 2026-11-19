@@ -12,6 +12,7 @@ import EditorialFrameHero from './layouts/EditorialFrameHero';
 import ArchSpotlightHero from './layouts/ArchSpotlightHero';
 import BentoHero from './layouts/BentoHero';
 import BottomDockHero from './layouts/BottomDockHero';
+import TopDockHero from './layouts/TopDockHero';
 import MinimalTypeHero from './layouts/MinimalTypeHero';
 
 export interface StorefrontHeroData {
@@ -130,6 +131,7 @@ export default function HeroEngine(props: HeroEngineProps) {
     'arch-spotlight': ArchSpotlightHero,
     'bento-hero': BentoHero,
     'bottom-dock': BottomDockHero,
+    'top-dock': TopDockHero,
     'minimal-type': MinimalTypeHero,
   };
 

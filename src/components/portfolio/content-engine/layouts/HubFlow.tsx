@@ -8,26 +8,7 @@ import { ArrowRight, CheckCircle2, ArrowUpRight, Sparkles } from 'lucide-react';
 import UniversalLeadModal from '../../UniversalLeadModal';
 import { getFonts } from '../utils';
 import { THEME_REGISTRY } from '@/utils/themes';
-
-interface Capability {
-  title: string;
-  description?: string;
-  price?: string;
-  bullets?: string[];
-  addons?: Array<{ title?: string; name?: string; price?: string } | string>;
-  coverImage?: string;
-  isAlaCarte?: boolean;
-}
-
-interface GalleryItem {
-  id: string;
-  imageUrl?: string;
-  title?: string;
-  description?: string;
-  category?: string;
-  price?: string;
-  isVisible?: boolean;
-}
+import { Capability, GalleryItem } from '../types';
 
 interface HubFlowProps {
   items?: Capability[];
@@ -40,6 +21,11 @@ interface HubFlowProps {
   businessName?: string;
   storefrontSlug?: string;
   contactEmail?: string;
+  // Controlled props when synced with Hero via HubStage
+  controlledActiveIndex?: number;
+  onSelectIndex?: (index: number) => void;
+  onHoverChange?: (hovered: boolean) => void;
+  hideStageImage?: boolean;
 }
 
 export const slugifyDept = (text: string) =>
@@ -58,6 +44,10 @@ export default function HubFlow({
   businessName = 'Our Business',
   storefrontSlug = 'platform-direct',
   contactEmail = '',
+  controlledActiveIndex,
+  onSelectIndex,
+  onHoverChange,
+  hideStageImage = false,
 }: HubFlowProps) {
   const rawList = [...(items || []), ...(capabilities || [])];
   const safeItems = rawList.filter(
@@ -78,28 +68,27 @@ export default function HubFlow({
     }));
   }
 
-  const [activeIndex, setActiveIndex] = useState(0);
+  const isControlled = typeof controlledActiveIndex === 'number';
+  const [internalIndex, setInternalIndex] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
   const [selectedDept, setSelectedDept] = useState<Capability | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isPaused, setIsPaused] = useState(false);
 
   const fonts = getFonts(themeStyle || 'industrial');
   const theme = THEME_REGISTRY[themeStyle || 'industrial'] || THEME_REGISTRY['industrial'];
 
-  // Auto-advancing live reel
+  // Fallback internal reel only when rendered standalone outside HubStage
   useEffect(() => {
-    if (departments.length <= 1 || isPaused) return;
-
+    if (isControlled || departments.length <= 1 || isPaused) return;
     const timer = setInterval(() => {
-      setActiveIndex((current) => (current + 1) % departments.length);
+      setInternalIndex((current) => (current + 1) % departments.length);
     }, 5000);
-
     return () => clearInterval(timer);
-  }, [departments.length, isPaused]);
+  }, [isControlled, departments.length, isPaused]);
 
   if (departments.length === 0) {
     return (
-      <div className={`w-full py-20 px-4 text-center ${theme?.pageBg || 'bg-zinc-950'} text-white`}>
+      <div className={`w-full py-16 px-4 text-center ${theme?.pageBg || 'bg-zinc-950'}`}>
         <p className="text-xs font-mono text-zinc-500 uppercase tracking-widest">
           No departments configured for this storefront yet.
         </p>
@@ -107,13 +96,24 @@ export default function HubFlow({
     );
   }
 
-  const activeIndexSafe = Math.min(activeIndex, departments.length - 1);
+  const currentIdx = isControlled ? controlledActiveIndex : internalIndex;
+  const activeIndexSafe = Math.min(currentIdx, departments.length - 1);
   const activeDept = departments[activeIndexSafe] || departments[0];
   const activeDeptSlug = slugifyDept(activeDept?.title || '');
 
   const activeCover =
     activeDept?.coverImage ||
     safeGallery.find((g) => g && g.category === activeDept?.title && g.imageUrl)?.imageUrl;
+
+  const handleSelect = (idx: number) => {
+    if (onSelectIndex) onSelectIndex(idx);
+    else setInternalIndex(idx);
+  };
+
+  const handleHover = (hovered: boolean) => {
+    setIsPaused(hovered);
+    if (onHoverChange) onHoverChange(hovered);
+  };
 
   const handleOpenModal = (dept: Capability) => {
     setSelectedDept(dept);
@@ -125,29 +125,44 @@ export default function HubFlow({
     ? [selectedDept.title, ...departments.map((d) => d.title).filter((t) => t !== selectedDept.title)]
     : departments.map((d) => d.title).filter(Boolean);
 
+  // Theme-aware surfaces
+  const panelSurface = isLightMode
+    ? 'bg-white/95 border-zinc-900/10 text-zinc-900 shadow-xl'
+    : 'bg-zinc-950/90 border-white/10 text-white shadow-2xl';
+  const inactivePill = isLightMode
+    ? 'bg-white/90 text-zinc-700 border-zinc-900/10 hover:bg-zinc-100 hover:text-zinc-950'
+    : 'bg-zinc-900/80 text-zinc-300 border-white/10 hover:bg-zinc-800 hover:text-white';
+  const mutedText = isLightMode ? 'text-zinc-600' : 'text-zinc-300';
+  const secondaryBtn = isLightMode
+    ? 'bg-zinc-100 hover:bg-zinc-200 text-zinc-900 border-zinc-900/10'
+    : 'bg-zinc-900 hover:bg-zinc-800 text-zinc-200 hover:text-white border-white/10';
+  const chipSurface = isLightMode
+    ? 'bg-zinc-100 border-zinc-900/10 text-zinc-700'
+    : 'bg-white/5 border-white/10 text-zinc-300';
+
+  const visibleBullets = (activeDept?.bullets || []).filter(Boolean).slice(0, 4);
+
   return (
     <div className="w-full pb-16 md:pb-24 px-4 md:px-8 relative z-20">
-      
-      {/* Container with a clean offset spacing from the hero */}
-      <div className="w-full max-w-6xl mx-auto relative z-30 pt-6 md:pt-10 flex flex-col gap-8">
-        
-        {/* 1. HORIZONTAL DEPARTMENT REEL SELECTOR (Pills at the top) */}
-        <div 
-          className="flex flex-wrap items-center justify-center gap-3"
-          onMouseEnter={() => setIsPaused(true)}
-          onMouseLeave={() => setIsPaused(false)}
-        >
+      <div
+        className="w-full max-w-6xl mx-auto relative z-30 pt-6 md:pt-8 flex flex-col gap-5"
+        onMouseEnter={() => handleHover(true)}
+        onMouseLeave={() => handleHover(false)}
+      >
+        {/* 1. HORIZONTAL DEPARTMENT SWITCHER PILLS */}
+        <div className="flex flex-wrap items-center justify-center gap-2.5 md:gap-3">
           {departments.map((dept, idx) => {
             const isActive = idx === activeIndexSafe;
-            
+
             return (
               <button
                 key={idx}
-                onClick={() => setActiveIndex(idx)}
-                className={`px-5 py-3 rounded-xl border text-xs font-bold uppercase tracking-wider transition-all duration-300 backdrop-blur-md flex items-center gap-2 cursor-pointer ${
+                type="button"
+                onClick={() => handleSelect(idx)}
+                className={`px-4 py-2.5 md:px-5 md:py-3 rounded-xl border text-xs font-bold uppercase tracking-wider transition-all duration-300 backdrop-blur-md flex items-center gap-2 cursor-pointer ${
                   isActive
-                    ? 'bg-brand-primary text-zinc-950 border-brand-primary shadow-[0_0_20px_rgba(var(--brand-primary-rgb),0.4)] scale-105'
-                    : 'bg-zinc-900/80 text-zinc-300 border-white/10 hover:bg-zinc-800 hover:text-white'
+                    ? 'bg-brand-primary text-zinc-950 border-brand-primary shadow-lg shadow-brand-primary/25 scale-[1.03]'
+                    : inactivePill
                 }`}
               >
                 <span className="font-mono opacity-70">0{idx + 1}</span>
@@ -157,56 +172,61 @@ export default function HubFlow({
           })}
         </div>
 
-        {/* 2. THE PICTURE-FIRST CINEMATIC STAGE (Image on top, details below) */}
+        {/* 2. STREAMLINED DEPARTMENT INFO PANEL (No duplicate hero image when synced) */}
         {activeDept && (
-          <div 
-            className="rounded-[2.5rem] border border-white/10 bg-zinc-950/95 backdrop-blur-2xl overflow-hidden shadow-2xl transition-all duration-500 animate-in fade-in zoom-in-95 flex flex-col"
-            onMouseEnter={() => setIsPaused(true)}
-            onMouseLeave={() => setIsPaused(false)}
+          <div
+            key={activeDept.title}
+            className={`rounded-3xl border backdrop-blur-2xl overflow-hidden transition-all duration-300 animate-in fade-in slide-in-from-bottom-2 flex flex-col ${panelSurface}`}
           >
-            {/* Picture on Top */}
-            <div className="relative w-full aspect-video md:aspect-[21/9] bg-black overflow-hidden border-b border-white/10">
-              {activeCover ? (
-                <>
-                  <img
-                    key={activeCover}
-                    src={activeCover}
-                    alt={activeDept.title}
-                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-[5s] ease-in-out scale-100 hover:scale-105 animate-in fade-in duration-700"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/20 to-transparent" />
-                </>
-              ) : (
-                <div className="w-full h-full flex items-center justify-center bg-zinc-900">
-                  <span className="text-xs font-mono uppercase tracking-widest text-zinc-500">
-                    {activeDept.title} Visual
-                  </span>
-                </div>
-              )}
-              
-              {activeDept.price && (
-                <div className="absolute top-6 right-6 px-4 py-2 rounded-lg bg-black/80 backdrop-blur-md border border-white/10 text-brand-primary font-mono font-bold text-sm shadow-xl">
-                  {activeDept.price}
-                </div>
-              )}
-            </div>
+            {/* Optional Fallback Image ONLY if HubFlow is rendered standalone without HubStage */}
+            {!hideStageImage && activeCover && (
+              <div className="relative w-full aspect-video md:aspect-21/9 bg-black overflow-hidden border-b border-white/10">
+                <img
+                  src={activeCover}
+                  alt={activeDept.title}
+                  className="absolute inset-0 w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-linear-to-t from-zinc-950 via-zinc-950/20 to-transparent" />
+              </div>
+            )}
 
-            {/* Details Below the Picture */}
-            <div className="p-8 md:p-12 flex flex-col md:flex-row md:items-center justify-between gap-8 relative z-10">
+            <div className="p-6 md:p-9 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
               <div className="space-y-3 max-w-2xl">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-mono uppercase tracking-widest bg-white/5 border border-white/10 text-brand-primary">
-                  <Sparkles className="w-3 h-3 animate-pulse" />
-                  <span>Featured Department Stage</span>
+                <div className="flex flex-wrap items-center gap-2.5">
+                  <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-mono uppercase tracking-widest border ${chipSurface}`}>
+                    <Sparkles className="w-3 h-3 text-brand-primary" />
+                    <span>Department 0{activeIndexSafe + 1}</span>
+                  </div>
+
+                  {activeDept.price && (
+                    <span className={`px-3 py-1 rounded-full text-[11px] font-mono font-bold border text-brand-primary ${chipSurface}`}>
+                      {activeDept.price}
+                    </span>
+                  )}
                 </div>
 
-                <h3 className={`text-3xl md:text-4xl font-black tracking-tight text-white leading-tight ${fonts.heading}`}>
+                <h3 className={`text-2xl md:text-3xl font-black tracking-tight leading-tight ${fonts.heading}`}>
                   {activeDept.title}
                 </h3>
 
                 {activeDept.description && (
-                  <p className={`text-sm md:text-base text-zinc-300 leading-relaxed ${fonts.body}`}>
+                  <p className={`text-sm md:text-base leading-relaxed ${mutedText} ${fonts.body}`}>
                     {activeDept.description}
                   </p>
+                )}
+
+                {visibleBullets.length > 0 && (
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    {visibleBullets.map((bullet, bIdx) => (
+                      <div
+                        key={bIdx}
+                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs ${chipSurface}`}
+                      >
+                        <CheckCircle2 className="w-3.5 h-3.5 text-brand-primary shrink-0" />
+                        <span>{bullet}</span>
+                      </div>
+                    ))}
+                  </div>
                 )}
               </div>
 
@@ -215,7 +235,7 @@ export default function HubFlow({
                 <button
                   type="button"
                   onClick={() => handleOpenModal(activeDept)}
-                  className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl text-xs font-black uppercase tracking-widest bg-brand-primary text-zinc-950 border-none hover:brightness-110 transition-all shadow-[0_0_20px_rgba(var(--brand-primary-rgb),0.3)] cursor-pointer"
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl text-xs font-black uppercase tracking-widest bg-brand-primary text-zinc-950 border-none hover:brightness-110 transition-all shadow-lg shadow-brand-primary/25 cursor-pointer"
                 >
                   <span>Quick Inquiry</span>
                   <ArrowRight className="w-4 h-4" />
@@ -224,17 +244,15 @@ export default function HubFlow({
                 <Link
                   href={`/${storefrontSlug || 'store'}/${activeDeptSlug}`}
                   prefetch={true}
-                  className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl text-xs font-bold uppercase tracking-widest bg-zinc-900 hover:bg-zinc-800 text-zinc-200 hover:text-white border border-white/10 transition-all shadow-md"
+                  className={`inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl text-xs font-bold uppercase tracking-widest border transition-all shadow-sm ${secondaryBtn}`}
                 >
                   <span>Open Full Page</span>
                   <ArrowUpRight className="w-4 h-4 text-brand-primary" />
                 </Link>
               </div>
             </div>
-
           </div>
         )}
-
       </div>
 
       <UniversalLeadModal
