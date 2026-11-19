@@ -57,8 +57,29 @@ interface FormattedGalleryItem {
   addons?: { name: string; price: string }[];
 }
 
-const HERO_NAMES: Record<string, string> = { 'center': "Centered Focus", 'split-left': "Split-Left Structure", 'split-right': "Split-Right Structure", 'cinematic': "Cinematic Frame Layout", 'glass': "Frosted Glass Overlay" };
-const FLOW_NAMES: Record<string, string> = { 'classic': "Classic Flow Layout", 'bento': "Bento Grid System", 'sticky': "Sticky Scroll Engine", 'editorial': "Editorial Hover Stack", 'accordion': "Interactive Accordion Flow", 'menu': "Culinary Menu", 'lookbook': "Lookbook Grid", 'hub': "Department Hub" };
+const HERO_NAMES: Record<string, string> = {
+  'center': 'Centered Focus',
+  'split-left': 'Split-Left Structure',
+  'split-right': 'Split-Right Structure',
+  'cinematic': 'Cinematic Frame Layout',
+  'glass': 'Frosted Glass Overlay',
+  'editorial-frame': 'Editorial Frame',
+  'arch-spotlight': 'Arch Spotlight',
+  'bento-hero': 'Bento Collage',
+  'bottom-dock': 'Floating Dock',
+  'minimal-type': 'Kinetic Type',
+};
+
+const FLOW_NAMES: Record<string, string> = {
+  'classic': 'Classic Flow Layout',
+  'bento': 'Bento Grid System',
+  'sticky': 'Sticky Scroll Engine',
+  'editorial': 'Editorial Hover Stack',
+  'accordion': 'Interactive Accordion Flow',
+  'menu': 'Culinary Menu',
+  'lookbook': 'Lookbook Grid',
+  'hub': 'Department Hub',
+};
 
 const InstagramIcon = ({ size = 24, ...props }: CustomIconProps) => ( <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg> );
 const FacebookIcon = ({ size = 24, ...props }: CustomIconProps) => ( <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg> );
@@ -85,10 +106,10 @@ const getHexValue = (val: string) => {
   return legacyMap[val] || '#06b6d4';
 };
 
-export default async function DynamicStorefront({ 
+export default async function DynamicStorefront({
   params,
   searchParams,
-}: { 
+}: {
   params: Promise<{ slug: string }>;
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
@@ -106,50 +127,46 @@ export default async function DynamicStorefront({
 
   if (error || !store) notFound();
 
-  // The Engine Mode Fork
   const isHubMode = store.engine_mode === 'hub' || store.content_layout === 'hub';
-
   const isHeroFixed = store.is_hero_fixed === true;
   const hasValidLogo = typeof store.brand_logo === 'string' && store.brand_logo.trim() !== '';
-  
+
   const theme = THEME_REGISTRY[store.theme_style || 'industrial'] || THEME_REGISTRY['industrial'];
   const layout = store.hero_layout || 'center';
-  
+
   const rawBrandColor = store.brand_color || 'cyan-500';
   const rawSecondaryColor = store.secondary_brand_color || rawBrandColor;
-  
+
   const primaryHex = getHexValue(rawBrandColor);
   const secondaryHex = getHexValue(rawSecondaryColor);
 
   const brandColor = 'brand-primary';
   const secondaryBrandColor = 'brand-secondary';
-
   const isLightMode = theme.isLightMode || false;
 
-  const accentColorClass = theme.useBrandAccent 
-    ? `text-${brandColor}` 
+  const accentColorClass = theme.useBrandAccent
+    ? `text-${brandColor}`
     : (isLightMode ? 'text-zinc-900' : 'text-white');
 
-  const buttonBgClass = theme.useBrandAccent 
-    ? `bg-linear-to-r from-${brandColor} to-${secondaryBrandColor} text-zinc-950 hover:scale-105 transition-all shadow-lg shadow-${secondaryBrandColor}/20 border-none` 
-    : (isLightMode 
-        ? 'border-2 border-zinc-900 text-zinc-900 hover:bg-zinc-900 hover:text-white shadow-sm' 
+  const buttonBgClass = theme.useBrandAccent
+    ? `bg-linear-to-r from-${brandColor} to-${secondaryBrandColor} text-zinc-950 hover:scale-105 transition-all shadow-lg shadow-${secondaryBrandColor}/20 border-none`
+    : (isLightMode
+        ? 'border-2 border-zinc-900 text-zinc-900 hover:bg-zinc-900 hover:text-white shadow-sm'
         : 'border-2 border-white text-white hover:bg-white hover:text-zinc-950 shadow-sm');
 
-  const lineAccent = theme.useBrandAccent 
-    ? `bg-linear-to-r from-${brandColor} to-${secondaryBrandColor}` 
+  const lineAccent = theme.useBrandAccent
+    ? `bg-linear-to-r from-${brandColor} to-${secondaryBrandColor}`
     : (isLightMode ? 'bg-zinc-900' : 'bg-white');
 
-  const exploreLink = '#gallery'; 
+  const exploreLink = '#gallery';
 
   const hasAbout = !!store.about_bio || !!store.about_image || !!store.about_heading;
-  const galleryTitle = store.gallery_heading || STOREFRONT_DEFAULTS?.GALLERY_HEADING || "Featured Work";
-  
-  const heroButtonText = isHubMode ? "Explore Departments" : `View ${galleryTitle}`;
+  const galleryTitle = store.gallery_heading || STOREFRONT_DEFAULTS?.GALLERY_HEADING || 'Featured Work';
+  const heroButtonText = isHubMode ? 'Explore Departments' : `View ${galleryTitle}`;
 
   const rawSocialLinks = store.social_links || {};
   const activeSocials: SocialPlatform[] = Object.entries(rawSocialLinks)
-    .filter((entry) => !!entry[1]) 
+    .filter((entry) => !!entry[1])
     .map(([platform, handle]) => {
       const meta = SOCIAL_META[platform];
       if (!meta) return null;
@@ -158,64 +175,71 @@ export default async function DynamicStorefront({
     .filter((item): item is SocialPlatform => item !== null);
 
   const rawGallery = Array.isArray(store.gallery_items) ? store.gallery_items : [];
-  
+
   const formattedGalleryItems: FormattedGalleryItem[] = rawGallery.map((item: unknown, index: number) => {
     if (typeof item === 'string') return { id: `gal-${index}`, imageUrl: item };
-    
+
     const obj = item as {
       id?: string; imageUrl?: string; title?: string; description?: string; category?: string; price?: string; isVisible?: boolean; isRaw?: boolean; addons?: { name: string; price: string }[];
     };
-    
-    return { 
-      id: obj.id || `gal-${index}`, 
-      imageUrl: obj.imageUrl || '', 
-      title: obj.title, 
-      description: obj.description || obj.category, 
+
+    return {
+      id: obj.id || `gal-${index}`,
+      imageUrl: obj.imageUrl || '',
+      title: obj.title,
+      description: obj.description || obj.category,
       category: obj.category,
       price: obj.price,
       isVisible: obj.isVisible,
       isRaw: obj.isRaw,
-      addons: obj.addons || []
+      addons: obj.addons || [],
     };
   });
 
   return (
-    <main 
+    <main
       className={`min-h-screen flex flex-col selection:bg-${secondaryBrandColor}/30 ${theme.pageBg || 'bg-zinc-950'} relative`}
-      style={{ 
-        '--brand-primary': primaryHex, 
-        '--brand-secondary': secondaryHex 
+      style={{
+        '--brand-primary': primaryHex,
+        '--brand-secondary': secondaryHex,
       } as React.CSSProperties}
     >
-      {/* NATIVE PER-STOREFRONT ANALYTICS BEACON */}
-      <StorefrontAnalyticsBeacon 
-        storefrontId={store.id} 
-        slug={store.slug} 
-        isCanvasMode={isCanvasMode} 
-        isAuditMode={isAuditMode} 
-      />
-      
-      <HeroEngine 
-        layout={layout} store={store} theme={theme} brandColor={brandColor} secondaryBrandColor={secondaryBrandColor}
-        isHeroFixed={isHeroFixed} hasValidLogo={hasValidLogo} exploreLink={exploreLink} heroButtonText={heroButtonText}
-        accentColorClass={accentColorClass} buttonBgClass={buttonBgClass} lineAccent={lineAccent}
-        isHubMode={isHubMode}
+      <StorefrontAnalyticsBeacon
+        storefrontId={store.id}
+        slug={store.slug}
+        isCanvasMode={isCanvasMode}
+        isAuditMode={isAuditMode}
       />
 
-      {/* CONDITIONAL ARCHITECTURE PIPELINE */}
+      <HeroEngine
+        layout={layout}
+        store={store}
+        theme={theme}
+        brandColor={brandColor}
+        secondaryBrandColor={secondaryBrandColor}
+        isHeroFixed={isHeroFixed}
+        hasValidLogo={hasValidLogo}
+        exploreLink={exploreLink}
+        heroButtonText={heroButtonText}
+        accentColorClass={accentColorClass}
+        buttonBgClass={buttonBgClass}
+        lineAccent={lineAccent}
+        isHubMode={isHubMode}
+        galleryItems={formattedGalleryItems}
+      />
+
       {isHubMode ? (
         <>
-          {/* HUB TIER: Departments directly overlap Hero -> THEN Parallax Gap -> THEN About Footer */}
           <div id="gallery">
-            <ContentEngine 
-              layout="hub" 
-              themeStyle={store.theme_style || 'industrial'} 
-              brandColor={brandColor} 
+            <ContentEngine
+              layout="hub"
+              themeStyle={store.theme_style || 'industrial'}
+              brandColor={brandColor}
               secondaryBrandColor={secondaryBrandColor}
-              isLightMode={isLightMode} 
-              capabilitiesHeading={store.capabilities_heading || "Explore Departments"} 
-              galleryHeading={store.gallery_heading || "Departments"} 
-              capabilities={store.capabilities || []} 
+              isLightMode={isLightMode}
+              capabilitiesHeading={store.capabilities_heading || 'Explore Departments'}
+              galleryHeading={store.gallery_heading || 'Departments'}
+              capabilities={store.capabilities || []}
               galleryItems={formattedGalleryItems}
               orderingUrl={store.ordering_url}
               storefrontSlug={store.slug}
@@ -236,20 +260,30 @@ export default async function DynamicStorefront({
           )}
 
           {hasAbout && (
-            <div id="about" className="container mx-auto px-6 py-24 border-t border-white/10 bg-zinc-950/50">
-              <AboutSection 
-                data={{
-                  heading: store.about_heading || STOREFRONT_DEFAULTS?.ABOUT_HEADING || 'About Us', 
-                  bio: store.about_bio, imageUrl: store.about_image, brandColor: brandColor, secondaryBrandColor: secondaryBrandColor, socials: activeSocials, 
-                  isLightMode: isLightMode, themeStyle: store.theme_style || 'industrial', aboutLayout: store.about_layout || 'split'
-                }} 
-              />
+            <div
+              id="about"
+              className={`w-full py-24 border-t ${isLightMode ? 'border-zinc-900/10 bg-black/2' : 'border-white/10 bg-zinc-950/50'}`}
+            >
+              <div className="container mx-auto px-6">
+                <AboutSection
+                  data={{
+                    heading: store.about_heading || STOREFRONT_DEFAULTS?.ABOUT_HEADING || 'About Us',
+                    bio: store.about_bio,
+                    imageUrl: store.about_image,
+                    brandColor: brandColor,
+                    secondaryBrandColor: secondaryBrandColor,
+                    socials: activeSocials,
+                    isLightMode: isLightMode,
+                    themeStyle: store.theme_style || 'industrial',
+                    aboutLayout: store.about_layout || 'split',
+                  }}
+                />
+              </div>
             </div>
           )}
         </>
       ) : (
         <>
-          {/* STANDARD TIER: Classic flow (Hero -> Parallax Gap -> About -> Services -> Action Banner) */}
           {isHeroFixed && store.hero_image && (
             <div className="relative w-full h-[30vh] md:h-[40vh] border-y border-white/10 shadow-[inset_0_0_100px_rgba(0,0,0,0.8)]" style={{ clipPath: 'inset(0)' }}>
               <div className="fixed inset-0 w-full h-full bg-cover bg-center opacity-50" style={{ backgroundImage: `url('${store.hero_image}')`, zIndex: -1 }} />
@@ -259,26 +293,32 @@ export default async function DynamicStorefront({
 
           {hasAbout && (
             <div id="about" className="container mx-auto px-6 py-20">
-              <AboutSection 
+              <AboutSection
                 data={{
-                  heading: store.about_heading || STOREFRONT_DEFAULTS?.ABOUT_HEADING || 'About Us', 
-                  bio: store.about_bio, imageUrl: store.about_image, brandColor: brandColor, secondaryBrandColor: secondaryBrandColor, socials: activeSocials, 
-                  isLightMode: isLightMode, themeStyle: store.theme_style || 'industrial', aboutLayout: store.about_layout || 'split'
-                }} 
+                  heading: store.about_heading || STOREFRONT_DEFAULTS?.ABOUT_HEADING || 'About Us',
+                  bio: store.about_bio,
+                  imageUrl: store.about_image,
+                  brandColor: brandColor,
+                  secondaryBrandColor: secondaryBrandColor,
+                  socials: activeSocials,
+                  isLightMode: isLightMode,
+                  themeStyle: store.theme_style || 'industrial',
+                  aboutLayout: store.about_layout || 'split',
+                }}
               />
             </div>
           )}
 
           <div id="gallery">
-            <ContentEngine 
-              layout={store.content_layout || 'classic'} 
-              themeStyle={store.theme_style || 'industrial'} 
-              brandColor={brandColor} 
+            <ContentEngine
+              layout={store.content_layout || 'classic'}
+              themeStyle={store.theme_style || 'industrial'}
+              brandColor={brandColor}
               secondaryBrandColor={secondaryBrandColor}
-              isLightMode={isLightMode} 
-              capabilitiesHeading={store.capabilities_heading || STOREFRONT_DEFAULTS?.CAPABILITIES_HEADING || "Services"} 
-              galleryHeading={store.gallery_heading || STOREFRONT_DEFAULTS?.GALLERY_HEADING || "Featured Work"} 
-              capabilities={store.capabilities || []} 
+              isLightMode={isLightMode}
+              capabilitiesHeading={store.capabilities_heading || STOREFRONT_DEFAULTS?.CAPABILITIES_HEADING || 'Services'}
+              galleryHeading={store.gallery_heading || STOREFRONT_DEFAULTS?.GALLERY_HEADING || 'Featured Work'}
+              capabilities={store.capabilities || []}
               galleryItems={formattedGalleryItems}
               orderingUrl={store.ordering_url}
               storefrontSlug={store.slug}
@@ -291,7 +331,13 @@ export default async function DynamicStorefront({
             />
           </div>
 
-          <StorefrontClientActions store={store} brandColor={brandColor} secondaryBrandColor={secondaryBrandColor} isLightMode={isLightMode} themeStyle={store.theme_style || 'industrial'} />
+          <StorefrontClientActions
+            store={store}
+            brandColor={brandColor}
+            secondaryBrandColor={secondaryBrandColor}
+            isLightMode={isLightMode}
+            themeStyle={store.theme_style || 'industrial'}
+          />
         </>
       )}
 
@@ -312,7 +358,6 @@ export default async function DynamicStorefront({
           {!store.is_template && store.status?.toUpperCase() === 'IN REVIEW' && <StagingReviewOverlay store={store} />}
         </>
       )}
-
     </main>
   );
 }
