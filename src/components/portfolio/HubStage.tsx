@@ -6,10 +6,17 @@ import HeroEngine, { HeroEngineProps } from './hero/HeroEngine';
 import HubFlow from './content-engine/layouts/HubFlow';
 import { Capability, GalleryItem } from './content-engine/types';
 
+interface OperationalTerm {
+  title: string;
+  description: string;
+  fees?: { name: string; price: string }[];
+}
+
 interface HubStageProps {
   heroProps: Omit<HeroEngineProps, 'isHubMode'>;
   capabilities: Capability[];
   galleryItems: GalleryItem[];
+  operationalTerms?: OperationalTerm[];
   themeStyle: string;
   brandColor: string;
   secondaryBrandColor?: string;
@@ -23,6 +30,7 @@ export default function HubStage({
   heroProps,
   capabilities = [],
   galleryItems = [],
+  operationalTerms = [],
   themeStyle,
   brandColor,
   secondaryBrandColor,
@@ -51,16 +59,17 @@ export default function HubStage({
 
   const [activeIndex, setActiveIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
+  const [isFlipped, setIsFlipped] = useState(false);
   const [isLockedByClick, setIsLockedByClick] = useState(false);
 
-  // Auto-advancing reel (pauses on hover, locks once visitor clicks a department)
+  // Auto-advancing reel (pauses on hover/flip, locks once visitor clicks a department)
   useEffect(() => {
-    if (departments.length <= 1 || isHovered || isLockedByClick) return;
+    if (departments.length <= 1 || isHovered || isFlipped || isLockedByClick) return;
     const timer = setInterval(() => {
       setActiveIndex((current) => (current + 1) % departments.length);
-    }, 5000);
+    }, 4000);
     return () => clearInterval(timer);
-  }, [departments.length, isHovered, isLockedByClick]);
+  }, [departments.length, isHovered, isFlipped, isLockedByClick]);
 
   const activeIndexSafe = departments.length > 0 ? Math.min(activeIndex, departments.length - 1) : 0;
   const activeDept = departments[activeIndexSafe];
@@ -69,7 +78,6 @@ export default function HubStage({
     activeDept?.coverImage ||
     galleryItems.find((g) => g && g.category === activeDept?.title && g.imageUrl)?.imageUrl;
 
-  // Swap the active department's image directly into the Hero backdrop (with main hero fallback)
   const syncedStore = {
     ...heroProps.store,
     hero_image: activeDeptCover || heroProps.store?.hero_image,
@@ -89,6 +97,7 @@ export default function HubStage({
           items={departments}
           capabilities={departments}
           galleryItems={galleryItems}
+          operationalTerms={operationalTerms}
           themeStyle={themeStyle}
           brandColor={brandColor}
           secondaryBrandColor={secondaryBrandColor}
@@ -99,6 +108,7 @@ export default function HubStage({
           controlledActiveIndex={activeIndexSafe}
           onSelectIndex={handleSelectDept}
           onHoverChange={setIsHovered}
+          onFlipChange={setIsFlipped}
           hideStageImage={true}
         />
       </div>
