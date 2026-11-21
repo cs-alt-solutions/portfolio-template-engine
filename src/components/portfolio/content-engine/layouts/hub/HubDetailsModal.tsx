@@ -5,13 +5,9 @@
 import React, { useState, useEffect } from 'react';
 import { X, Images, ShieldCheck, ArrowRight, ZoomIn } from 'lucide-react';
 import { Capability } from '../../types';
+import PolicyCard, { OperationalTerm } from './PolicyCard';
 
-export interface OperationalTerm {
-  title: string;
-  description: string;
-  appliesTo?: string;
-  fees?: { name: string; price: string }[];
-}
+export type { OperationalTerm } from './PolicyCard';
 
 interface HubDetailsModalProps {
   isOpen: boolean;
@@ -53,9 +49,6 @@ export default function HubDetailsModal({
   const modalSurface = isLightMode
     ? 'bg-white border-zinc-900/15 text-zinc-900'
     : 'bg-zinc-950 border-white/15 text-white';
-  const subCardSurface = isLightMode
-    ? 'bg-zinc-50 border-zinc-900/10 text-zinc-800'
-    : 'bg-zinc-900/70 border-white/10 text-zinc-200';
   const chipSurface = isLightMode
     ? 'bg-zinc-100 border-zinc-900/10 text-zinc-700'
     : 'bg-white/5 border-white/10 text-zinc-200';
@@ -114,7 +107,6 @@ export default function HubDetailsModal({
         {/* Body */}
         <div className="p-6 overflow-y-auto">
           <div className={`grid grid-cols-1 ${hasBoth ? 'lg:grid-cols-12' : ''} gap-6 items-start`}>
-            {/* Photos */}
             {photos.length > 0 && (
               <div className={`${hasBoth ? 'lg:col-span-6' : ''} space-y-3`}>
                 <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-widest opacity-70">
@@ -146,7 +138,6 @@ export default function HubDetailsModal({
               </div>
             )}
 
-            {/* Booking Details & Policies */}
             {terms.length > 0 && (
               <div className={`${hasBoth ? 'lg:col-span-6' : ''} space-y-3`}>
                 <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-widest opacity-70">
@@ -156,29 +147,12 @@ export default function HubDetailsModal({
 
                 <div className="space-y-3">
                   {terms.map((term, idx) => (
-                    <div key={idx} className={`p-4 rounded-2xl border space-y-1.5 ${subCardSurface}`}>
-                      <h5 className="text-xs font-bold uppercase tracking-wider text-brand-primary">
-                        {term.title}
-                      </h5>
-                      {term.description && (
-                        <p className={`text-xs leading-relaxed opacity-85 ${fonts.body}`}>
-                          {term.description}
-                        </p>
-                      )}
-                      {term.fees && term.fees.length > 0 && (
-                        <div className="pt-1.5 flex flex-wrap gap-2">
-                          {term.fees.map((fee, fIdx) => (
-                            <span
-                              key={fIdx}
-                              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[11px] font-mono ${chipSurface}`}
-                            >
-                              <span>{fee.name}</span>
-                              {fee.price && <strong className="text-brand-primary">{fee.price}</strong>}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
+                    <PolicyCard
+                      key={idx}
+                      term={term}
+                      isLightMode={isLightMode}
+                      bodyFont={fonts.body}
+                    />
                   ))}
                 </div>
               </div>
