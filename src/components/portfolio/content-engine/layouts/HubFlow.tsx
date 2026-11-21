@@ -103,6 +103,11 @@ export default function HubFlow({
 
   const activeDept = departments[activeIndexSafe] || departments[0];
 
+  const activeDeptTerms = safeTerms.filter((t) => {
+    if (!t.appliesTo || t.appliesTo === 'ALL') return true;
+    return t.appliesTo.toLowerCase() === activeDept?.title?.toLowerCase();
+  });
+
   const deptPhotos: { url: string; title?: string }[] = [];
   if (activeDept?.coverImage) {
     deptPhotos.push({ url: activeDept.coverImage, title: activeDept.title });
@@ -182,7 +187,7 @@ export default function HubFlow({
           <HubDepartmentCard
             department={activeDept}
             index={activeIndexSafe}
-            hasDetails={deptPhotos.length > 0 || safeTerms.length > 0}
+            hasDetails={deptPhotos.length > 0 || activeDeptTerms.length > 0}
             isLightMode={isLightMode}
             fonts={fonts}
             onInquire={() => handleOpenModal(activeDept)}
@@ -199,7 +204,7 @@ export default function HubFlow({
           onInquire={() => handleOpenModal(activeDept)}
           department={activeDept}
           photos={deptPhotos}
-          terms={safeTerms}
+          terms={activeDeptTerms}
           isLightMode={isLightMode}
           fonts={fonts}
         />

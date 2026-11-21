@@ -9,6 +9,7 @@ import { Capability } from '../../types';
 export interface OperationalTerm {
   title: string;
   description: string;
+  appliesTo?: string;
   fees?: { name: string; price: string }[];
 }
 
