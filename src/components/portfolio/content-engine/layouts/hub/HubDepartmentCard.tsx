@@ -9,6 +9,7 @@ interface HubDepartmentCardProps {
   department: Capability;
   index: number;
   hasDetails: boolean;
+  detailsLabel?: string;
   isLightMode: boolean;
   fonts: { heading: string; body: string };
   onInquire: () => void;
@@ -19,6 +20,7 @@ export default function HubDepartmentCard({
   department,
   index,
   hasDetails,
+  detailsLabel = 'Photos & Details',
   isLightMode,
   fonts,
   onInquire,
@@ -46,7 +48,6 @@ export default function HubDepartmentCard({
       className={`rounded-3xl border backdrop-blur-2xl overflow-hidden animate-in fade-in duration-300 ${panelSurface}`}
     >
       <div className="p-6 md:p-8 flex flex-col gap-6">
-        {/* Top Row: Badge, Title, Description & Actions */}
         <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-6">
           <div className="space-y-2.5 max-w-2xl">
             <div className="flex flex-wrap items-center gap-2.5">
@@ -73,7 +74,6 @@ export default function HubDepartmentCard({
             )}
           </div>
 
-          {/* Action Buttons */}
           <div className="flex flex-wrap items-center gap-3 shrink-0">
             <button
               type="button"
@@ -91,13 +91,12 @@ export default function HubDepartmentCard({
                 className={`inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl text-xs font-bold uppercase tracking-widest border transition-all shadow-sm cursor-pointer ${secondaryBtn}`}
               >
                 <Images className="w-4 h-4 text-brand-primary" />
-                <span>Photos &amp; Logistics</span>
+                <span>{detailsLabel}</span>
               </button>
             )}
           </div>
         </div>
 
-        {/* 3 Highlight Bullets Row */}
         {visibleBullets.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-4 border-t border-current/10">
             {visibleBullets.map((bullet, bIdx) => (

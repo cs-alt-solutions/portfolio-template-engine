@@ -61,6 +61,11 @@ export default function HubDetailsModal({
     : 'bg-white/5 border-white/10 text-zinc-200';
 
   const hasBoth = photos.length > 0 && terms.length > 0;
+  const modalTitle = hasBoth
+    ? 'Photos & Details'
+    : photos.length > 0
+      ? 'Photo Gallery'
+      : 'Booking Details';
 
   return (
     <div
@@ -68,7 +73,7 @@ export default function HubDetailsModal({
       onClick={onClose}
     >
       <div
-        className={`relative w-full max-w-4xl max-h-[85vh] rounded-3xl border shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 ${modalSurface}`}
+        className={`relative w-full ${hasBoth ? 'max-w-4xl' : 'max-w-2xl'} max-h-[85vh] rounded-3xl border shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 ${modalSurface}`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -78,7 +83,7 @@ export default function HubDetailsModal({
               {department.title}
             </span>
             <h4 className={`text-xl md:text-2xl font-black tracking-tight ${fonts.heading}`}>
-              Photos &amp; Logistics
+              {modalTitle}
             </h4>
           </div>
 
@@ -114,7 +119,7 @@ export default function HubDetailsModal({
               <div className={`${hasBoth ? 'lg:col-span-6' : ''} space-y-3`}>
                 <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-widest opacity-70">
                   <Images className="w-3.5 h-3.5 text-brand-primary" />
-                  <span>Department Gallery ({photos.length})</span>
+                  <span>Gallery ({photos.length})</span>
                 </div>
 
                 <div className={`grid ${photos.length === 1 ? 'grid-cols-1' : 'grid-cols-2'} gap-3`}>
@@ -124,7 +129,7 @@ export default function HubDetailsModal({
                       type="button"
                       onClick={() => setZoomedImage(photo.url)}
                       className={`group relative overflow-hidden rounded-2xl border border-current/10 bg-black/30 cursor-zoom-in ${
-                        photos.length === 1 ? 'aspect-16/10 max-h-72 w-full' : 'aspect-4/3'
+                        photos.length === 1 ? 'aspect-16/10 max-h-80 w-full' : 'aspect-4/3'
                       }`}
                     >
                       <img
@@ -141,12 +146,12 @@ export default function HubDetailsModal({
               </div>
             )}
 
-            {/* Logistics */}
+            {/* Booking Details & Policies */}
             {terms.length > 0 && (
               <div className={`${hasBoth ? 'lg:col-span-6' : ''} space-y-3`}>
                 <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-widest opacity-70">
                   <ShieldCheck className="w-3.5 h-3.5 text-brand-primary" />
-                  <span>Logistics &amp; Booking Policies</span>
+                  <span>Booking Details &amp; Policies</span>
                 </div>
 
                 <div className="space-y-3">
