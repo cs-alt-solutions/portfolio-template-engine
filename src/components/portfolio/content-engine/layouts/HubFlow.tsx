@@ -7,7 +7,7 @@ import { getFonts } from '../utils';
 import { THEME_REGISTRY } from '@/utils/themes';
 import { Capability, GalleryItem } from '../types';
 import HubDepartmentCard from './hub/HubDepartmentCard';
-import HubDetailsModal, { OperationalTerm } from './hub/HubDetailsModal';
+import HubDetailsModal, { OperationalTerm, HubPhoto } from './hub/HubDetailsModal';
 
 interface HubFlowProps {
   items?: Capability[];
@@ -108,9 +108,9 @@ export default function HubFlow({
     return t.appliesTo.toLowerCase() === activeDept?.title?.toLowerCase();
   });
 
-  const deptPhotos: { url: string; title?: string }[] = [];
+  const deptPhotos: HubPhoto[] = [];
   if (activeDept?.coverImage) {
-    deptPhotos.push({ url: activeDept.coverImage, title: activeDept.title });
+    deptPhotos.push({ url: activeDept.coverImage });
   }
   safeGallery
     .filter(
@@ -121,7 +121,17 @@ export default function HubFlow({
         g.category?.toLowerCase() === activeDept?.title?.toLowerCase() &&
         g.imageUrl !== activeDept?.coverImage
     )
-    .forEach((g) => deptPhotos.push({ url: g.imageUrl, title: g.title || activeDept.title }));
+    .forEach((g) => {
+      const cleanDesc =
+        g.description && g.description.trim().toLowerCase() !== activeDept?.title?.trim().toLowerCase()
+          ? g.description.trim()
+          : '';
+      deptPhotos.push({
+        url: g.imageUrl,
+        title: g.title?.trim() || '',
+        description: cleanDesc,
+      });
+    });
 
   const toggleDetails = (open: boolean) => {
     setIsDetailsOpen(open);
@@ -196,7 +206,7 @@ export default function HubFlow({
         )}
       </div>
 
-      {/* Auto-Centered Photos & Logistics Modal */}
+      {/* Auto-Centered Story Gallery & Info Sheet Modal */}
       {activeDept && (
         <HubDetailsModal
           isOpen={isDetailsOpen}
