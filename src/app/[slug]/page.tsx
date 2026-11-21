@@ -234,6 +234,7 @@ export default async function DynamicStorefront({
             }}
             capabilities={store.capabilities || []}
             galleryItems={formattedGalleryItems}
+operationalTerms={store.operational_terms}
             themeStyle={store.theme_style || 'industrial'}
             brandColor={brandColor}
             secondaryBrandColor={secondaryBrandColor}
