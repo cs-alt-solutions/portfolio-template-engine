@@ -3,7 +3,7 @@
 
 import React from 'react';
 import { ThemeDefinition } from '@/utils/themes';
-import { FocalPoint } from './core/heroHelpers';
+import { FocalPoint, HeroHeightOption, LogoPlacementOption } from './core/heroHelpers';
 import CenterHero from './layouts/CenterHero';
 import SplitLeftHero from './layouts/SplitLeftHero';
 import SplitRightHero from './layouts/SplitRightHero';
@@ -20,9 +20,10 @@ export {
   getRawBgColor,
   resolveHeroCssPosition,
   getHeroPositionClasses,
+  getHeroHeightClass,
   getHeroLogoClasses,
 } from './core/heroHelpers';
-export type { FocalPoint } from './core/heroHelpers';
+export type { FocalPoint, HeroHeightOption, LogoPlacementOption } from './core/heroHelpers';
 export { default as HeroMedia } from './core/HeroMedia';
 
 export interface StorefrontHeroData {
@@ -32,6 +33,8 @@ export interface StorefrontHeroData {
   hero_image?: string;
   brand_logo?: string;
   logo_size?: string;
+  logo_placement?: LogoPlacementOption;
+  hero_height?: HeroHeightOption;
   hero_position?: string;
   hero_focal_point?: FocalPoint;
   hero_image_fit?: 'cover' | 'contain';

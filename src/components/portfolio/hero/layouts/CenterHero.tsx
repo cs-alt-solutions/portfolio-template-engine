@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 /* src/components/portfolio/hero/layouts/CenterHero.tsx */
 import React from 'react';
-import { HeroEngineProps, HeroMedia, getHeroLogoClasses } from '../HeroEngine';
+import { HeroEngineProps, HeroMedia, getHeroLogoClasses, getHeroHeightClass } from '../HeroEngine';
 
 export default function CenterHero({
   store,
@@ -18,15 +18,20 @@ export default function CenterHero({
 }: HeroEngineProps) {
   const safeTheme = theme || {};
   const isLight = safeTheme.isLightMode;
-  const heightClass = isHubMode ? 'min-h-[45vh] py-12' : 'min-h-[95vh] py-20';
+  const heightClass = getHeroHeightClass(
+    store?.hero_height,
+    isHubMode,
+    'min-h-[95vh] py-20',
+    'min-h-[45vh] py-12'
+  );
 
   return (
     <section
       id="hero"
-      className={`relative ${heightClass} w-full flex items-center justify-center overflow-hidden transition-all duration-500`}
+      className={`relative ${heightClass} py-12 md:py-16 w-full flex items-center justify-center overflow-hidden transition-all duration-500`}
     >
       <div className="absolute inset-0 z-0" style={{ clipPath: 'inset(0)' }}>
-        <HeroMedia store={store} isHeroFixed={isHeroFixed} defaultScale={1.05} />
+        <HeroMedia store={store} isHeroFixed={isHeroFixed} defaultScale={1} />
         <div className={`absolute inset-0 z-20 pointer-events-none ${isLight ? 'bg-black/60' : 'bg-black/80'}`} />
         {safeTheme.useBrandTint && (
           <div className={`absolute inset-0 z-20 pointer-events-none opacity-30 bg-${brandColor} mix-blend-color`} />
