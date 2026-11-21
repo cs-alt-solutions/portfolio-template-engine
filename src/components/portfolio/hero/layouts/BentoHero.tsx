@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 /* src/components/portfolio/hero/layouts/BentoHero.tsx */
 import React from 'react';
-import { HeroEngineProps, getHeroLogoClasses, getHeroPositionClasses } from '../HeroEngine';
+import { HeroEngineProps, HeroMedia, getHeroLogoClasses } from '../HeroEngine';
 
 export default function BentoHero({
   store,
@@ -16,7 +16,6 @@ export default function BentoHero({
   galleryItems = [],
 }: HeroEngineProps) {
   const safeTheme = theme || {};
-  const { objectPos } = getHeroPositionClasses(store?.hero_position);
   const tileRadius = safeTheme.radius === 'rounded-full' ? 'rounded-3xl' : (safeTheme.radius || 'rounded-none');
   const surfaceClass = safeTheme.isLightMode
     ? 'bg-white/80 border-zinc-900/10'
@@ -62,39 +61,37 @@ export default function BentoHero({
               )}
 
               {store?.subtext && (
-                <p className={`text-base md:text-lg mb-10 text-balance ${cleanBodyText}`}>
+                <p className={`text-base md:text-lg ${isHubMode ? 'mb-4' : 'mb-10'} text-balance ${cleanBodyText}`}>
                   {store.subtext}
                 </p>
               )}
             </div>
 
-            <div>
-              <a href={exploreLink} className={`inline-block ${safeTheme.buttonStyle || ''} ${buttonBgClass}`}>
-                {store?.hero_cta || heroButtonText}
-              </a>
-            </div>
+            {!isHubMode && (
+              <div>
+                <a href={exploreLink} className={`inline-block ${safeTheme.buttonStyle || ''} ${buttonBgClass}`}>
+                  {store?.hero_cta || heroButtonText}
+                </a>
+              </div>
+            )}
           </div>
 
           {/* Right Visual Collage Grid */}
           <div className="lg:col-span-6 grid grid-cols-2 gap-5 md:gap-6 min-h-95 md:min-h-130">
-            {/* Primary Hero Tile */}
             <div
               className={`relative overflow-hidden border ${safeTheme.isLightMode ? 'border-zinc-900/10' : 'border-white/10'} shadow-xl ${tileRadius} ${
                 extraTiles.length > 0 ? 'col-span-2 min-h-60 md:min-h-75' : 'col-span-2 row-span-2 min-h-95'
               }`}
             >
-              {store?.hero_image ? (
-                <img
-                  src={store.hero_image}
-                  alt={store?.business_name || 'Primary Feature'}
-                  className={`w-full h-full object-cover transition-transform duration-700 hover:scale-105 ${objectPos}`}
-                />
-              ) : (
-                <div className={`w-full h-full opacity-20 ${lineAccent}`} />
-              )}
+              <HeroMedia
+                store={store}
+                isHeroFixed={false}
+                alt={store?.business_name || 'Primary Feature'}
+                className="duration-700 hover:scale-105"
+                fallback={<div className={`w-full h-full opacity-20 ${lineAccent}`} />}
+              />
             </div>
 
-            {/* Secondary Auto-Pulled Gallery Tiles */}
             {extraTiles.map((tile, idx) => (
               <div
                 key={tile.id || idx}

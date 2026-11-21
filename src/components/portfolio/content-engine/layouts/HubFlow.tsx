@@ -9,10 +9,16 @@ import { Capability, GalleryItem } from '../types';
 import HubDepartmentCard from './hub/HubDepartmentCard';
 import HubDetailsModal, { OperationalTerm, HubPhoto } from './hub/HubDetailsModal';
 
+interface FramedGalleryItem extends GalleryItem {
+  focalPoint?: { x: number; y: number };
+  imageFit?: 'cover' | 'contain';
+  imageZoom?: number;
+}
+
 interface HubFlowProps {
   items?: Capability[];
   capabilities?: Capability[];
-  galleryItems?: GalleryItem[];
+  galleryItems?: FramedGalleryItem[];
   operationalTerms?: OperationalTerm[];
   themeStyle?: string;
   brandColor?: string;
@@ -108,30 +114,33 @@ export default function HubFlow({
     return t.appliesTo.toLowerCase() === activeDept?.title?.toLowerCase();
   });
 
-  const deptPhotos: HubPhoto[] = [];
-  if (activeDept?.coverImage) {
-    deptPhotos.push({ url: activeDept.coverImage });
-  }
-  safeGallery
+  // Drop Vault visible photos are the single source of truth (legacy coverImage only if vault is empty)
+  const deptPhotos: HubPhoto[] = safeGallery
     .filter(
       (g) =>
         g &&
         g.imageUrl &&
         g.isVisible !== false &&
-        g.category?.toLowerCase() === activeDept?.title?.toLowerCase() &&
-        g.imageUrl !== activeDept?.coverImage
+        g.category?.toLowerCase() === activeDept?.title?.toLowerCase()
     )
-    .forEach((g) => {
+    .map((g) => {
       const cleanDesc =
         g.description && g.description.trim().toLowerCase() !== activeDept?.title?.trim().toLowerCase()
           ? g.description.trim()
           : '';
-      deptPhotos.push({
+      return {
         url: g.imageUrl,
         title: g.title?.trim() || '',
         description: cleanDesc,
-      });
+        focalPoint: g.focalPoint,
+        imageFit: g.imageFit,
+        imageZoom: g.imageZoom,
+      };
     });
+
+  if (deptPhotos.length === 0 && activeDept?.coverImage) {
+    deptPhotos.push({ url: activeDept.coverImage });
+  }
 
   const toggleDetails = (open: boolean) => {
     setIsDetailsOpen(open);
@@ -170,7 +179,6 @@ export default function HubFlow({
         onMouseEnter={() => handleHover(true)}
         onMouseLeave={() => handleHover(false)}
       >
-        {/* Horizontal Department Switcher Pills */}
         <div className="flex flex-wrap items-center justify-center gap-2.5 md:gap-3">
           {departments.map((dept, idx) => {
             const isActive = idx === activeIndexSafe;
@@ -192,7 +200,6 @@ export default function HubFlow({
           })}
         </div>
 
-        {/* Compact 1-Page Department Card */}
         {activeDept && (
           <HubDepartmentCard
             department={activeDept}
@@ -206,7 +213,6 @@ export default function HubFlow({
         )}
       </div>
 
-      {/* Auto-Centered Story Gallery & Info Sheet Modal */}
       {activeDept && (
         <HubDetailsModal
           isOpen={isDetailsOpen}
@@ -216,6 +222,7 @@ export default function HubFlow({
           photos={deptPhotos}
           terms={activeDeptTerms}
           isLightMode={isLightMode}
+          themeStyle={themeStyle}
           fonts={fonts}
         />
       )}

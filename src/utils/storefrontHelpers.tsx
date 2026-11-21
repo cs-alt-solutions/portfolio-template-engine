@@ -18,6 +18,14 @@ export interface FormattedGalleryItem {
   isVisible?: boolean;
   isRaw?: boolean;
   addons?: { name: string; price: string }[];
+  focalPoint?: { x: number; y: number };
+  imageFit?: 'cover' | 'contain';
+  imageZoom?: number;
+  heroFocalPoint?: { x: number; y: number };
+  heroImageFit?: 'cover' | 'contain';
+  heroImageZoom?: number;
+  heroFitAlign?: 'left' | 'center' | 'right';
+  heroFitScale?: number;
 }
 
 interface CustomIconProps extends SVGProps<SVGSVGElement> {
@@ -135,6 +143,14 @@ export function formatGalleryItems(rawGallery: unknown): FormattedGalleryItem[] 
       isVisible: obj.isVisible,
       isRaw: obj.isRaw,
       addons: obj.addons || [],
+      focalPoint: obj.focalPoint,
+      imageFit: obj.imageFit,
+      imageZoom: obj.imageZoom,
+      heroFocalPoint: obj.heroFocalPoint,
+      heroImageFit: obj.heroImageFit,
+      heroImageZoom: obj.heroImageZoom,
+      heroFitAlign: obj.heroFitAlign,
+      heroFitScale: obj.heroFitScale,
     };
   });
 }

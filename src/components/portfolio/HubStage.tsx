@@ -2,20 +2,26 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
-import HeroEngine, { HeroEngineProps } from './hero/HeroEngine';
+import HeroEngine, { HeroEngineProps, FocalPoint } from './hero/HeroEngine';
 import HubFlow from './content-engine/layouts/HubFlow';
 import { Capability, GalleryItem } from './content-engine/types';
+import { OperationalTerm } from './content-engine/layouts/hub/HubDetailsModal';
 
-interface OperationalTerm {
-  title: string;
-  description: string;
-  fees?: { name: string; price: string }[];
+interface FramedGalleryItem extends GalleryItem {
+  focalPoint?: FocalPoint;
+  imageFit?: 'cover' | 'contain';
+  imageZoom?: number;
+  heroFocalPoint?: FocalPoint;
+  heroImageFit?: 'cover' | 'contain';
+  heroImageZoom?: number;
+  heroFitAlign?: 'left' | 'center' | 'right';
+  heroFitScale?: number;
 }
 
 interface HubStageProps {
   heroProps: Omit<HeroEngineProps, 'isHubMode'>;
   capabilities: Capability[];
-  galleryItems: GalleryItem[];
+  galleryItems: FramedGalleryItem[];
   operationalTerms?: OperationalTerm[];
   themeStyle: string;
   brandColor: string;
@@ -62,7 +68,6 @@ export default function HubStage({
   const [isFlipped, setIsFlipped] = useState(false);
   const [isLockedByClick, setIsLockedByClick] = useState(false);
 
-  // Auto-advancing reel (pauses on hover/flip, locks once visitor clicks a department)
   useEffect(() => {
     if (departments.length <= 1 || isHovered || isFlipped || isLockedByClick) return;
     const timer = setInterval(() => {
@@ -73,15 +78,25 @@ export default function HubStage({
 
   const activeIndexSafe = departments.length > 0 ? Math.min(activeIndex, departments.length - 1) : 0;
   const activeDept = departments[activeIndexSafe];
+  const keepMainHeroStatic = heroProps.store?.hub_hero_static === true;
 
-  const activeDeptCover =
-    activeDept?.coverImage ||
-    galleryItems.find((g) => g && g.category === activeDept?.title && g.imageUrl)?.imageUrl;
+  const vaultCoverItem = galleryItems.find(
+    (g) => g && g.imageUrl && g.category?.toLowerCase() === activeDept?.title?.toLowerCase()
+  );
 
-  const syncedStore = {
-    ...heroProps.store,
-    hero_image: activeDeptCover || heroProps.store?.hero_image,
-  };
+  const activeDeptCover = vaultCoverItem?.imageUrl || activeDept?.coverImage;
+
+  const syncedStore = keepMainHeroStatic
+    ? heroProps.store
+    : {
+        ...heroProps.store,
+        hero_image: activeDeptCover || heroProps.store?.hero_image,
+        hero_focal_point: vaultCoverItem ? (vaultCoverItem.heroFocalPoint || vaultCoverItem.focalPoint) : undefined,
+        hero_image_fit: vaultCoverItem ? (vaultCoverItem.heroImageFit || 'cover') : undefined,
+        hero_image_zoom: vaultCoverItem ? (vaultCoverItem.heroImageZoom ?? 1) : undefined,
+        hero_fit_align: vaultCoverItem?.heroFitAlign || 'center',
+        hero_fit_scale: vaultCoverItem?.heroFitScale ?? 100,
+      };
 
   const handleSelectDept = (idx: number) => {
     setActiveIndex(idx);

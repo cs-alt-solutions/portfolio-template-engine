@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 /* src/components/portfolio/hero/layouts/MinimalTypeHero.tsx */
 import React from 'react';
-import { HeroEngineProps, getHeroLogoClasses, getHeroPositionClasses } from '../HeroEngine';
+import { HeroEngineProps, HeroMedia, getHeroLogoClasses } from '../HeroEngine';
 
 export default function MinimalTypeHero({
   store,
@@ -15,7 +15,6 @@ export default function MinimalTypeHero({
   isHubMode,
 }: HeroEngineProps) {
   const safeTheme = theme || {};
-  const { objectPos } = getHeroPositionClasses(store?.hero_position);
   const badgeRadius = safeTheme.radius === 'rounded-full' ? 'rounded-3xl' : (safeTheme.radius || 'rounded-none');
   const dividerColor = safeTheme.isLightMode ? 'border-zinc-900/15' : 'border-white/15';
   const cleanBodyText = (safeTheme.bodyText || '').replace('mx-auto', '');
@@ -27,12 +26,13 @@ export default function MinimalTypeHero({
     >
       {/* Ultra-subtle Atmospheric Watermark */}
       {store?.hero_image && (
-        <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
-          <img
-            src={store.hero_image}
+        <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden" aria-hidden="true">
+          <HeroMedia
+            store={store}
+            isHeroFixed={false}
             alt=""
-            aria-hidden="true"
-            className={`w-full h-full object-cover opacity-[0.06] blur-sm scale-105 ${objectPos}`}
+            className="opacity-[0.06] blur-sm"
+            defaultScale={1.05}
           />
         </div>
       )}
@@ -71,11 +71,11 @@ export default function MinimalTypeHero({
 
           {store?.hero_image && (
             <div className="lg:col-span-4 flex lg:justify-end">
-              <div className={`w-full max-w-xs aspect-4/3 overflow-hidden border ${dividerColor} shadow-xl ${badgeRadius}`}>
-                <img
-                  src={store.hero_image}
+              <div className={`relative w-full max-w-xs aspect-4/3 overflow-hidden border ${dividerColor} shadow-xl ${badgeRadius}`}>
+                <HeroMedia
+                  store={store}
+                  isHeroFixed={false}
                   alt={store?.business_name || 'Visual Preview'}
-                  className={`w-full h-full object-cover ${objectPos}`}
                 />
               </div>
             </div>
@@ -93,11 +93,13 @@ export default function MinimalTypeHero({
             )}
           </div>
 
-          <div className="shrink-0">
-            <a href={exploreLink} className={`inline-block ${safeTheme.buttonStyle || ''} ${buttonBgClass}`}>
-              {store?.hero_cta || heroButtonText}
-            </a>
-          </div>
+          {!isHubMode && (
+            <div className="shrink-0">
+              <a href={exploreLink} className={`inline-block ${safeTheme.buttonStyle || ''} ${buttonBgClass}`}>
+                {store?.hero_cta || heroButtonText}
+              </a>
+            </div>
+          )}
         </div>
       </div>
     </section>

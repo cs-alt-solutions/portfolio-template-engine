@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 /* src/components/portfolio/hero/layouts/EditorialFrameHero.tsx */
 import React from 'react';
-import { HeroEngineProps, getHeroLogoClasses, getHeroPositionClasses } from '../HeroEngine';
+import { HeroEngineProps, HeroMedia, getHeroLogoClasses } from '../HeroEngine';
 
 export default function EditorialFrameHero({
   store,
@@ -16,7 +16,6 @@ export default function EditorialFrameHero({
   isHubMode,
 }: HeroEngineProps) {
   const safeTheme = theme || {};
-  const { objectPos, bgPos } = getHeroPositionClasses(store?.hero_position);
   const frameRadius = safeTheme.radius === 'rounded-full' ? 'rounded-3xl' : (safeTheme.radius || 'rounded-none');
   const borderClass = safeTheme.isLightMode ? 'border-zinc-900/10' : 'border-white/10';
 
@@ -51,38 +50,30 @@ export default function EditorialFrameHero({
           )}
 
           {store?.subtext && (
-            <p className={`text-base md:text-xl max-w-2xl mb-8 text-balance opacity-90 ${safeTheme.bodyText || ''}`}>
+            <p className={`text-base md:text-xl max-w-2xl ${isHubMode ? 'mb-4' : 'mb-8'} text-balance opacity-90 ${safeTheme.bodyText || ''}`}>
               {store.subtext}
             </p>
           )}
 
-          <a href={exploreLink} className={`inline-block ${safeTheme.buttonStyle || ''} ${buttonBgClass}`}>
-            {store?.hero_cta || heroButtonText}
-          </a>
+          {!isHubMode && (
+            <a href={exploreLink} className={`inline-block ${safeTheme.buttonStyle || ''} ${buttonBgClass}`}>
+              {store?.hero_cta || heroButtonText}
+            </a>
+          )}
         </div>
 
         {/* Bottom Wide Framed Showcase */}
         {store?.hero_image && (
           <div className={`relative w-full ${isHubMode ? 'h-[36vh] md:h-[46vh]' : 'h-[45vh] md:h-[62vh]'} overflow-hidden border ${borderClass} shadow-2xl ${frameRadius}`}>
             {safeTheme.useBrandAccent && (
-              <div className={`absolute top-0 left-0 w-full h-1 z-10 ${lineAccent}`} />
+              <div className={`absolute top-0 left-0 w-full h-1 z-20 ${lineAccent}`} />
             )}
             <div className="absolute inset-0" style={{ clipPath: 'inset(0)' }}>
-              {isHeroFixed ? (
-                <div
-                  className="fixed inset-0 w-full h-full bg-cover"
-                  style={{
-                    backgroundImage: `url('${store.hero_image}')`,
-                    backgroundPosition: bgPos,
-                  }}
-                />
-              ) : (
-                <img
-                  src={store.hero_image}
-                  alt={store?.business_name || 'Hero Showcase'}
-                  className={`w-full h-full object-cover ${objectPos}`}
-                />
-              )}
+              <HeroMedia
+                store={store}
+                isHeroFixed={isHeroFixed}
+                alt={store?.business_name || 'Hero Showcase'}
+              />
             </div>
           </div>
         )}

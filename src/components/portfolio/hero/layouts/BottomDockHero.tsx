@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 /* src/components/portfolio/hero/layouts/BottomDockHero.tsx */
 import React from 'react';
-import { HeroEngineProps, getHeroLogoClasses, getHeroPositionClasses } from '../HeroEngine';
+import { HeroEngineProps, HeroMedia, getHeroLogoClasses } from '../HeroEngine';
 
 export default function BottomDockHero({
   store,
@@ -16,7 +16,6 @@ export default function BottomDockHero({
   isHubMode,
 }: HeroEngineProps) {
   const safeTheme = theme || {};
-  const { objectPos, bgPos } = getHeroPositionClasses(store?.hero_position);
   const dockRadius = safeTheme.radius === 'rounded-full' ? 'rounded-3xl' : (safeTheme.radius || 'rounded-none');
   const dockSurface = safeTheme.isLightMode
     ? 'bg-white/85 text-zinc-950 border-zinc-900/15'
@@ -29,41 +28,23 @@ export default function BottomDockHero({
     >
       {/* Unobstructed Full-Bleed Backdrop */}
       <div className="absolute inset-0 z-0" style={{ clipPath: 'inset(0)' }}>
-        {store?.hero_image ? (
-          isHeroFixed ? (
-            <div
-              key={store.hero_image}
-              className="fixed inset-0 w-full h-full bg-cover animate-in fade-in duration-700"
-              style={{
-                backgroundImage: `url('${store.hero_image}')`,
-                backgroundPosition: bgPos,
-              }}
-            />
-          ) : (
-            <img
-              key={store.hero_image}
-              src={store.hero_image}
-              alt={store?.business_name || 'Hero'}
-              className={`w-full h-full object-cover animate-in fade-in duration-700 ${objectPos}`}
-            />
-          )
-        ) : (
-          <div className="w-full h-full bg-zinc-900" />
-        )}
-        {/* Subtle bottom legibility gradient only */}
-        <div className="absolute inset-x-0 bottom-0 h-1/3 bg-linear-to-t from-black/60 via-black/15 to-transparent pointer-events-none" />
+        <HeroMedia
+          key={store?.hero_image || 'empty'}
+          store={store}
+          isHeroFixed={isHeroFixed}
+          className="animate-in fade-in duration-700"
+          fallback={<div className="w-full h-full bg-zinc-900" />}
+        />
+        <div className="absolute inset-x-0 bottom-0 z-20 h-1/3 bg-linear-to-t from-black/60 via-black/15 to-transparent pointer-events-none" />
       </div>
 
       {/* Slim Bottom Floating Dock */}
       <div
         className={`relative z-10 w-full max-w-6xl backdrop-blur-xl border shadow-2xl overflow-hidden px-5 py-4 md:px-7 md:py-5 ${dockSurface} ${dockRadius}`}
       >
-        {safeTheme.useBrandAccent && (
-          <div className={`absolute top-0 left-0 w-full h-1 ${lineAccent}`} />
-        )}
+        {safeTheme.useBrandAccent && <div className={`absolute top-0 left-0 w-full h-1 ${lineAccent}`} />}
 
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 md:gap-6">
-          {/* Left: Logo / Identity + Copy */}
           <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-6 min-w-0">
             {hasValidLogo ? (
               <img
@@ -93,10 +74,12 @@ export default function BottomDockHero({
             </div>
           </div>
 
-          {/* Right: Action CTA (Hidden in Hub Mode since department tabs sit directly below) */}
           {!isHubMode && (
             <div className="shrink-0">
-              <a href={exploreLink} className={`inline-block w-full lg:w-auto text-center ${safeTheme.buttonStyle || ''} ${buttonBgClass}`}>
+              <a
+                href={exploreLink}
+                className={`inline-block w-full lg:w-auto text-center ${safeTheme.buttonStyle || ''} ${buttonBgClass}`}
+              >
                 {store?.hero_cta || heroButtonText}
               </a>
             </div>

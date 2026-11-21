@@ -3,19 +3,25 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { ChevronLeft, ChevronRight, ZoomIn, X, Images } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ZoomIn, Images } from 'lucide-react';
+import HubPhotoLightbox from './HubPhotoLightbox';
 
 export interface HubPhoto {
   url: string;
   title?: string;
   description?: string;
+  focalPoint?: { x: number; y: number };
+  imageFit?: 'cover' | 'contain';
+  imageZoom?: number;
 }
 
 interface HubStoryGalleryProps {
   photos: HubPhoto[];
   departmentTitle: string;
   isLightMode: boolean;
+  themeStyle?: string;
   bodyFont: string;
+  headingFont?: string;
   onZoomChange?: (zoomed: boolean) => void;
 }
 
@@ -23,7 +29,9 @@ export default function HubStoryGallery({
   photos,
   departmentTitle,
   isLightMode,
+  themeStyle = 'industrial',
   bodyFont,
+  headingFont = '',
   onZoomChange,
 }: HubStoryGalleryProps) {
   const [activeIndex, setActiveIndex] = useState(0);
@@ -40,11 +48,6 @@ export default function HubStoryGallery({
     },
     [onZoomChange]
   );
-
-  useEffect(() => {
-    setActiveIndex(0);
-    setZoom(false);
-  }, [departmentTitle, setZoom]);
 
   const handlePrev = useCallback(() => {
     if (total <= 1) return;
@@ -68,16 +71,24 @@ export default function HubStoryGallery({
 
   if (!activePhoto) return null;
 
+  const isMidnight = themeStyle === 'midnight';
   const captionSurface = isLightMode
-    ? 'bg-zinc-50 border-zinc-900/10 text-zinc-800'
-    : 'bg-zinc-900/70 border-white/10 text-zinc-200';
+    ? 'bg-white/85 border-zinc-900/10 text-zinc-900'
+    : isMidnight
+      ? 'bg-zinc-950/90 border-white/10 text-white'
+      : 'bg-zinc-900/80 border-white/10 text-white';
+
   const hasCaption = !!(activePhoto.title?.trim() || activePhoto.description?.trim());
+  const isContain = activePhoto.imageFit === 'contain';
+  const fx = activePhoto.focalPoint?.x ?? 50;
+  const fy = activePhoto.focalPoint?.y ?? 50;
+  const zoom = activePhoto.imageZoom ?? 1;
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between text-[10px] font-mono uppercase tracking-widest opacity-70">
+    <div className="space-y-3.5">
+      <div className="flex items-center justify-between text-[11px] font-mono uppercase tracking-widest opacity-80">
         <span className="flex items-center gap-2">
-          <Images className="w-3.5 h-3.5 text-brand-primary" />
+          <Images className="w-3.5 h-3.5" />
           <span>Story Gallery</span>
         </span>
         <span>
@@ -86,19 +97,41 @@ export default function HubStoryGallery({
       </div>
 
       {/* Spotlight Stage */}
-      <div className="relative aspect-16/10 w-full rounded-2xl overflow-hidden border border-current/10 bg-black/40 group">
-        <img
-          src={activePhoto.url}
-          alt={activePhoto.title || departmentTitle}
-          onClick={() => setZoom(true)}
-          className="w-full h-full object-cover cursor-zoom-in transition-transform duration-500 group-hover:scale-[1.02]"
-        />
+      <div className="relative aspect-16/10 w-full rounded-2xl overflow-hidden border border-current/10 bg-black group">
+        {isContain ? (
+          <>
+            <img
+              src={activePhoto.url}
+              alt=""
+              aria-hidden="true"
+              className="absolute inset-0 w-full h-full object-cover scale-110 blur-xl opacity-45 pointer-events-none"
+            />
+            <img
+              src={activePhoto.url}
+              alt={activePhoto.title || departmentTitle}
+              onClick={() => setZoom(true)}
+              className="relative z-10 w-full h-full object-contain cursor-zoom-in"
+            />
+          </>
+        ) : (
+          <img
+            src={activePhoto.url}
+            alt={activePhoto.title || departmentTitle}
+            onClick={() => setZoom(true)}
+            className="w-full h-full object-cover cursor-zoom-in transition-transform duration-500"
+            style={{
+              objectPosition: `${fx}% ${fy}%`,
+              transform: zoom > 1 ? `scale(${zoom})` : undefined,
+              transformOrigin: `${fx}% ${fy}%`,
+            }}
+          />
+        )}
 
         <button
           type="button"
           onClick={() => setZoom(true)}
           aria-label="Expand image"
-          className="absolute top-3 right-3 p-2 rounded-xl bg-black/60 hover:bg-black/80 text-white border border-white/15 backdrop-blur-md opacity-80 group-hover:opacity-100 transition-all cursor-pointer"
+          className="absolute top-3 right-3 z-20 p-2.5 rounded-xl bg-black/65 hover:bg-black/85 text-white border border-white/15 backdrop-blur-md opacity-85 group-hover:opacity-100 transition-all cursor-pointer"
         >
           <ZoomIn className="w-4 h-4" />
         </button>
@@ -109,124 +142,81 @@ export default function HubStoryGallery({
               type="button"
               onClick={handlePrev}
               aria-label="Previous photo"
-              className="absolute left-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/60 hover:bg-brand-primary text-white border border-white/15 backdrop-blur-md transition-all cursor-pointer"
+              className="absolute left-3 top-1/2 -translate-y-1/2 z-20 p-2.5 rounded-full bg-black/65 hover:bg-brand-primary text-white border border-white/15 backdrop-blur-md transition-all cursor-pointer"
             >
-              <ChevronLeft className="w-4 h-4" />
+              <ChevronLeft className="w-5 h-5" />
             </button>
             <button
               type="button"
               onClick={handleNext}
               aria-label="Next photo"
-              className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/60 hover:bg-brand-primary text-white border border-white/15 backdrop-blur-md transition-all cursor-pointer"
+              className="absolute right-3 top-1/2 -translate-y-1/2 z-20 p-2.5 rounded-full bg-black/65 hover:bg-brand-primary text-white border border-white/15 backdrop-blur-md transition-all cursor-pointer"
             >
-              <ChevronRight className="w-4 h-4" />
+              <ChevronRight className="w-5 h-5" />
             </button>
           </>
         )}
       </div>
 
-      {/* Editorial Caption Card (only shows when photo has a custom title or story) */}
+      {/* High-Contrast Editorial Caption Card */}
       {hasCaption && (
-        <div className={`px-4 py-3 rounded-2xl border space-y-1 ${captionSurface}`}>
-          {activePhoto.title?.trim() && (
-            <h5 className="text-xs font-bold tracking-wide text-brand-primary">{activePhoto.title}</h5>
-          )}
-          {activePhoto.description?.trim() && (
-            <p className={`text-xs leading-relaxed opacity-85 ${bodyFont}`}>{activePhoto.description}</p>
-          )}
+        <div className={`px-5 py-4 rounded-2xl border flex gap-3.5 items-stretch ${captionSurface}`}>
+          <div className="w-1 rounded-full bg-brand-primary shrink-0" />
+          <div className="space-y-1 min-w-0">
+            {activePhoto.title?.trim() && (
+              <h5 className={`text-base md:text-lg font-black tracking-tight ${headingFont}`}>
+                {activePhoto.title}
+              </h5>
+            )}
+            {activePhoto.description?.trim() && (
+              <p className={`text-sm leading-relaxed opacity-85 ${bodyFont}`}>
+                {activePhoto.description}
+              </p>
+            )}
+          </div>
         </div>
       )}
 
       {/* Horizontal Thumbnail Filmstrip */}
       {total > 1 && (
-        <div className="flex items-center gap-2 overflow-x-auto pb-1">
+        <div className="flex items-center gap-2.5 overflow-x-auto pb-1">
           {photos.map((photo, idx) => {
             const isActive = idx === safeIndex;
+            const thumbX = photo.focalPoint?.x ?? 50;
+            const thumbY = photo.focalPoint?.y ?? 50;
             return (
               <button
                 key={idx}
                 type="button"
                 onClick={() => setActiveIndex(idx)}
-                className={`relative w-16 h-12 rounded-xl overflow-hidden shrink-0 border-2 transition-all cursor-pointer ${
+                className={`relative w-20 h-14 rounded-xl overflow-hidden shrink-0 border-2 bg-black transition-all cursor-pointer ${
                   isActive
-                    ? 'border-brand-primary opacity-100 scale-[1.03]'
+                    ? 'border-brand-primary opacity-100 ring-1 ring-white/25'
                     : 'border-transparent opacity-50 hover:opacity-90'
                 }`}
               >
-                <img src={photo.url} alt={photo.title || `Photo ${idx + 1}`} className="w-full h-full object-cover" />
+                <img
+                  src={photo.url}
+                  alt={photo.title || `Photo ${idx + 1}`}
+                  className={`w-full h-full ${photo.imageFit === 'contain' ? 'object-contain' : 'object-cover'}`}
+                  style={photo.imageFit === 'contain' ? undefined : { objectPosition: `${thumbX}% ${thumbY}%` }}
+                />
               </button>
             );
           })}
         </div>
       )}
 
-      {/* Fullscreen Arrow-Enabled Lightbox */}
       {isZoomed && (
-        <div
-          className="fixed inset-0 z-60 flex flex-col items-center justify-center gap-4 bg-black/95 p-4 md:p-8"
-          onClick={(e) => {
-            e.stopPropagation();
-            setZoom(false);
-          }}
-        >
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              setZoom(false);
-            }}
-            aria-label="Close lightbox"
-            className="absolute top-5 right-5 p-2.5 rounded-xl bg-zinc-900/90 hover:bg-zinc-800 text-white border border-white/15 cursor-pointer"
-          >
-            <X className="w-5 h-5" />
-          </button>
-
-          {total > 1 && (
-            <>
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handlePrev();
-                }}
-                aria-label="Previous photo"
-                className="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 p-3 rounded-full bg-zinc-900/80 hover:bg-brand-primary text-white border border-white/15 cursor-pointer"
-              >
-                <ChevronLeft className="w-5 h-5" />
-              </button>
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleNext();
-                }}
-                aria-label="Next photo"
-                className="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 p-3 rounded-full bg-zinc-900/80 hover:bg-brand-primary text-white border border-white/15 cursor-pointer"
-              >
-                <ChevronRight className="w-5 h-5" />
-              </button>
-            </>
-          )}
-
-          <img
-            src={activePhoto.url}
-            alt={activePhoto.title || departmentTitle}
-            onClick={(e) => e.stopPropagation()}
-            className="max-w-[90vw] max-h-[78vh] object-contain rounded-xl shadow-2xl"
-          />
-
-          <div onClick={(e) => e.stopPropagation()} className="text-center max-w-2xl space-y-1 px-4">
-            <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-400">
-              {safeIndex + 1} / {total}
-            </span>
-            {activePhoto.title?.trim() && (
-              <p className="text-sm font-bold text-white">{activePhoto.title}</p>
-            )}
-            {activePhoto.description?.trim() && (
-              <p className="text-xs text-zinc-300 leading-relaxed">{activePhoto.description}</p>
-            )}
-          </div>
-        </div>
+        <HubPhotoLightbox
+          photo={activePhoto}
+          index={safeIndex}
+          total={total}
+          departmentTitle={departmentTitle}
+          onPrev={handlePrev}
+          onNext={handleNext}
+          onClose={() => setZoom(false)}
+        />
       )}
     </div>
   );

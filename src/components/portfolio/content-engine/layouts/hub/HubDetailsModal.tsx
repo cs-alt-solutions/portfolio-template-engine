@@ -3,6 +3,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { X, ShieldCheck, ArrowRight, CheckCircle2, Info } from 'lucide-react';
+import { THEME_REGISTRY } from '@/utils/themes';
 import { Capability } from '../../types';
 import PolicyCard, { OperationalTerm } from './PolicyCard';
 import HubStoryGallery, { HubPhoto } from './HubStoryGallery';
@@ -18,6 +19,7 @@ interface HubDetailsModalProps {
   photos: HubPhoto[];
   terms: OperationalTerm[];
   isLightMode: boolean;
+  themeStyle?: string;
   fonts: { heading: string; body: string };
 }
 
@@ -29,6 +31,7 @@ export default function HubDetailsModal({
   photos,
   terms,
   isLightMode,
+  themeStyle = 'industrial',
   fonts,
 }: HubDetailsModalProps) {
   const [isGalleryZoomed, setIsGalleryZoomed] = useState(false);
@@ -44,45 +47,57 @@ export default function HubDetailsModal({
 
   if (!isOpen) return null;
 
+  const theme = THEME_REGISTRY[themeStyle] || THEME_REGISTRY['industrial'];
+  const isMidnight = themeStyle === 'midnight';
+  const isSquare = theme?.radius === 'rounded-none';
+  const modalRadius = isSquare ? 'rounded-none' : themeStyle === 'organic' ? 'rounded-3xl' : 'rounded-2xl';
+  const cardRadius = isSquare ? 'rounded-none' : 'rounded-2xl';
+
   const modalSurface = isLightMode
-    ? 'bg-white border-zinc-900/15 text-zinc-900'
-    : 'bg-zinc-950 border-white/15 text-white';
+    ? `${theme?.pageBg || 'bg-white'} border-zinc-900/15 text-zinc-950`
+    : isMidnight
+      ? 'bg-black/95 border-white/10 text-white shadow-[0_0_90px_rgba(0,0,0,0.95)]'
+      : 'bg-zinc-950/95 border-white/15 text-white';
+
   const subCardSurface = isLightMode
-    ? 'bg-zinc-50 border-zinc-900/10 text-zinc-800'
-    : 'bg-zinc-900/70 border-white/10 text-zinc-200';
-  const chipSurface = isLightMode
-    ? 'bg-zinc-100 border-zinc-900/10 text-zinc-700'
-    : 'bg-white/5 border-white/10 text-zinc-200';
+    ? 'bg-white/80 border-zinc-900/10 text-zinc-800'
+    : isMidnight
+      ? 'bg-zinc-950/90 border-white/10 text-zinc-200'
+      : 'bg-zinc-900/70 border-white/10 text-zinc-200';
+
+  const closeBtnSurface = isLightMode
+    ? 'bg-zinc-100 border-zinc-900/10 text-zinc-800 hover:bg-zinc-200'
+    : 'bg-white/5 border-white/10 text-zinc-200 hover:bg-white/15 hover:text-white';
 
   const visibleBullets = (department.bullets || []).filter(Boolean);
   const hasOverview = !!(department.description?.trim() || visibleBullets.length > 0);
   const hasRightColumn = terms.length > 0 || hasOverview;
   const hasBoth = photos.length > 0 && hasRightColumn;
 
-  const modalTitle =
-    photos.length > 0 && terms.length > 0
-      ? 'Photos & Details'
-      : photos.length > 0
-        ? 'Story & Gallery'
-        : 'Booking Details';
-
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-6 bg-black/80 backdrop-blur-md animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 md:p-6 bg-black/85 backdrop-blur-md animate-in fade-in duration-200"
       onClick={onClose}
     >
       <div
-        className={`relative w-full ${hasBoth ? 'max-w-5xl' : 'max-w-2xl'} max-h-[88vh] rounded-3xl border shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 ${modalSurface}`}
+        className={`relative ${hasBoth ? 'w-[95vw] max-w-7xl' : 'w-[94vw] max-w-4xl'} max-h-[92vh] border shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 ${modalRadius} ${modalSurface}`}
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Top Accent Hairline */}
+        <div className="h-0.5 w-full bg-brand-primary shrink-0" />
+
         {/* Header */}
-        <div className="px-6 py-4 border-b border-current/10 flex items-center justify-between gap-4 shrink-0">
-          <div className="min-w-0">
-            <span className="text-[10px] font-mono uppercase tracking-widest text-brand-primary block mb-0.5 truncate">
-              {department.title}
+        <div className="px-6 py-4 md:px-8 md:py-5 border-b border-current/10 flex items-center justify-between gap-4 shrink-0">
+          <div className="min-w-0 space-y-1">
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-md bg-brand-primary text-white text-[10px] font-mono font-bold uppercase tracking-widest">
+              {photos.length > 0 && terms.length > 0
+                ? 'Photos & Details'
+                : photos.length > 0
+                  ? 'Story Gallery'
+                  : 'Booking Details'}
             </span>
-            <h4 className={`text-xl md:text-2xl font-black tracking-tight ${fonts.heading}`}>
-              {modalTitle}
+            <h4 className={`text-xl md:text-3xl font-black tracking-tight truncate ${fonts.heading}`}>
+              {department.title}
             </h4>
           </div>
 
@@ -93,61 +108,62 @@ export default function HubDetailsModal({
                 onClose();
                 onInquire();
               }}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest bg-brand-primary text-white border border-white/15 hover:brightness-110 transition-all cursor-pointer"
+              className="inline-flex items-center gap-2 px-5 py-3 rounded-xl text-xs font-black uppercase tracking-widest bg-brand-primary text-white border border-white/15 hover:brightness-110 transition-all shadow-lg cursor-pointer"
             >
               <span>Quick Inquiry</span>
-              <ArrowRight className="w-3.5 h-3.5" />
+              <ArrowRight className="w-4 h-4" />
             </button>
 
             <button
               type="button"
               onClick={onClose}
               aria-label="Close modal"
-              className={`p-2 rounded-xl border transition-colors cursor-pointer ${chipSurface} hover:border-brand-primary`}
+              className={`p-2.5 rounded-xl border transition-colors cursor-pointer ${closeBtnSurface}`}
             >
-              <X className="w-4 h-4" />
+              <X className="w-5 h-5" />
             </button>
           </div>
         </div>
 
         {/* Body */}
-        <div className="p-6 overflow-y-auto">
-          <div className={`grid grid-cols-1 ${hasBoth ? 'lg:grid-cols-12' : ''} gap-6 items-start`}>
-            {/* Left: Spotlight Story Gallery + Filmstrip */}
+        <div className="p-6 md:p-8 overflow-y-auto flex-1">
+          <div className={`grid grid-cols-1 ${hasBoth ? 'lg:grid-cols-12' : ''} gap-6 lg:gap-8 items-start`}>
             {photos.length > 0 && (
               <div className={hasBoth ? 'lg:col-span-7' : ''}>
                 <HubStoryGallery
+                  key={department.title}
                   photos={photos}
                   departmentTitle={department.title}
                   isLightMode={isLightMode}
+                  themeStyle={themeStyle}
                   bodyFont={fonts.body}
+                  headingFont={fonts.heading}
                   onZoomChange={setIsGalleryZoomed}
                 />
               </div>
             )}
 
-            {/* Right: Informational Sheet (Overview + Highlights + Policies) */}
             {hasRightColumn && (
-              <div className={`${hasBoth ? 'lg:col-span-5' : ''} space-y-5`}>
+              <div className={`${hasBoth ? 'lg:col-span-5' : ''} space-y-6`}>
                 {hasOverview && (
-                  <div className="space-y-2.5">
-                    <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-widest opacity-70">
-                      <Info className="w-3.5 h-3.5 text-brand-primary" />
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2 text-[11px] font-mono uppercase tracking-widest opacity-80">
+                      <Info className="w-3.5 h-3.5 opacity-80" />
                       <span>Overview &amp; Highlights</span>
                     </div>
 
-                    <div className={`p-4 rounded-2xl border space-y-3 ${subCardSurface}`}>
+                    <div className={`p-5 border space-y-3.5 ${cardRadius} ${subCardSurface}`}>
                       {department.description?.trim() && (
-                        <p className={`text-xs leading-relaxed opacity-90 ${fonts.body}`}>
-                          {department.description}
-                        </p>
+                        <p className={`text-sm leading-relaxed ${fonts.body}`}>{department.description}</p>
                       )}
 
                       {visibleBullets.length > 0 && (
-                        <ul className="space-y-2 pt-2 border-t border-current/10">
+                        <ul className="space-y-2.5 pt-3 border-t border-current/10">
                           {visibleBullets.map((bullet, idx) => (
-                            <li key={idx} className="flex items-start gap-2 text-xs leading-relaxed">
-                              <CheckCircle2 className="w-3.5 h-3.5 text-brand-primary shrink-0 mt-0.5" />
+                            <li key={idx} className="flex items-start gap-2.5 text-sm leading-relaxed">
+                              <span className="mt-1 p-0.5 rounded-full bg-brand-primary text-white shrink-0">
+                                <CheckCircle2 className="w-3 h-3" />
+                              </span>
                               <span className={fonts.body}>{bullet}</span>
                             </li>
                           ))}
@@ -158,18 +174,19 @@ export default function HubDetailsModal({
                 )}
 
                 {terms.length > 0 && (
-                  <div className="space-y-2.5">
-                    <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-widest opacity-70">
-                      <ShieldCheck className="w-3.5 h-3.5 text-brand-primary" />
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2 text-[11px] font-mono uppercase tracking-widest opacity-80">
+                      <ShieldCheck className="w-3.5 h-3.5 opacity-80" />
                       <span>Booking Details &amp; Policies</span>
                     </div>
 
-                    <div className="space-y-3">
+                    <div className="space-y-3.5">
                       {terms.map((term, idx) => (
                         <PolicyCard
                           key={idx}
                           term={term}
                           isLightMode={isLightMode}
+                          themeStyle={themeStyle}
                           bodyFont={fonts.body}
                         />
                       ))}
