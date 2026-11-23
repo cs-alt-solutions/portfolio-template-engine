@@ -17,6 +17,7 @@ import HeroEngine from '@/components/portfolio/hero/HeroEngine';
 import HubStage from '@/components/portfolio/HubStage';
 import AboutSection from '@/components/portfolio/AboutSection';
 import ContentEngine from '@/components/portfolio/content-engine';
+import EventsSection from '@/components/portfolio/events/EventsSection';
 import PrototypeTourGuide from '@/components/portfolio/PrototypeTourGuide';
 import StorefrontClientActions from '../../components/portfolio/StorefrontClientActions';
 import StagingReviewOverlay from '@/components/portfolio/staging-review/StagingReviewOverlay';
@@ -124,6 +125,19 @@ export default async function DynamicStorefront({
     aboutLayout: store.about_layout || 'split',
   };
 
+  const eventsSection = (
+    <EventsSection
+      events={store.events}
+      businessName={store.business_name || 'Our Team'}
+      storefrontSlug={store.slug}
+      contactEmail={store.public_email || store.contact_email || ''}
+      brandColor={brandColor}
+      isLightMode={isLightMode}
+      themeStyle={themeStyle}
+      inquiryOptions={store.lead_inquiry_types}
+    />
+  );
+
   const parallaxDivider = isHeroFixed && store.hero_image && (
     <div className="relative w-full h-[30vh] md:h-[40vh] border-y border-white/10 shadow-[inset_0_0_100px_rgba(0,0,0,0.8)]" style={{ clipPath: 'inset(0)' }}>
       <div className="fixed inset-0 w-full h-full bg-cover bg-center opacity-50 pointer-events-none" style={{ backgroundImage: `url('${store.hero_image}')` }} />
@@ -154,6 +168,7 @@ export default async function DynamicStorefront({
             contactEmail={store.contact_email}
           />
           {parallaxDivider}
+          {eventsSection}
           {hasAbout && (
             <div id="about" className={`w-full py-24 border-t ${isLightMode ? 'border-zinc-900/10 bg-black/2' : 'border-white/10 bg-zinc-950/50'}`}>
               <div className="container mx-auto px-6">
@@ -192,6 +207,7 @@ export default async function DynamicStorefront({
               industryTag={store.industry_tag}
             />
           </div>
+          {eventsSection}
           <StorefrontClientActions store={store} brandColor={brandColor} secondaryBrandColor={secondaryBrandColor} isLightMode={isLightMode} themeStyle={themeStyle} />
         </>
       )}

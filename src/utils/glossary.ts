@@ -153,3 +153,27 @@ export const AUDIT_ROADMAP: AuditStep[] = [
     ]
   }
 ];
+// 8. Upcoming Events Defaults
+export const EVENTS_DEFAULTS = {
+  EYEBROW_PREFIX: 'On The Calendar',
+  EYEBROW_SUFFIX: 'Upcoming',
+  HEADING: 'Upcoming Events',
+  SUBTEXT_SUFFIX: 'in person—tap any date to save it to your calendar, pull up directions, or RSVP.',
+  NEXT_UP_BADGE: 'Next Up',
+  TODAY_BADGE: 'Happening Today',
+  TOMORROW_BADGE: 'Tomorrow',
+  GOOGLE_CAL_BTN: 'Google Cal',
+  ICS_BTN: '.ICS',
+  DETAILS_BTN: 'Event Details',
+  RSVP_BTN: 'RSVP / Inquire',
+  INQUIRY_PREFIX: 'Event Inquiry:',
+  CATEGORY_LABELS: {
+    festival: 'Farm / Festival',
+    appearance: 'Live Appearance',
+    popup: 'Pop-Up Market',
+    truck: 'Food Truck Stop',
+    session: 'Mini-Sessions',
+    live: 'Live Night',
+    special: 'Special Event',
+  } as Record<string, string>,
+};
