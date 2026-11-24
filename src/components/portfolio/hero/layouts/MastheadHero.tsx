@@ -2,6 +2,13 @@
 import React from 'react';
 import { HeroEngineProps, HeroMedia, getRawBgColor } from '../HeroEngine';
 
+const MASTHEAD_FONTS: Record<string, { fontClass: string; trackingClass: string }> = {
+  gothic: { fontClass: 'font-gothic', trackingClass: 'tracking-normal' },
+  pirata: { fontClass: 'font-pirata', trackingClass: 'tracking-[0.02em]' },
+  grenze: { fontClass: 'font-grenze', trackingClass: 'tracking-[0.02em]' },
+  cinzel: { fontClass: 'font-cinzel', trackingClass: 'tracking-[0.08em]' },
+};
+
 export default function MastheadHero({
   layout,
   store,
@@ -16,21 +23,26 @@ export default function MastheadHero({
 }: HeroEngineProps) {
   const safeTheme = theme || {};
   const isLight = Boolean(safeTheme.isLightMode);
-  const showWash = layout === 'masthead-wash' && Boolean(store?.hero_image);
+
+  const [baseLayout, fontKey = 'default'] = (layout || 'masthead').split('--');
+  const showWash = baseLayout === 'masthead-wash' && Boolean(store?.hero_image);
   const rawBgColor = getRawBgColor(safeTheme.pageBg || '', isLight);
+  const customFont = MASTHEAD_FONTS[fontKey];
 
   const displayName = (store?.business_name || store?.tagline || 'Studio').trim();
   const charCount = displayName.length;
 
-  // Fluid display sizing so short names span monumental and longer names stay clean on mobile
+  // Slightly larger ceiling for ornate blackletter so fine serifs stay crisp
+  const isBlackletter = fontKey === 'gothic' || fontKey === 'pirata';
   const mastheadSize =
     charCount <= 10
-      ? 'text-[clamp(3.25rem,11vw,9.5rem)]'
+      ? isBlackletter
+        ? 'text-[clamp(3.75rem,12.5vw,10.5rem)]'
+        : 'text-[clamp(3.25rem,11vw,9.5rem)]'
       : charCount <= 18
         ? 'text-[clamp(2.5rem,8vw,7rem)]'
         : 'text-[clamp(2rem,6vw,5.25rem)]';
 
-  // Compact by default so gallery / hub content appears immediately above the fold
   const heightClass = isHubMode
     ? 'py-12 md:py-16'
     : store?.hero_height === 'full'
@@ -42,6 +54,13 @@ export default function MastheadHero({
   const borderClass = isLight ? 'border-zinc-900/10' : 'border-white/10';
   const eyebrowTone = isLight ? 'text-zinc-600' : 'text-stone-400';
 
+  // Strip theme font-family & tracking when a custom display lettering is chosen
+  const basePrimaryText = customFont
+    ? (safeTheme.primaryText || '')
+        .replace(/\bfont-(sans|serif|mono|cinzel|pirata|gothic|grenze)\b/g, '')
+        .replace(/\btracking-[^\s]+\b/g, '')
+    : safeTheme.primaryText || '';
+
   return (
     <section
       id="hero"
@@ -49,7 +68,11 @@ export default function MastheadHero({
     >
       {/* Optional Whisper-Faint Atmospheric Wash */}
       {showWash && (
-        <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden" style={{ clipPath: 'inset(0)' }} aria-hidden="true">
+        <div
+          className="absolute inset-0 z-0 pointer-events-none overflow-hidden"
+          style={{ clipPath: 'inset(0)' }}
+          aria-hidden="true"
+        >
           <HeroMedia
             store={store}
             isHeroFixed={isHeroFixed}
@@ -57,7 +80,6 @@ export default function MastheadHero({
             className={isLight ? 'opacity-[0.10] saturate-50' : 'opacity-[0.18]'}
             defaultScale={1.04}
           />
-          {/* Feather top & bottom seamlessly into the page canvas */}
           <div
             className="absolute inset-0 z-20"
             style={{
@@ -81,9 +103,10 @@ export default function MastheadHero({
 
         {/* Monumental Brand Masthead */}
         <h1
-          className={`w-full ${safeTheme.primaryText || ''} ${mastheadSize} leading-[0.95] tracking-[0.04em] text-balance select-none`}
+          className={`w-full ${basePrimaryText} ${customFont ? `${customFont.fontClass} ${customFont.trackingClass} font-normal` : 'tracking-[0.04em]'} ${mastheadSize} leading-[1.02] text-balance select-none`}
         >
-          {safeTheme.prefix || ''}{displayName}
+          {safeTheme.prefix || ''}
+          {displayName}
         </h1>
 
         {/* Fine Gallery Rule */}

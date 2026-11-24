@@ -90,6 +90,8 @@ export default function HeroEngine(props: HeroEngineProps) {
     'masthead-wash': MastheadHero,
   };
 
-  const SelectedLayout = LayoutRegistry[props.layout] || CenterHero;
+  const SelectedLayout = props.layout?.startsWith('masthead')
+    ? MastheadHero
+    : LayoutRegistry[props.layout] || CenterHero;
   return <SelectedLayout {...props} />;
 }
