@@ -2,10 +2,14 @@
 import { THEME_REGISTRY } from '@/utils/themes';
 
 export type AddonOption = { title?: string; name?: string; price?: string } | string;
+export type TimeframeMode = 'off' | 'flexible' | 'calendar';
+export type AddonSelectionMode = 'single' | 'multiple';
 
 export interface TopicConfig {
   addons?: AddonOption[];
   askTimeframe?: boolean;
+  timeframeMode?: TimeframeMode;
+  addonSelectionMode?: AddonSelectionMode;
 }
 
 export function getLeadBrandHex(val: string): string {
@@ -46,7 +50,6 @@ export function getLeadModalClasses(themeStyle: string, _isLightMode: boolean, b
   const isNeo = themeStyle.startsWith('neo');
 
   const shapeRadius = theme.surfaceRadius || theme.radius || 'rounded-none';
-  // Keep multi-line textareas & selects clean on pill-button themes (minimal / organic)
   const inputRadius = theme.controlRadius === 'rounded-full' ? 'rounded-xl' : theme.controlRadius;
 
   const modalSurface = theme.surfaceStyle;
@@ -86,6 +89,6 @@ export function getDetailsCopy(inquiryType: string) {
   }
   return {
     label: 'Project Details & Notes *',
-    placeholder: "Tell us about your idea, placement/size, or any questions...",
+    placeholder: 'Tell us about your idea, placement/size, or any questions...',
   };
 }

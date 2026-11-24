@@ -9,6 +9,7 @@ import { submitStorefrontLead } from '@/actions/submitLead';
 import { LEAD_MODAL_DEFAULTS } from '@/utils/glossary';
 import {
   AddonOption,
+  AddonSelectionMode,
   TopicConfig,
   getLeadBrandHex,
   getLeadModalClasses,
@@ -29,6 +30,7 @@ interface UniversalLeadModalProps {
   themeStyle?: string;
   inquiryOptions?: string[];
   addonOptions?: AddonOption[];
+  addonSelectionMode?: AddonSelectionMode;
   showTimeframeFields?: boolean;
   allowSpecificDate?: boolean;
   topicConfigs?: Record<string, TopicConfig>;
@@ -46,6 +48,7 @@ export default function UniversalLeadModal({
   themeStyle = 'industrial',
   inquiryOptions = ['General Inquiry', 'Request a Quote'],
   addonOptions = [],
+  addonSelectionMode = 'multiple',
   showTimeframeFields = false,
   allowSpecificDate = true,
   topicConfigs,
@@ -75,7 +78,21 @@ export default function UniversalLeadModal({
 
   const activeTopicConfig = topicConfigs?.[effectiveInquiryType];
   const activeAddons = activeTopicConfig ? activeTopicConfig.addons || [] : addonOptions;
-  const shouldAskTimeframe = activeTopicConfig ? !!activeTopicConfig.askTimeframe : showTimeframeFields;
+  const activeSelectionMode: AddonSelectionMode =
+    activeTopicConfig?.addonSelectionMode || addonSelectionMode || 'multiple';
+
+  const resolvedMode = activeTopicConfig?.timeframeMode;
+  const shouldAskTimeframe = activeTopicConfig
+    ? resolvedMode
+      ? resolvedMode !== 'off'
+      : !!activeTopicConfig.askTimeframe
+    : showTimeframeFields;
+
+  const shouldAllowSpecificDate = activeTopicConfig
+    ? resolvedMode
+      ? resolvedMode === 'calendar'
+      : true
+    : allowSpecificDate;
 
   // Auto-skip Step 1 if there are no topics/options/date choices to configure
   const hasStepOne =
@@ -94,14 +111,31 @@ export default function UniversalLeadModal({
   };
 
   const handleTopicChange = (nextTopic: string) => {
-    setFormData((prev) => ({ ...prev, inquiryType: nextTopic }));
+    const nextCfg = topicConfigs?.[nextTopic];
+    const nextAllowsDate = nextCfg?.timeframeMode
+      ? nextCfg.timeframeMode === 'calendar'
+      : true;
+
+    setFormData((prev) => ({
+      ...prev,
+      inquiryType: nextTopic,
+      preferredDate:
+        !nextAllowsDate && prev.preferredDate && !prev.preferredDate.startsWith('Flexible')
+          ? ''
+          : prev.preferredDate,
+    }));
     setSelectedAddons([]);
   };
 
   const toggleAddon = (addonText: string) => {
-    setSelectedAddons((prev) =>
-      prev.includes(addonText) ? prev.filter((a) => a !== addonText) : [...prev, addonText]
-    );
+    setSelectedAddons((prev) => {
+      if (activeSelectionMode === 'single') {
+        return prev.includes(addonText) ? [] : [addonText];
+      }
+      return prev.includes(addonText)
+        ? prev.filter((a) => a !== addonText)
+        : [...prev, addonText];
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -193,7 +227,7 @@ export default function UniversalLeadModal({
               <h2 className={`text-2xl md:text-3xl ${fonts.heading}`}>{ctaLabel}</h2>
             </div>
 
-            {/* Sleek Visual 2-Bar Step Indicator (Zero Text Clutter) */}
+            {/* Sleek Visual 2-Bar Step Indicator */}
             {hasStepOne && (
               <div className="flex items-center gap-2 mb-6" aria-label={`Step ${activeStep} of 2`}>
                 <button
@@ -234,8 +268,9 @@ export default function UniversalLeadModal({
                 inquiryOptions={inquiryOptions || []}
                 activeAddons={activeAddons}
                 selectedAddons={selectedAddons}
+                addonSelectionMode={activeSelectionMode}
                 showTimeframeFields={shouldAskTimeframe}
-                allowSpecificDate={allowSpecificDate}
+                allowSpecificDate={shouldAllowSpecificDate}
                 isLightMode={isLightMode}
                 theme={theme}
                 bodyFont={fonts.body}

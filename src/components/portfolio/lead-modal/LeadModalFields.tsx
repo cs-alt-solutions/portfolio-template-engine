@@ -5,7 +5,7 @@ import React from 'react';
 import { CheckCircle2, ChevronDown, CalendarDays, Pencil } from 'lucide-react';
 import { ThemeDefinition } from '@/utils/themes';
 import { LEAD_MODAL_DEFAULTS } from '@/utils/glossary';
-import { AddonOption, getDetailsCopy } from './leadModalStyles';
+import { AddonOption, AddonSelectionMode, getDetailsCopy } from './leadModalStyles';
 import PreferredDatePicker from './PreferredDatePicker';
 
 export interface LeadFormState {
@@ -25,6 +25,7 @@ interface LeadModalFieldsProps {
   inquiryOptions: string[];
   activeAddons: AddonOption[];
   selectedAddons: string[];
+  addonSelectionMode?: AddonSelectionMode;
   showTimeframeFields: boolean;
   allowSpecificDate?: boolean;
   isLightMode: boolean;
@@ -47,6 +48,7 @@ export default function LeadModalFields({
   inquiryOptions,
   activeAddons,
   selectedAddons,
+  addonSelectionMode = 'multiple',
   showTimeframeFields,
   allowSpecificDate = true,
   isLightMode,
@@ -61,8 +63,8 @@ export default function LeadModalFields({
   onEditStepOne,
 }: LeadModalFieldsProps) {
   const detailsCopy = getDetailsCopy(effectiveInquiryType);
+  const isSingleSelect = addonSelectionMode === 'single';
 
-  // Tier 1 Question label: bright, human-readable, distinct from options and footnotes
   const questionLabel = 'flex items-baseline gap-2 text-xs font-semibold tracking-normal mb-2.5';
   const optionalHint = 'text-[11px] font-normal italic opacity-45';
   const fieldLabel = `block text-xs font-semibold tracking-normal mb-1.5 opacity-90 ${bodyFont}`;
@@ -123,7 +125,7 @@ export default function LeadModalFields({
           <div className={`pt-4 border-t ${theme.borderColor}`}>
             <label className={questionLabel}>
               <span>Interested in</span>
-              <span className={optionalHint}>select any</span>
+              <span className={optionalHint}>{isSingleSelect ? 'pick one' : 'select any'}</span>
             </label>
             <div className="flex flex-wrap gap-2">
               {activeAddons.map((addon, idx) => {
@@ -141,9 +143,19 @@ export default function LeadModalFields({
                       isChecked ? `${activeSurface} font-semibold shadow-sm` : theme.pillStyle
                     }`}
                   >
-                    <CheckCircle2
-                      className={`w-3.5 h-3.5 shrink-0 ${isChecked ? 'opacity-100' : 'opacity-40'}`}
-                    />
+                    {isSingleSelect ? (
+                      <span
+                        className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center shrink-0 ${
+                          isChecked ? 'border-current' : 'border-current/45'
+                        }`}
+                      >
+                        {isChecked && <span className="w-1.5 h-1.5 rounded-full bg-current" />}
+                      </span>
+                    ) : (
+                      <CheckCircle2
+                        className={`w-3.5 h-3.5 shrink-0 ${isChecked ? 'opacity-100' : 'opacity-40'}`}
+                      />
+                    )}
                     <span>
                       {itemText}
                       {itemPrice ? ` (${itemPrice})` : ''}

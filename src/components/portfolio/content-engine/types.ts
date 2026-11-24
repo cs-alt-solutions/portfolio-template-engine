@@ -1,5 +1,8 @@
 /* src/components/portfolio/content-engine/types.ts */
 
+export type TimeframeMode = 'off' | 'flexible' | 'calendar';
+export type AddonSelectionMode = 'single' | 'multiple';
+
 export interface DepartmentFaq {
   question: string;
   answer: string;
@@ -15,6 +18,8 @@ export interface Capability {
   addons?: Array<{ title?: string; name?: string; price?: string; description?: string } | string>;
   faqs?: DepartmentFaq[];
   askTimeframe?: boolean;
+  timeframeMode?: TimeframeMode;
+  addonSelectionMode?: AddonSelectionMode;
 }
 
 export interface GalleryItem {
@@ -44,6 +49,11 @@ export interface ContentLayoutProps {
   businessName?: string;
   heroImage?: string;
   isHeroFixed?: boolean;
-  operationalTerms?: { title: string; description: string; fees?: { name: string; price: string }[] }[];
+  operationalTerms?: {
+    title: string;
+    description: string;
+    appliesTo?: string;
+    fees?: { name: string; price: string }[];
+  }[];
   industryTag?: string;
 }

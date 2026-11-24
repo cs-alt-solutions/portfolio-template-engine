@@ -146,6 +146,8 @@ export default function HubFlow({
         map[dept.title] = {
           addons: dept.addons || [],
           askTimeframe: dept.askTimeframe === true,
+          timeframeMode: dept.timeframeMode,
+          addonSelectionMode: dept.addonSelectionMode,
         };
       }
     });
@@ -357,7 +359,15 @@ export default function HubFlow({
         themeStyle={themeStyle || 'industrial'}
         inquiryOptions={inquiryTopicList.length > 0 ? inquiryTopicList : ['General Inquiry']}
         addonOptions={modalDept?.addons || []}
-        showTimeframeFields={modalDept?.askTimeframe === true}
+        addonSelectionMode={modalDept?.addonSelectionMode || 'multiple'}
+        showTimeframeFields={
+          modalDept?.timeframeMode
+            ? modalDept.timeframeMode !== 'off'
+            : modalDept?.askTimeframe === true
+        }
+        allowSpecificDate={
+          modalDept?.timeframeMode ? modalDept.timeframeMode === 'calendar' : true
+        }
         topicConfigs={topicConfigs}
       />
     </div>
