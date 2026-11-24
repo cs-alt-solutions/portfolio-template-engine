@@ -11,6 +11,7 @@ interface HubDepartmentCardProps {
   hasDetails: boolean;
   detailsLabel?: string;
   isLightMode: boolean;
+  isLightBrand?: boolean;
   fonts: { heading: string; body: string };
   onInquire: () => void;
   onOpenDetails: () => void;
@@ -22,6 +23,7 @@ export default function HubDepartmentCard({
   hasDetails,
   detailsLabel = 'Photos & Details',
   isLightMode,
+  isLightBrand = false,
   fonts,
   onInquire,
   onOpenDetails,
@@ -40,6 +42,12 @@ export default function HubDepartmentCard({
     ? 'bg-zinc-50 border-zinc-900/10 text-zinc-800'
     : 'bg-black/35 border-white/10 text-zinc-200';
 
+  const primaryBtn = isLightBrand
+    ? 'bg-brand-primary text-zinc-950 border-zinc-950/15 hover:brightness-95 shadow-lg shadow-brand-primary/20'
+    : 'bg-brand-primary text-white border-white/15 hover:brightness-110 shadow-lg shadow-brand-primary/25';
+
+  const priceAccent = isLightMode && isLightBrand ? 'text-zinc-900' : 'text-brand-primary';
+  const indexLabel = index + 1 < 10 ? `0${index + 1}` : `${index + 1}`;
   const visibleBullets = (department.bullets || []).filter(Boolean).slice(0, 3);
 
   return (
@@ -53,11 +61,11 @@ export default function HubDepartmentCard({
             <div className="flex flex-wrap items-center gap-2.5">
               <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-mono uppercase tracking-widest border ${chipSurface}`}>
                 <Sparkles className="w-3 h-3 text-brand-primary" />
-                <span>Department 0{index + 1}</span>
+                <span>Department {indexLabel}</span>
               </div>
 
               {department.price && (
-                <span className={`px-3 py-1 rounded-full text-[11px] font-mono font-bold border text-brand-primary ${chipSurface}`}>
+                <span className={`px-3 py-1 rounded-full text-[11px] font-mono font-bold border ${priceAccent} ${chipSurface}`}>
                   {department.price}
                 </span>
               )}
@@ -78,7 +86,7 @@ export default function HubDepartmentCard({
             <button
               type="button"
               onClick={onInquire}
-              className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl text-xs font-black uppercase tracking-widest bg-brand-primary text-white border border-white/15 hover:brightness-110 transition-all shadow-lg shadow-brand-primary/25 cursor-pointer"
+              className={`inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl text-xs font-black uppercase tracking-widest border transition-all cursor-pointer ${primaryBtn}`}
             >
               <span>Quick Inquiry</span>
               <ArrowRight className="w-4 h-4" />
