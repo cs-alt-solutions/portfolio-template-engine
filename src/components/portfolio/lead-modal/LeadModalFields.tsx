@@ -2,152 +2,213 @@
 'use client';
 
 import React from 'react';
-import { CheckCircle2, ChevronDown, CalendarClock } from 'lucide-react';
+import { CheckCircle2, ChevronDown, CalendarDays, Pencil } from 'lucide-react';
+import { ThemeDefinition } from '@/utils/themes';
 import { LEAD_MODAL_DEFAULTS } from '@/utils/glossary';
 import { AddonOption, getDetailsCopy } from './leadModalStyles';
+import PreferredDatePicker from './PreferredDatePicker';
 
 export interface LeadFormState {
   name: string;
   email: string;
   phone: string;
   inquiryType: string;
-  preferredTimeframe: string;
-  backupTimeframe: string;
+  preferredDate: string;
   details: string;
 }
 
 interface LeadModalFieldsProps {
+  step: 1 | 2;
+  hasStepOne: boolean;
   formData: LeadFormState;
   effectiveInquiryType: string;
   inquiryOptions: string[];
   activeAddons: AddonOption[];
   selectedAddons: string[];
   showTimeframeFields: boolean;
+  allowSpecificDate?: boolean;
   isLightMode: boolean;
+  theme: ThemeDefinition;
   bodyFont: string;
   inputSurface: string;
   inputRadius: string;
+  activeSurface: string;
   onFieldChange: (patch: Partial<LeadFormState>) => void;
   onTopicChange: (nextTopic: string) => void;
   onToggleAddon: (addonText: string) => void;
+  onEditStepOne: () => void;
 }
 
 export default function LeadModalFields({
+  step,
+  hasStepOne,
   formData,
   effectiveInquiryType,
   inquiryOptions,
   activeAddons,
   selectedAddons,
   showTimeframeFields,
+  allowSpecificDate = true,
   isLightMode,
+  theme,
   bodyFont,
   inputSurface,
   inputRadius,
+  activeSurface,
   onFieldChange,
   onTopicChange,
   onToggleAddon,
+  onEditStepOne,
 }: LeadModalFieldsProps) {
   const detailsCopy = getDetailsCopy(effectiveInquiryType);
-  const labelClass = `block text-[10px] font-mono uppercase tracking-wider mb-1.5 opacity-75 ${bodyFont}`;
-  const timeframeBox = isLightMode
-    ? 'bg-zinc-50 border-zinc-900/10'
-    : 'bg-white/[0.03] border-white/10';
 
-  return (
-    <>
-      {inquiryOptions.length > 0 && (
-        <div>
-          <label className={labelClass}>{LEAD_MODAL_DEFAULTS.TOPIC_LABEL}</label>
-          <div className="relative">
-            <select
-              value={effectiveInquiryType}
-              onChange={(e) => onTopicChange(e.target.value)}
-              className={`w-full px-4 py-3 text-sm outline-none transition-all appearance-none cursor-pointer ${inputSurface}`}
-            >
-              {inquiryOptions.map((opt) => (
-                <option key={opt} value={opt} className={isLightMode ? 'bg-white text-zinc-900' : 'bg-zinc-950 text-white'}>
-                  {opt}
-                </option>
-              ))}
-            </select>
-            <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none text-zinc-500" />
-          </div>
-        </div>
-      )}
+  // Tier 1 Question label: bright, human-readable, distinct from options and footnotes
+  const questionLabel = 'flex items-baseline gap-2 text-xs font-semibold tracking-normal mb-2.5';
+  const optionalHint = 'text-[11px] font-normal italic opacity-45';
+  const fieldLabel = `block text-xs font-semibold tracking-normal mb-1.5 opacity-90 ${bodyFont}`;
 
-      {activeAddons.length > 0 && (
-        <div className="pt-1 pb-1">
-          <label className={`block text-[10px] font-mono uppercase tracking-wider mb-2 opacity-75 ${bodyFont}`}>
-            {LEAD_MODAL_DEFAULTS.OPTIONS_LABEL}
-          </label>
-          <div className="flex flex-wrap gap-2">
-            {activeAddons.map((addon, idx) => {
-              const itemText = typeof addon === 'string' ? addon : addon.title || addon.name || `Option ${idx + 1}`;
-              const itemPrice = typeof addon === 'object' ? addon.price : null;
-              const isChecked = selectedAddons.includes(itemText);
+  // STEP 1: Interactive Picks & Timing
+  if (step === 1) {
+    const useTopicPills = inquiryOptions.length > 0 && inquiryOptions.length <= 4;
 
-              return (
-                <button
-                  key={`${itemText}-${idx}`}
-                  type="button"
-                  onClick={() => onToggleAddon(itemText)}
-                  className={`inline-flex items-center gap-2 px-3 py-2 border text-xs font-semibold transition-all cursor-pointer select-none ${inputRadius} ${
-                    isChecked
-                      ? 'bg-brand-primary border-brand-primary text-white shadow-sm'
-                      : isLightMode
-                        ? 'bg-zinc-50 border-zinc-300 text-zinc-800 hover:border-zinc-500'
-                        : 'bg-zinc-950 border-zinc-800 text-zinc-300 hover:border-zinc-600 hover:text-white'
-                  }`}
+    return (
+      <div className="space-y-5 animate-in fade-in duration-200">
+        {inquiryOptions.length > 0 && (
+          <div>
+            <label className={questionLabel}>
+              <span>What can we help you with?</span>
+            </label>
+            {useTopicPills ? (
+              <div className="flex flex-wrap gap-2">
+                {inquiryOptions.map((opt) => {
+                  const isSelected = effectiveInquiryType === opt;
+                  return (
+                    <button
+                      key={opt}
+                      type="button"
+                      onClick={() => onTopicChange(opt)}
+                      className={`px-3.5 py-2 border text-xs transition-all cursor-pointer ${theme.controlRadius} ${
+                        isSelected ? `${activeSurface} font-semibold shadow-sm` : theme.pillStyle
+                      }`}
+                    >
+                      {opt}
+                    </button>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="relative">
+                <select
+                  value={effectiveInquiryType}
+                  onChange={(e) => onTopicChange(e.target.value)}
+                  className={`w-full px-4 py-3 text-sm outline-none transition-all appearance-none cursor-pointer ${inputSurface}`}
                 >
-                  <CheckCircle2 className={`w-3.5 h-3.5 shrink-0 ${isChecked ? 'text-white' : 'opacity-40'}`} />
-                  <span>
-                    {itemText}
-                    {itemPrice ? ` (${itemPrice})` : ''}
-                  </span>
-                </button>
-              );
-            })}
+                  {inquiryOptions.map((opt) => (
+                    <option
+                      key={opt}
+                      value={opt}
+                      className={isLightMode ? 'bg-white text-zinc-900' : 'bg-zinc-950 text-white'}
+                    >
+                      {opt}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none opacity-60" />
+              </div>
+            )}
           </div>
-        </div>
-      )}
+        )}
 
-      {showTimeframeFields && (
-        <div className={`p-3.5 border space-y-2.5 ${inputRadius} ${timeframeBox}`}>
-          <div className="space-y-0.5">
-            <div className="flex items-center gap-1.5 text-[10px] font-mono font-bold uppercase tracking-wider">
-              <CalendarClock className="w-3.5 h-3.5 shrink-0 opacity-85" />
-              <span>{LEAD_MODAL_DEFAULTS.TIMEFRAME_HEADING}</span>
+        {activeAddons.length > 0 && (
+          <div className={`pt-4 border-t ${theme.borderColor}`}>
+            <label className={questionLabel}>
+              <span>Interested in</span>
+              <span className={optionalHint}>select any</span>
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {activeAddons.map((addon, idx) => {
+                const itemText =
+                  typeof addon === 'string' ? addon : addon.title || addon.name || `Option ${idx + 1}`;
+                const itemPrice = typeof addon === 'object' ? addon.price : null;
+                const isChecked = selectedAddons.includes(itemText);
+
+                return (
+                  <button
+                    key={`${itemText}-${idx}`}
+                    type="button"
+                    onClick={() => onToggleAddon(itemText)}
+                    className={`inline-flex items-center gap-2 px-3 py-2 border text-xs transition-all cursor-pointer select-none ${theme.controlRadius} ${
+                      isChecked ? `${activeSurface} font-semibold shadow-sm` : theme.pillStyle
+                    }`}
+                  >
+                    <CheckCircle2
+                      className={`w-3.5 h-3.5 shrink-0 ${isChecked ? 'opacity-100' : 'opacity-40'}`}
+                    />
+                    <span>
+                      {itemText}
+                      {itemPrice ? ` (${itemPrice})` : ''}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
-            <p className="text-[11px] opacity-65 leading-snug">{LEAD_MODAL_DEFAULTS.TIMEFRAME_NOTE}</p>
+          </div>
+        )}
+
+        {showTimeframeFields && (
+          <div className={`pt-4 border-t ${theme.borderColor}`}>
+            <PreferredDatePicker
+              value={formData.preferredDate}
+              onChange={(next) => onFieldChange({ preferredDate: next })}
+              theme={theme}
+              activeSurface={activeSurface}
+              inputRadius={inputRadius}
+              allowSpecificDate={allowSpecificDate}
+            />
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // STEP 2: Summary Strip + Contact Details
+  return (
+    <div className="space-y-4 animate-in fade-in duration-200">
+      {hasStepOne && (
+        <div
+          className={`px-3.5 py-2.5 border flex items-center justify-between gap-3 ${inputRadius} ${theme.subCardStyle}`}
+        >
+          <div className="min-w-0 space-y-1">
+            <div className="flex flex-wrap items-center gap-1.5 text-xs">
+              <span className="font-semibold text-brand-primary">{effectiveInquiryType}</span>
+              {selectedAddons.length > 0 && (
+                <span className="opacity-70">
+                  · {selectedAddons.slice(0, 2).join(', ')}
+                  {selectedAddons.length > 2 ? ` +${selectedAddons.length - 2}` : ''}
+                </span>
+              )}
+            </div>
+            {showTimeframeFields && formData.preferredDate && (
+              <div className="flex items-center gap-1.5 text-[11px] opacity-75">
+                <CalendarDays className="w-3 h-3 text-brand-primary shrink-0" />
+                <span className="truncate">{formData.preferredDate}</span>
+              </div>
+            )}
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className={labelClass}>{LEAD_MODAL_DEFAULTS.PREFERRED_DATE_LABEL}</label>
-              <input
-                type="text"
-                placeholder={LEAD_MODAL_DEFAULTS.PREFERRED_DATE_PLACEHOLDER}
-                value={formData.preferredTimeframe}
-                onChange={(e) => onFieldChange({ preferredTimeframe: e.target.value })}
-                className={`w-full px-3 py-2.5 text-xs outline-none transition-all ${inputSurface}`}
-              />
-            </div>
-            <div>
-              <label className={labelClass}>{LEAD_MODAL_DEFAULTS.BACKUP_DATE_LABEL}</label>
-              <input
-                type="text"
-                placeholder={LEAD_MODAL_DEFAULTS.BACKUP_DATE_PLACEHOLDER}
-                value={formData.backupTimeframe}
-                onChange={(e) => onFieldChange({ backupTimeframe: e.target.value })}
-                className={`w-full px-3 py-2.5 text-xs outline-none transition-all ${inputSurface}`}
-              />
-            </div>
-          </div>
+          <button
+            type="button"
+            onClick={onEditStepOne}
+            className="inline-flex items-center gap-1 text-[11px] font-medium opacity-65 hover:opacity-100 shrink-0 cursor-pointer"
+          >
+            <Pencil className="w-3 h-3" />
+            <span>Edit</span>
+          </button>
         </div>
       )}
 
       <div>
-        <label className={labelClass}>{LEAD_MODAL_DEFAULTS.NAME_LABEL}</label>
+        <label className={fieldLabel}>Your name *</label>
         <input
           type="text"
           required
@@ -158,9 +219,9 @@ export default function LeadModalFields({
         />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
         <div>
-          <label className={labelClass}>{LEAD_MODAL_DEFAULTS.EMAIL_LABEL}</label>
+          <label className={fieldLabel}>Email address *</label>
           <input
             type="email"
             required
@@ -171,7 +232,9 @@ export default function LeadModalFields({
           />
         </div>
         <div>
-          <label className={labelClass}>{LEAD_MODAL_DEFAULTS.PHONE_LABEL}</label>
+          <label className={fieldLabel}>
+            Phone <span className={optionalHint}>optional</span>
+          </label>
           <input
             type="tel"
             placeholder={LEAD_MODAL_DEFAULTS.PHONE_PLACEHOLDER}
@@ -183,7 +246,7 @@ export default function LeadModalFields({
       </div>
 
       <div>
-        <label className={labelClass}>{detailsCopy.label}</label>
+        <label className={fieldLabel}>{detailsCopy.label}</label>
         <textarea
           rows={3}
           required
@@ -193,6 +256,6 @@ export default function LeadModalFields({
           className={`w-full px-4 py-3 text-sm outline-none resize-none transition-all ${inputSurface}`}
         />
       </div>
-    </>
+    </div>
   );
 }

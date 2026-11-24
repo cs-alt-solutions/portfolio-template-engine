@@ -53,12 +53,22 @@ export function getLeadModalClasses(themeStyle: string, _isLightMode: boolean, b
   const inputSurface = `${theme.subCardStyle} focus:border-brand-primary placeholder:opacity-45 ${inputRadius}`;
 
   const resolvedHex = getLeadBrandHex(brandColor);
-  const isLightBrandTone = isLightHex(resolvedHex);
-  const submitSurface = `bg-brand-primary ${
-    isLightBrandTone ? 'text-zinc-950' : 'text-white'
-  } border border-brand-primary shadow-lg hover:brightness-110 active:scale-[0.99] ${theme.controlRadius} ${theme.uiLabel}`;
+  const isLightBrand = isLightHex(resolvedHex);
+  const activeText = isLightBrand ? 'text-zinc-950' : 'text-white';
+  const activeSurface = `bg-brand-primary border-brand-primary ${activeText}`;
+  const submitSurface = `${activeSurface} shadow-lg hover:brightness-110 active:scale-[0.99] ${theme.controlRadius} ${theme.uiLabel}`;
 
-  return { isNeo, shapeRadius, inputRadius, modalSurface, inputSurface, submitSurface };
+  return {
+    isNeo,
+    isLightBrand,
+    activeText,
+    activeSurface,
+    shapeRadius,
+    inputRadius,
+    modalSurface,
+    inputSurface,
+    submitSurface,
+  };
 }
 
 export function getDetailsCopy(inquiryType: string) {
@@ -76,6 +86,6 @@ export function getDetailsCopy(inquiryType: string) {
   }
   return {
     label: 'Project Details & Notes *',
-    placeholder: "Tell us what you're looking for, ideal dates, or any specific questions...",
+    placeholder: "Tell us about your idea, placement/size, or any questions...",
   };
 }

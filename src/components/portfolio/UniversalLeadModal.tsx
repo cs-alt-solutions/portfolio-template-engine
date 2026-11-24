@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { X, Send, CheckCircle2, Sparkles, AlertCircle } from 'lucide-react';
+import { X, Send, CheckCircle2, AlertCircle, ArrowRight, ArrowLeft } from 'lucide-react';
 import { getFonts } from './content-engine/utils';
 import { THEME_REGISTRY } from '@/utils/themes';
 import { submitStorefrontLead } from '@/actions/submitLead';
@@ -30,6 +30,7 @@ interface UniversalLeadModalProps {
   inquiryOptions?: string[];
   addonOptions?: AddonOption[];
   showTimeframeFields?: boolean;
+  allowSpecificDate?: boolean;
   topicConfigs?: Record<string, TopicConfig>;
 }
 
@@ -46,8 +47,10 @@ export default function UniversalLeadModal({
   inquiryOptions = ['General Inquiry', 'Request a Quote'],
   addonOptions = [],
   showTimeframeFields = false,
+  allowSpecificDate = true,
   topicConfigs,
 }: UniversalLeadModalProps) {
+  const [step, setStep] = useState<1 | 2>(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -57,8 +60,7 @@ export default function UniversalLeadModal({
     email: '',
     phone: '',
     inquiryType: inquiryOptions[0] || 'General Inquiry',
-    preferredTimeframe: '',
-    backupTimeframe: '',
+    preferredDate: '',
     details: '',
   });
 
@@ -75,10 +77,21 @@ export default function UniversalLeadModal({
   const activeAddons = activeTopicConfig ? activeTopicConfig.addons || [] : addonOptions;
   const shouldAskTimeframe = activeTopicConfig ? !!activeTopicConfig.askTimeframe : showTimeframeFields;
 
+  // Auto-skip Step 1 if there are no topics/options/date choices to configure
+  const hasStepOne =
+    (inquiryOptions?.length || 0) > 1 || activeAddons.length > 0 || shouldAskTimeframe;
+  const activeStep: 1 | 2 = hasStepOne ? step : 2;
+
   const activeThemeKey = themeStyle || 'industrial';
   const fonts = getFonts(activeThemeKey);
   const theme = THEME_REGISTRY[activeThemeKey] || THEME_REGISTRY['industrial'];
   const styles = getLeadModalClasses(activeThemeKey, isLightMode, brandColor || '');
+
+  const handleClose = () => {
+    setStep(1);
+    setErrorMessage('');
+    onClose();
+  };
 
   const handleTopicChange = (nextTopic: string) => {
     setFormData((prev) => ({ ...prev, inquiryType: nextTopic }));
@@ -93,6 +106,11 @@ export default function UniversalLeadModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (activeStep === 1 && hasStepOne) {
+      setStep(2);
+      return;
+    }
+
     setIsSubmitting(true);
     setErrorMessage('');
 
@@ -100,14 +118,8 @@ export default function UniversalLeadModal({
     if (selectedAddons.length > 0) {
       combinedDetails += `SELECTED OPTIONS:\n${selectedAddons.map((a) => `- ${a}`).join('\n')}\n\n`;
     }
-    if (shouldAskTimeframe && (formData.preferredTimeframe.trim() || formData.backupTimeframe.trim())) {
-      if (formData.preferredTimeframe.trim()) {
-        combinedDetails += `PREFERRED TIMEFRAME: ${formData.preferredTimeframe.trim()}\n`;
-      }
-      if (formData.backupTimeframe.trim()) {
-        combinedDetails += `BACKUP WINDOW: ${formData.backupTimeframe.trim()}\n`;
-      }
-      combinedDetails += '\n';
+    if (shouldAskTimeframe && formData.preferredDate.trim()) {
+      combinedDetails += `PREFERRED DATE: ${formData.preferredDate.trim()}\n\n`;
     }
     combinedDetails += formData.details;
 
@@ -136,17 +148,17 @@ export default function UniversalLeadModal({
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200"
-      onClick={onClose}
+      onClick={handleClose}
     >
       <div
-        className={`relative w-full max-w-lg p-6 md:p-8 transition-all max-h-[90vh] overflow-y-auto custom-scrollbar ${theme.surfaceRadius} ${styles.modalSurface}`}
+        className={`relative w-full max-w-lg p-6 md:p-7 transition-all max-h-[90vh] overflow-y-auto custom-scrollbar ${theme.surfaceRadius} ${styles.modalSurface}`}
         onClick={(e) => e.stopPropagation()}
       >
         <button
           type="button"
-          onClick={onClose}
+          onClick={handleClose}
           aria-label="Close modal"
-          className={`absolute top-4 right-4 p-2 border transition-colors cursor-pointer ${theme.controlRadius} ${theme.pillStyle}`}
+          className={`absolute top-5 right-5 p-2 border transition-colors cursor-pointer ${theme.controlRadius} ${theme.pillStyle}`}
         >
           <X className="w-4 h-4" />
         </button>
@@ -154,7 +166,9 @@ export default function UniversalLeadModal({
         {isSubmitted ? (
           <div className="py-10 text-center space-y-4">
             <CheckCircle2 className="w-16 h-16 mx-auto text-emerald-500 animate-bounce" />
-            <h3 className={`text-2xl md:text-3xl ${fonts.heading}`}>{LEAD_MODAL_DEFAULTS.SUCCESS_HEADING}</h3>
+            <h3 className={`text-2xl md:text-3xl ${fonts.heading}`}>
+              {LEAD_MODAL_DEFAULTS.SUCCESS_HEADING}
+            </h3>
             <p className={`text-sm opacity-80 max-w-xs mx-auto ${fonts.body}`}>
               Thank you, {formData.name}. {businessName} has logged your details and will be in touch shortly.
             </p>
@@ -162,7 +176,7 @@ export default function UniversalLeadModal({
               type="button"
               onClick={() => {
                 setIsSubmitted(false);
-                onClose();
+                handleClose();
               }}
               className={`mt-6 px-6 py-2.5 border transition-all text-xs cursor-pointer ${theme.controlRadius} ${theme.uiLabel} ${theme.pillStyle}`}
             >
@@ -171,18 +185,36 @@ export default function UniversalLeadModal({
           </div>
         ) : (
           <div>
-            <div className="mb-6 space-y-1.5 pr-8">
-              <div
-                className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-brand-primary text-zinc-950 text-[10px] font-mono font-bold uppercase tracking-widest ${theme.controlRadius}`}
-              >
-                <Sparkles className="w-3 h-3" />
-                <span>{LEAD_MODAL_DEFAULTS.EYEBROW}</span>
-              </div>
-              <h2 className={`text-2xl md:text-3xl ${fonts.heading}`}>{ctaLabel}</h2>
-              <p className={`text-xs md:text-sm opacity-80 ${fonts.body}`}>
-                {LEAD_MODAL_DEFAULTS.SUBTEXT_PREFIX} {businessName}.
+            {/* Clean Minimal Header */}
+            <div className="mb-5 pr-10 space-y-1">
+              <p className="text-[11px] font-medium tracking-wide text-brand-primary">
+                {businessName}
               </p>
+              <h2 className={`text-2xl md:text-3xl ${fonts.heading}`}>{ctaLabel}</h2>
             </div>
+
+            {/* Sleek Visual 2-Bar Step Indicator (Zero Text Clutter) */}
+            {hasStepOne && (
+              <div className="flex items-center gap-2 mb-6" aria-label={`Step ${activeStep} of 2`}>
+                <button
+                  type="button"
+                  onClick={() => setStep(1)}
+                  aria-label="Step 1"
+                  className="h-1 flex-1 bg-brand-primary transition-all cursor-pointer"
+                />
+                <button
+                  type="button"
+                  onClick={() => setStep(2)}
+                  aria-label="Step 2"
+                  className={`h-1 flex-1 transition-all cursor-pointer ${
+                    activeStep === 2 ? 'bg-brand-primary' : 'bg-current/15 hover:bg-current/30'
+                  }`}
+                />
+                <span className="text-[10px] font-mono opacity-45 pl-1 shrink-0">
+                  {activeStep}/2
+                </span>
+              </div>
+            )}
 
             {errorMessage && (
               <div
@@ -193,37 +225,67 @@ export default function UniversalLeadModal({
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-6">
               <LeadModalFields
+                step={activeStep}
+                hasStepOne={hasStepOne}
                 formData={formData}
                 effectiveInquiryType={effectiveInquiryType}
                 inquiryOptions={inquiryOptions || []}
                 activeAddons={activeAddons}
                 selectedAddons={selectedAddons}
                 showTimeframeFields={shouldAskTimeframe}
+                allowSpecificDate={allowSpecificDate}
                 isLightMode={isLightMode}
+                theme={theme}
                 bodyFont={fonts.body}
                 inputSurface={styles.inputSurface}
-                inputRadius={theme.controlRadius}
+                inputRadius={styles.inputRadius}
+                activeSurface={styles.activeSurface}
                 onFieldChange={(patch) => setFormData((prev) => ({ ...prev, ...patch }))}
                 onTopicChange={handleTopicChange}
                 onToggleAddon={toggleAddon}
+                onEditStepOne={() => setStep(1)}
               />
 
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className={`w-full py-3.5 px-6 transition-all flex items-center justify-center gap-2 mt-2 disabled:opacity-50 text-xs cursor-pointer ${theme.controlRadius} ${theme.uiLabel} ${styles.submitSurface}`}
-              >
-                {isSubmitting ? (
-                  <span>{LEAD_MODAL_DEFAULTS.SUBMITTING_BTN}</span>
-                ) : (
-                  <>
-                    <span>{LEAD_MODAL_DEFAULTS.SUBMIT_BTN}</span>
-                    <Send className="w-4 h-4" />
-                  </>
-                )}
-              </button>
+              {activeStep === 1 && hasStepOne ? (
+                <button
+                  type="button"
+                  onClick={() => setStep(2)}
+                  className={`w-full py-3.5 px-6 transition-all flex items-center justify-center gap-2 text-xs cursor-pointer ${styles.submitSurface}`}
+                >
+                  <span>Continue</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              ) : (
+                <div className="flex items-center gap-2.5 pt-1">
+                  {hasStepOne && (
+                    <button
+                      type="button"
+                      onClick={() => setStep(1)}
+                      className={`px-4 py-3.5 border transition-all flex items-center justify-center gap-1.5 text-xs shrink-0 cursor-pointer ${theme.controlRadius} ${theme.uiLabel} ${theme.pillStyle}`}
+                    >
+                      <ArrowLeft className="w-3.5 h-3.5" />
+                      <span>Back</span>
+                    </button>
+                  )}
+
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className={`flex-1 py-3.5 px-6 transition-all flex items-center justify-center gap-2 disabled:opacity-50 text-xs cursor-pointer ${styles.submitSurface}`}
+                  >
+                    {isSubmitting ? (
+                      <span>{LEAD_MODAL_DEFAULTS.SUBMITTING_BTN}</span>
+                    ) : (
+                      <>
+                        <span>{LEAD_MODAL_DEFAULTS.SUBMIT_BTN}</span>
+                        <Send className="w-4 h-4" />
+                      </>
+                    )}
+                  </button>
+                </div>
+              )}
             </form>
           </div>
         )}
