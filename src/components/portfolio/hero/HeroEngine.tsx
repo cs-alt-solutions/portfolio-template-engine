@@ -15,6 +15,7 @@ import BentoHero from './layouts/BentoHero';
 import BottomDockHero from './layouts/BottomDockHero';
 import TopDockHero from './layouts/TopDockHero';
 import MinimalTypeHero from './layouts/MinimalTypeHero';
+import MastheadHero from './layouts/MastheadHero';
 
 export {
   getRawBgColor,
@@ -85,6 +86,8 @@ export default function HeroEngine(props: HeroEngineProps) {
     'bottom-dock': BottomDockHero,
     'top-dock': TopDockHero,
     'minimal-type': MinimalTypeHero,
+    'masthead': MastheadHero,
+    'masthead-wash': MastheadHero,
   };
 
   const SelectedLayout = LayoutRegistry[props.layout] || CenterHero;

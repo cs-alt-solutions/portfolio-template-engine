@@ -79,7 +79,7 @@ export const THEME_REGISTRY: Record<string, ThemeDefinition> = {
   // --- CYBERPUNK ---
   cyberpunk: {
     isLightMode: false,
-    pageBg: "bg-[#0a0a0c] bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]", 
+    pageBg: "bg-[#0a0a0c] bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]",
     primaryText: "text-white font-black italic tracking-tighter leading-none",
     accentText: "font-mono tracking-widest uppercase animate-pulse text-xl md:text-2xl font-black",
     bodyText: "text-zinc-400 font-light leading-relaxed",
@@ -93,7 +93,7 @@ export const THEME_REGISTRY: Record<string, ThemeDefinition> = {
   },
   'cyberpunk-light': {
     isLightMode: true,
-    pageBg: "bg-white bg-[linear-gradient(to_right,#00000012_1px,transparent_1px),linear-gradient(to_bottom,#00000012_1px,transparent_1px)] bg-[size:24px_24px]", 
+    pageBg: "bg-white bg-[linear-gradient(to_right,#00000012_1px,transparent_1px),linear-gradient(to_bottom,#00000012_1px,transparent_1px)] bg-[size:24px_24px]",
     primaryText: "text-black font-black italic tracking-tighter leading-none",
     accentText: "font-mono tracking-widest uppercase animate-pulse text-xl md:text-2xl font-black",
     bodyText: "text-zinc-600 font-light leading-relaxed",
@@ -113,7 +113,7 @@ export const THEME_REGISTRY: Record<string, ThemeDefinition> = {
     primaryText: "text-zinc-900 font-sans tracking-tight leading-tight font-bold",
     accentText: "font-sans uppercase tracking-[0.3em] text-sm md:text-base font-bold",
     bodyText: "text-zinc-500 font-light leading-relaxed",
-    cardStyle: "bg-transparent border-none shadow-none rounded-3xl", 
+    cardStyle: "bg-transparent border-none shadow-none rounded-3xl",
     overlayFade: "from-zinc-50/5 via-zinc-50/80 to-zinc-50",
     buttonStyle: "font-bold tracking-widest uppercase text-xs py-4 px-10 transition-all duration-300 rounded-full shadow-xl hover:scale-105",
     prefix: "",
@@ -125,11 +125,11 @@ export const THEME_REGISTRY: Record<string, ThemeDefinition> = {
   // --- ELEGANT ---
   elegant: {
     isLightMode: true,
-    pageBg: "bg-[#FAFAFA]", 
+    pageBg: "bg-[#FAFAFA]",
     primaryText: "text-zinc-900 font-serif tracking-normal leading-tight font-normal",
     accentText: "font-serif italic tracking-widest text-xl md:text-3xl",
     bodyText: "text-stone-600 font-light leading-relaxed",
-    cardStyle: "bg-white border border-zinc-200 shadow-[0_20px_50px_rgba(0,0,0,0.05)] rounded-sm p-10 hover:border-current transition-all", 
+    cardStyle: "bg-white border border-zinc-200 shadow-[0_20px_50px_rgba(0,0,0,0.05)] rounded-sm p-10 hover:border-current transition-all",
     overlayFade: "from-[#FAFAFA]/10 via-[#FAFAFA]/90 to-[#FAFAFA]",
     buttonStyle: "font-serif tracking-widest uppercase text-xs py-4 px-12 transition-opacity shadow-lg rounded-none hover:opacity-90",
     prefix: "",
@@ -141,11 +141,11 @@ export const THEME_REGISTRY: Record<string, ThemeDefinition> = {
   // --- ORGANIC ---
   organic: {
     isLightMode: true,
-    pageBg: "bg-[#F4F1EA]", 
-    primaryText: "text-[#2C3B2D] font-serif tracking-tight leading-tight font-normal", 
-    accentText: "font-sans font-black tracking-widest uppercase text-lg md:text-xl", 
+    pageBg: "bg-[#F4F1EA]",
+    primaryText: "text-[#2C3B2D] font-serif tracking-tight leading-tight font-normal",
+    accentText: "font-sans font-black tracking-widest uppercase text-lg md:text-xl",
     bodyText: "text-[#4A5D4E] font-light text-lg leading-relaxed",
-    cardStyle: "bg-[#EAE5D9] shadow-xl rounded-[40px] rounded-tl-none rounded-br-none p-12 border border-current/20 hover:border-current transition-all", 
+    cardStyle: "bg-[#EAE5D9] shadow-xl rounded-[40px] rounded-tl-none rounded-br-none p-12 border border-current/20 hover:border-current transition-all",
     overlayFade: "from-[#F4F1EA]/10 via-[#F4F1EA]/90 to-[#F4F1EA]",
     buttonStyle: "font-serif tracking-wide text-sm py-4 px-10 hover:scale-105 transition-transform shadow-md rounded-full",
     prefix: "",
@@ -157,11 +157,11 @@ export const THEME_REGISTRY: Record<string, ThemeDefinition> = {
   // --- EDITORIAL ---
   editorial: {
     isLightMode: true,
-    pageBg: "bg-[#EAE8E3]", 
+    pageBg: "bg-[#EAE8E3]",
     primaryText: "text-black font-serif tracking-tight leading-none font-bold",
     accentText: "font-sans font-black tracking-widest uppercase text-xl md:text-2xl border-b-2 pb-2 inline-block border-current",
     bodyText: "text-zinc-800 font-serif leading-relaxed",
-    cardStyle: "bg-transparent border-t-2 border-b-2 border-black py-8 rounded-none hover:bg-black/5 transition-all", 
+    cardStyle: "bg-transparent border-t-2 border-b-2 border-black py-8 rounded-none hover:bg-black/5 transition-all",
     overlayFade: "from-[#EAE8E3]/10 via-[#EAE8E3]/80 to-[#EAE8E3]",
     buttonStyle: "font-sans font-black tracking-[0.2em] uppercase text-xs py-4 px-12 hover:opacity-80 transition-opacity rounded-none",
     prefix: "",
@@ -169,7 +169,7 @@ export const THEME_REGISTRY: Record<string, ThemeDefinition> = {
     useBrandTint: false,
     radius: "rounded-none"
   },
-  
+
   // --- MIDNIGHT ONYX ---
   midnight: {
     isLightMode: false,
@@ -181,8 +181,24 @@ export const THEME_REGISTRY: Record<string, ThemeDefinition> = {
     overlayFade: "from-black/20 via-black/80 to-black",
     buttonStyle: "font-bold tracking-wide rounded-lg transition-all shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:shadow-[0_0_30px_currentColor] px-12 py-4 uppercase text-sm",
     prefix: "",
-    useBrandAccent: true, 
+    useBrandAccent: true,
     useBrandTint: true,
     radius: "rounded-2xl"
+  },
+
+  // --- GILDED NOIR ---
+  noir: {
+    isLightMode: false,
+    pageBg: "bg-[#0B0A09]",
+    primaryText: "text-[#F3EFE6] font-serif tracking-wide leading-tight font-normal",
+    accentText: "font-serif italic tracking-[0.2em] text-xl md:text-3xl font-normal",
+    bodyText: "text-stone-300 font-light leading-relaxed",
+    cardStyle: "bg-[#12100E] border border-[#F3EFE6]/15 shadow-[0_24px_60px_rgba(0,0,0,0.75)] rounded-sm hover:border-current/70 transition-all duration-500",
+    overlayFade: "from-[#0B0A09]/10 via-[#0B0A09]/80 to-[#0B0A09]",
+    buttonStyle: "font-serif tracking-[0.25em] uppercase text-xs py-4 px-12 rounded-none border border-current/40 hover:border-current transition-all duration-300",
+    prefix: "",
+    useBrandAccent: true,
+    useBrandTint: true,
+    radius: "rounded-sm"
   }
 };

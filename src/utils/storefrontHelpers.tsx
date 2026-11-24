@@ -44,6 +44,8 @@ export const HERO_NAMES: Record<string, string> = {
   'bottom-dock': 'Bottom Dock',
   'top-dock': 'Top Dock',
   'minimal-type': 'Kinetic Type',
+  'masthead': 'Brand Masthead',
+  'masthead-wash': 'Brand Masthead (Wash)',
 };
 
 export const FLOW_NAMES: Record<string, string> = {

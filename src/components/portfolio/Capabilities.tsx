@@ -42,7 +42,12 @@ export default function Capabilities({
 
   const theme = THEME_REGISTRY[themeStyle] || THEME_REGISTRY['industrial'];
   const isLightMode = Boolean(theme.isLightMode);
-  const subtleBorder = isLightMode ? 'border-zinc-900/10' : 'border-white/5';
+  const isNoir = themeStyle === 'noir';
+  const subtleBorder = isLightMode
+    ? 'border-zinc-900/10'
+    : isNoir
+      ? 'border-[#F3EFE6]/10'
+      : 'border-white/5';
 
   const activeSecondary = secondaryBrandColor || brandColor;
   const isCustomHex = activeSecondary.startsWith('#');
@@ -63,6 +68,12 @@ export default function Capabilities({
     (theme as unknown as { cardStyle?: string; cardBg?: string }).cardStyle ||
     (theme as unknown as { cardBg?: string }).cardBg ||
     (isLightMode ? 'bg-white border border-zinc-200 rounded-2xl' : 'bg-zinc-900/60 border border-white/10 rounded-2xl');
+
+  const badgeRadius = isNoir ? 'rounded-sm' : 'rounded-full';
+  const addonRadius = isNoir ? 'rounded-sm' : 'rounded-xl';
+  const titleWeight = isNoir ? 'font-normal tracking-wide' : 'font-bold';
+  const descTone = isLightMode ? 'text-zinc-600' : isNoir ? 'text-stone-300 font-light' : 'text-zinc-400';
+  const bulletTone = isLightMode ? 'text-zinc-700' : isNoir ? 'text-stone-300 font-light' : 'text-zinc-300';
 
   const normalizedItems: Capability[] = items.map((item) =>
     typeof item === 'string' ? { title: item, description: '' } : item
@@ -134,7 +145,7 @@ export default function Capabilities({
                   <div>
                     <div className="flex justify-between items-start mb-6">
                       <div
-                        className={`text-xs font-mono opacity-40 px-2.5 py-1 rounded border border-current ${secAccent}`}
+                        className={`text-xs font-mono opacity-40 px-2.5 py-1 rounded-sm border border-current ${secAccent}`}
                         style={secHex ? { color: secHex, borderColor: secHex } : undefined}
                       >
                         0{idx + 1}
@@ -143,7 +154,7 @@ export default function Capabilities({
                       <div className="flex items-center gap-2">
                         {item.price && (
                           <span
-                            className={`px-3 py-1 rounded-full text-xs font-mono font-bold tracking-wider border border-current/20 bg-current/5 ${secAccent}`}
+                            className={`px-3 py-1 ${badgeRadius} text-xs font-mono font-bold tracking-wider border border-current/20 bg-current/5 ${secAccent}`}
                             style={secHex ? { color: secHex, borderColor: `${secHex}40`, backgroundColor: `${secHex}10` } : undefined}
                           >
                             {item.price}
@@ -151,7 +162,7 @@ export default function Capabilities({
                         )}
                         {hasProof && (
                           <div
-                            className={`flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest px-2.5 py-1 rounded-full border border-current/20 bg-current/5 opacity-70 group-hover:opacity-100 transition-opacity ${secAccent}`}
+                            className={`flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest px-2.5 py-1 ${badgeRadius} border border-current/20 bg-current/5 opacity-70 group-hover:opacity-100 transition-opacity ${secAccent}`}
                             style={secHex ? { color: secHex, borderColor: `${secHex}40`, backgroundColor: `${secHex}10` } : undefined}
                           >
                             <Eye size={12} /> Proof ({matchingImages.length})
@@ -160,12 +171,12 @@ export default function Capabilities({
                       </div>
                     </div>
 
-                    <h4 className={`text-xl font-bold mb-3 ${theme.primaryText} transition-colors`}>
+                    <h4 className={`text-xl mb-3 ${titleWeight} ${theme.primaryText} transition-colors`}>
                       {item.title}
                     </h4>
 
                     {item.description && (
-                      <p className={`text-sm leading-relaxed ${isLightMode ? 'text-zinc-600' : 'text-zinc-400'}`}>
+                      <p className={`text-sm leading-relaxed ${descTone}`}>
                         {item.description}
                       </p>
                     )}
@@ -174,7 +185,7 @@ export default function Capabilities({
                   {hasBullets && (
                     <ul className="mt-6 space-y-2.5 border-t border-current/10 pt-5">
                       {item.bullets!.filter((b) => b.trim() !== '').map((bullet, bIdx) => (
-                        <li key={bIdx} className={`text-xs flex items-start gap-2.5 ${isLightMode ? 'text-zinc-700' : 'text-zinc-300'}`}>
+                        <li key={bIdx} className={`text-xs flex items-start gap-2.5 ${bulletTone}`}>
                           <span
                             className={`mt-1.5 w-1.5 h-1.5 rounded-full bg-current shrink-0 ${secAccent}`}
                             style={secHex ? { backgroundColor: secHex } : undefined}
@@ -195,17 +206,19 @@ export default function Capabilities({
           <div className={`mt-16 pt-16 border-t ${subtleBorder}`}>
             <div className="flex items-center justify-center gap-2 mb-8">
               <Sparkles className={`w-4 h-4 ${secAccent}`} style={secHex ? { color: secHex } : undefined} />
-              <h4 className={`text-sm font-bold uppercase tracking-widest ${theme.primaryText}`}>Flexible Upgrades & Add-ons</h4>
+              <h4 className={`text-sm uppercase tracking-widest ${titleWeight} ${theme.primaryText}`}>
+                Flexible Upgrades & Add-ons
+              </h4>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-5xl mx-auto">
               {addons.map((addon, idx) => (
-                <div key={idx} className={`p-5 rounded-xl border ${subtleBorder} flex flex-col justify-between gap-3 ${cardSurface} opacity-90 hover:opacity-100 transition-opacity`}>
+                <div key={idx} className={`p-5 ${addonRadius} border ${subtleBorder} flex flex-col justify-between gap-3 ${cardSurface} opacity-90 hover:opacity-100 transition-opacity`}>
                   <div className="flex items-start justify-between gap-2">
-                    <span className={`font-bold text-sm ${theme.primaryText}`}>{addon.title}</span>
+                    <span className={`text-sm ${titleWeight} ${theme.primaryText}`}>{addon.title}</span>
                     {addon.price && (
                       <span
-                        className={`text-xs font-mono font-bold px-2 py-0.5 rounded bg-current/10 shrink-0 ${secAccent}`}
+                        className={`text-xs font-mono font-bold px-2 py-0.5 rounded-sm bg-current/10 shrink-0 ${secAccent}`}
                         style={secHex ? { color: secHex, backgroundColor: `${secHex}15` } : undefined}
                       >
                         {addon.price}
@@ -213,7 +226,7 @@ export default function Capabilities({
                     )}
                   </div>
                   {addon.description && (
-                    <p className={`text-xs leading-relaxed ${isLightMode ? 'text-zinc-600' : 'text-zinc-400'}`}>
+                    <p className={`text-xs leading-relaxed ${descTone}`}>
                       {addon.description}
                     </p>
                   )}

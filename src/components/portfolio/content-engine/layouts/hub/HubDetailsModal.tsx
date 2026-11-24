@@ -51,19 +51,32 @@ export default function HubDetailsModal({
 
   const theme = THEME_REGISTRY[themeStyle] || THEME_REGISTRY['industrial'];
   const isMidnight = themeStyle === 'midnight';
+  const isNoir = themeStyle === 'noir';
   const isSquare = theme?.radius === 'rounded-none';
-  const modalRadius = isSquare ? 'rounded-none' : themeStyle === 'organic' ? 'rounded-3xl' : 'rounded-2xl';
-  const cardRadius = isSquare ? 'rounded-none' : 'rounded-2xl';
+
+  const modalRadius = isSquare
+    ? 'rounded-none'
+    : isNoir
+      ? 'rounded-sm'
+      : themeStyle === 'organic'
+        ? 'rounded-3xl'
+        : 'rounded-2xl';
+  const cardRadius = isSquare ? 'rounded-none' : isNoir ? 'rounded-sm' : 'rounded-2xl';
+  const btnRadius = isSquare || isNoir ? 'rounded-sm' : 'rounded-xl';
 
   const modalSurface = isLightMode
     ? `${theme?.pageBg || 'bg-white'} border-zinc-900/15 text-zinc-950`
-    : isMidnight
-      ? 'bg-black/95 border-white/10 text-white shadow-[0_0_90px_rgba(0,0,0,0.95)]'
-      : 'bg-zinc-950/95 border-white/15 text-white';
+    : isNoir
+      ? 'bg-[#0B0A09]/98 border-[#F3EFE6]/15 text-[#F3EFE6] shadow-[0_0_90px_rgba(0,0,0,0.95)]'
+      : isMidnight
+        ? 'bg-black/95 border-white/10 text-white shadow-[0_0_90px_rgba(0,0,0,0.95)]'
+        : 'bg-zinc-950/95 border-white/15 text-white';
 
   const closeBtnSurface = isLightMode
     ? 'bg-zinc-100 border-zinc-900/10 text-zinc-800 hover:bg-zinc-200'
-    : 'bg-white/5 border-white/10 text-zinc-200 hover:bg-white/15 hover:text-white';
+    : isNoir
+      ? 'bg-[#12100E] border-[#F3EFE6]/15 text-stone-300 hover:border-[#F3EFE6]/40 hover:text-[#F3EFE6]'
+      : 'bg-white/5 border-white/10 text-zinc-200 hover:bg-white/15 hover:text-white';
 
   const validFaqs = (department.faqs || []).filter((f) => f && f.question?.trim() && f.answer?.trim());
   const hasRightColumn = terms.length > 0 || validFaqs.length > 0;
@@ -91,10 +104,10 @@ export default function HubDetailsModal({
         {/* Header */}
         <div className="px-6 py-4 md:px-8 md:py-5 border-b border-current/10 flex items-center justify-between gap-4 shrink-0">
           <div className="min-w-0 space-y-1">
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-md bg-brand-primary text-white text-[10px] font-mono font-bold uppercase tracking-widest">
+            <span className={`inline-flex items-center px-2.5 py-0.5 ${isNoir ? 'rounded-sm' : 'rounded-md'} bg-brand-primary text-white text-[10px] font-mono font-bold uppercase tracking-widest`}>
               {badgeLabel}
             </span>
-            <h4 className={`text-xl md:text-3xl font-black tracking-tight truncate ${fonts.heading}`}>
+            <h4 className={`text-xl md:text-3xl truncate ${isNoir ? 'font-normal tracking-wide' : 'font-black tracking-tight'} ${fonts.heading}`}>
               {department.title}
             </h4>
           </div>
@@ -106,7 +119,7 @@ export default function HubDetailsModal({
                 onClose();
                 onInquire();
               }}
-              className="inline-flex items-center gap-2 px-5 py-3 rounded-xl text-xs font-black uppercase tracking-widest bg-brand-primary text-white border border-white/15 hover:brightness-110 transition-all shadow-lg cursor-pointer"
+              className={`inline-flex items-center gap-2 px-5 py-3 ${btnRadius} text-xs uppercase tracking-widest bg-brand-primary text-white border border-white/15 hover:brightness-110 transition-all shadow-lg cursor-pointer ${isNoir ? 'font-serif tracking-[0.2em]' : 'font-black'}`}
             >
               <span>{HUB_DETAILS_DEFAULTS.QUICK_INQUIRY_BTN}</span>
               <ArrowRight className="w-4 h-4" />
@@ -116,7 +129,7 @@ export default function HubDetailsModal({
               type="button"
               onClick={onClose}
               aria-label="Close modal"
-              className={`p-2.5 rounded-xl border transition-colors cursor-pointer ${closeBtnSurface}`}
+              className={`p-2.5 ${btnRadius} border transition-colors cursor-pointer ${closeBtnSurface}`}
             >
               <X className="w-5 h-5" />
             </button>

@@ -74,15 +74,23 @@ export default function AboutSection({ data }: AboutSectionProps) {
 
   const theme = THEME_REGISTRY[themeStyle] || THEME_REGISTRY['industrial'];
   const isLight = typeof isLightMode === 'boolean' ? isLightMode : theme.isLightMode;
+  const isNoir = themeStyle === 'noir';
   const shapeRadius = theme.radius === 'rounded-full' ? 'rounded-3xl' : (theme.radius || 'rounded-none');
   const lineGradient = `bg-linear-to-r from-${brandColor} to-${secondaryBrandColor}`;
 
-  const headingColor = isLight ? 'text-zinc-900' : 'text-zinc-50';
-  const bodyColor = isLight ? 'text-zinc-600' : 'text-zinc-300';
+  const headingColor = isLight ? 'text-zinc-900' : isNoir ? 'text-[#F3EFE6]' : 'text-zinc-50';
+  const bodyColor = isLight ? 'text-zinc-600' : isNoir ? 'text-stone-300' : 'text-zinc-300';
   const surfaceBg = isLight
     ? 'bg-white border-zinc-900/10'
-    : 'bg-zinc-900/80 border-white/10';
-  const fontHeadingClass = theme.primaryText.includes('font-serif') ? 'font-serif' : 'font-sans font-bold tracking-tight';
+    : isNoir
+      ? 'bg-[#12100E] border-[#F3EFE6]/15'
+      : 'bg-zinc-900/80 border-white/10';
+  const fontHeadingClass = theme.primaryText.includes('font-serif')
+    ? isNoir
+      ? 'font-serif font-normal tracking-wide'
+      : 'font-serif'
+    : 'font-sans font-bold tracking-tight';
+  const dividerThickness = isNoir ? 'w-24 h-px' : 'w-16 h-1.5';
 
   if (aboutLayout === 'minimal' || aboutLayout === 'center') {
     return (
@@ -90,10 +98,10 @@ export default function AboutSection({ data }: AboutSectionProps) {
         <h2 className={`text-4xl md:text-5xl mb-6 ${fontHeadingClass} ${headingColor}`}>
           {heading}
         </h2>
-        <div className={`w-16 h-1.5 mb-10 ${shapeRadius === 'rounded-none' ? 'rounded-none' : 'rounded-full'} ${lineGradient}`} />
+        <div className={`${dividerThickness} mb-10 ${shapeRadius === 'rounded-none' || isNoir ? 'rounded-none' : 'rounded-full'} ${lineGradient}`} />
 
         {imageUrl && (
-          <div className={`w-full max-w-2xl aspect-video ${shapeRadius} overflow-hidden shadow-2xl mb-12 relative group mx-auto flex items-center justify-center ${isLight ? 'bg-zinc-100' : 'bg-zinc-900'}`}>
+          <div className={`w-full max-w-2xl aspect-video ${shapeRadius} overflow-hidden shadow-2xl mb-12 relative group mx-auto flex items-center justify-center ${isLight ? 'bg-zinc-100' : isNoir ? 'bg-[#12100E] border border-[#F3EFE6]/15' : 'bg-zinc-900'}`}>
             <img src={imageUrl} alt={heading} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
           </div>
         )}
@@ -118,7 +126,7 @@ export default function AboutSection({ data }: AboutSectionProps) {
         </div>
         <div className="w-full lg:w-2/3 space-y-10">
           {imageUrl && (
-            <div className={`w-full aspect-video ${shapeRadius} overflow-hidden shadow-xl grayscale hover:grayscale-0 transition-all duration-700`}>
+            <div className={`w-full aspect-video ${shapeRadius} overflow-hidden shadow-xl grayscale hover:grayscale-0 transition-all duration-700 ${isNoir ? 'border border-[#F3EFE6]/15' : ''}`}>
               <img src={imageUrl} alt={heading} className="w-full h-full object-cover" />
             </div>
           )}
@@ -132,21 +140,25 @@ export default function AboutSection({ data }: AboutSectionProps) {
 
   if (aboutLayout === 'card' || aboutLayout === 'glass' || aboutLayout === 'glass-card' || aboutLayout === 'glass_card') {
     return (
-      <section className={`w-full max-w-6xl mx-auto relative ${shapeRadius} overflow-hidden p-8 md:p-16 lg:p-24 shadow-2xl bg-zinc-950`}>
+      <section className={`w-full max-w-6xl mx-auto relative ${shapeRadius} overflow-hidden p-8 md:p-16 lg:p-24 shadow-2xl ${isNoir ? 'bg-[#0B0A09] border border-[#F3EFE6]/15' : 'bg-zinc-950'}`}>
         {imageUrl && (
           <>
             <div className="absolute inset-0 z-0">
               <img src={imageUrl} alt="Background" className="w-full h-full object-cover opacity-40 scale-110" />
             </div>
-            <div className="absolute inset-0 z-0 bg-linear-to-tr from-zinc-950 via-zinc-900/80 to-zinc-950/90" />
+            <div className={`absolute inset-0 z-0 ${isNoir ? 'bg-linear-to-tr from-[#0B0A09] via-[#0B0A09]/85 to-[#0B0A09]/95' : 'bg-linear-to-tr from-zinc-950 via-zinc-900/80 to-zinc-950/90'}`} />
           </>
         )}
-        <div className={`relative z-10 w-full max-w-3xl mx-auto bg-white/5 backdrop-blur-xl border border-white/10 p-10 md:p-16 ${shapeRadius} shadow-inner text-center`}>
-          <h2 className={`text-4xl md:text-5xl mb-6 text-white drop-shadow-md ${fontHeadingClass}`}>
+        <div className={`relative z-10 w-full max-w-3xl mx-auto p-10 md:p-16 ${shapeRadius} shadow-inner text-center ${
+          isNoir
+            ? 'bg-[#12100E]/90 border border-[#F3EFE6]/15'
+            : 'bg-white/5 backdrop-blur-xl border border-white/10'
+        }`}>
+          <h2 className={`text-4xl md:text-5xl mb-6 drop-shadow-md ${isNoir ? 'text-[#F3EFE6]' : 'text-white'} ${fontHeadingClass}`}>
             {heading}
           </h2>
-          <div className={`w-20 h-1 mb-8 mx-auto ${lineGradient}`} />
-          <p className="text-lg md:text-xl leading-relaxed whitespace-pre-wrap font-light text-zinc-200">
+          <div className={`${isNoir ? 'w-24 h-px' : 'w-20 h-1'} mb-8 mx-auto ${lineGradient}`} />
+          <p className={`text-lg md:text-xl leading-relaxed whitespace-pre-wrap font-light ${isNoir ? 'text-stone-300' : 'text-zinc-200'}`}>
             {bio}
           </p>
           <div className="flex justify-center w-full">
@@ -164,7 +176,7 @@ export default function AboutSection({ data }: AboutSectionProps) {
           <h2 className={`text-4xl md:text-5xl mb-6 ${fontHeadingClass} ${headingColor}`}>
             {heading}
           </h2>
-          <div className={`w-16 h-1.5 mb-8 ${lineGradient}`} />
+          <div className={`${dividerThickness} mb-8 ${lineGradient}`} />
 
           <p className={`text-lg md:text-xl leading-relaxed mb-8 whitespace-pre-wrap font-light ${bodyColor}`}>
             {bio}
@@ -174,7 +186,7 @@ export default function AboutSection({ data }: AboutSectionProps) {
         {imageUrl && (
           <div className={`w-full aspect-square md:aspect-4/5 ${shapeRadius} overflow-hidden shadow-2xl relative group mx-auto`}>
             <img src={imageUrl} alt={heading} className="w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105" />
-            <div className={`absolute inset-0 border-4 border-${secondaryBrandColor} mix-blend-overlay opacity-30 ${shapeRadius} pointer-events-none`} />
+            <div className={`absolute inset-0 ${isNoir ? 'border border-[#F3EFE6]/25' : `border-4 border-${secondaryBrandColor} mix-blend-overlay opacity-30`} ${shapeRadius} pointer-events-none`} />
           </div>
         )}
       </div>
