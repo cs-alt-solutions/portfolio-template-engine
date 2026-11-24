@@ -14,6 +14,7 @@ export interface FormattedGalleryItem {
   title?: string;
   description?: string;
   category?: string;
+  collection?: string;
   price?: string;
   isVisible?: boolean;
   isRaw?: boolean;
@@ -141,6 +142,7 @@ export function formatGalleryItems(rawGallery: unknown): FormattedGalleryItem[] 
       title: obj.title,
       description: obj.description || obj.category,
       category: obj.category,
+      collection: obj.collection,
       price: obj.price,
       isVisible: obj.isVisible,
       isRaw: obj.isRaw,

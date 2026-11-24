@@ -5,23 +5,25 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import UniversalLeadModal, { TopicConfig } from '../../UniversalLeadModal';
 import { getFonts } from '../utils';
 import { THEME_REGISTRY } from '@/utils/themes';
-import { Capability, GalleryItem } from '../types';
+import { GalleryItem } from '../types';
 import HubDepartmentCard from './hub/HubDepartmentCard';
-import HubDetailsModal, { OperationalTerm, HubPhoto } from './hub/HubDetailsModal';
+import HubDetailsModal, { OperationalTerm } from './hub/HubDetailsModal';
+import {
+  HubCollectionPhoto,
+  HubDepartmentData,
+  extractCollections,
+} from './hub/hubCollections';
 
 interface FramedGalleryItem extends GalleryItem {
   focalPoint?: { x: number; y: number };
   imageFit?: 'cover' | 'contain';
   imageZoom?: number;
-}
-
-interface HubCapability extends Capability {
-  tabLabel?: string;
+  collection?: string;
 }
 
 interface HubFlowProps {
-  items?: HubCapability[];
-  capabilities?: HubCapability[];
+  items?: HubDepartmentData[];
+  capabilities?: HubDepartmentData[];
   galleryItems?: FramedGalleryItem[];
   operationalTerms?: OperationalTerm[];
   themeStyle?: string;
@@ -48,7 +50,6 @@ function detectLightColor(raw?: string): boolean | null {
   if (!raw) return null;
   const val = raw.trim().toLowerCase();
 
-  // 1. Hex (#rgb or #rrggbb)
   const hexMatch = val.match(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i);
   if (hexMatch) {
     let hex = hexMatch[1];
@@ -64,7 +65,6 @@ function detectLightColor(raw?: string): boolean | null {
     return (r * 299 + g * 587 + b * 114) / 1000 >= 150;
   }
 
-  // 2. rgb(...) / rgba(...)
   const rgbMatch = val.match(/^rgba?\(\s*([\d.]+)[,\s]+([\d.]+)[,\s]+([\d.]+)(?:[,\s/]+([\d.]+))?/);
   if (rgbMatch) {
     const alpha = rgbMatch[4] !== undefined ? parseFloat(rgbMatch[4]) : 1;
@@ -75,7 +75,6 @@ function detectLightColor(raw?: string): boolean | null {
     return (r * 299 + g * 587 + b * 114) / 1000 >= 150;
   }
 
-  // 3. oklch(L C H) (Tailwind v4 computed values)
   const oklchMatch = val.match(/^oklch\(\s*([\d.]+)(%?)/);
   if (oklchMatch) {
     const rawL = parseFloat(oklchMatch[1]);
@@ -83,7 +82,6 @@ function detectLightColor(raw?: string): boolean | null {
     return l >= 0.66;
   }
 
-  // 4. Tailwind token fallback (e.g. "amber-300", "stone-400")
   const twMatch = val.match(/^([a-z]+)-(\d{2,3})$/);
   if (twMatch) {
     const [, hue, shadeStr] = twMatch;
@@ -120,7 +118,7 @@ export default function HubFlow({
   onHoverChange,
   onFlipChange,
 }: HubFlowProps) {
-  const departments = useMemo<HubCapability[]>(() => {
+  const departments = useMemo<HubDepartmentData[]>(() => {
     const rawList = [...(items || []), ...(capabilities || [])];
     const safeItems = rawList.filter(
       (item, index, self) =>
@@ -161,7 +159,8 @@ export default function HubFlow({
   const [internalIndex, setInternalIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
-  const [selectedDept, setSelectedDept] = useState<HubCapability | null>(null);
+  const [activeCollection, setActiveCollection] = useState<string | null>(null);
+  const [selectedDept, setSelectedDept] = useState<HubDepartmentData | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const directLightBrand = detectLightColor(brandColor);
@@ -215,7 +214,7 @@ export default function HubFlow({
 
   const activeDeptFaqs = (activeDept?.faqs || []).filter((f) => f && f.question?.trim() && f.answer?.trim());
 
-  const deptPhotos: HubPhoto[] = safeGallery
+  const deptPhotos: HubCollectionPhoto[] = safeGallery
     .filter(
       (g) =>
         g &&
@@ -232,6 +231,7 @@ export default function HubFlow({
         url: g.imageUrl,
         title: g.title?.trim() || '',
         description: cleanDesc,
+        collection: g.collection?.trim() || '',
         focalPoint: g.focalPoint,
         imageFit: g.imageFit,
         imageZoom: g.imageZoom,
@@ -242,7 +242,10 @@ export default function HubFlow({
     deptPhotos.push({ url: activeDept.coverImage });
   }
 
-  const toggleDetails = (open: boolean) => {
+  const deptCollections = extractCollections(deptPhotos);
+
+  const toggleDetails = (open: boolean, collectionName: string | null = null) => {
+    setActiveCollection(open ? collectionName : null);
     setIsDetailsOpen(open);
     if (onFlipChange) onFlipChange(open);
   };
@@ -258,7 +261,7 @@ export default function HubFlow({
     if (onHoverChange) onHoverChange(hovered);
   };
 
-  const handleOpenModal = (dept: HubCapability) => {
+  const handleOpenModal = (dept: HubDepartmentData) => {
     setSelectedDept(dept);
     setIsModalOpen(true);
   };
@@ -321,13 +324,15 @@ export default function HubFlow({
               department={activeDept}
               index={activeIndexSafe}
               hasDetails={deptPhotos.length > 0 || activeDeptTerms.length > 0 || activeDeptFaqs.length > 0}
+              collections={deptCollections}
               isLightMode={isLightMode}
               isLightBrand={isLightBrand}
               theme={theme}
               themeStyle={themeStyle}
               fonts={fonts}
               onInquire={() => handleOpenModal(activeDept)}
-              onOpenDetails={() => toggleDetails(true)}
+              onOpenDetails={() => toggleDetails(true, null)}
+              onSelectCollection={(collectionName) => toggleDetails(true, collectionName)}
             />
           </div>
         )}
@@ -341,7 +346,9 @@ export default function HubFlow({
           department={activeDept}
           photos={deptPhotos}
           terms={activeDeptTerms}
+          initialCollection={activeCollection}
           isLightMode={isLightMode}
+          isLightBrand={isLightBrand}
           themeStyle={themeStyle}
           fonts={fonts}
         />

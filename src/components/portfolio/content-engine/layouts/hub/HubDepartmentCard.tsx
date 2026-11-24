@@ -2,16 +2,21 @@
 'use client';
 
 import React from 'react';
-import { ArrowRight, Sparkles, Images } from 'lucide-react';
+import { ArrowRight, Sparkles, Images, ExternalLink } from 'lucide-react';
 import { THEME_REGISTRY, ThemeDefinition } from '@/utils/themes';
-import { getThemeBullet } from '../../utils';
-import { Capability } from '../../types';
+import HubCollectionStrip from './HubCollectionStrip';
+import {
+  HubDepartmentData,
+  PhotoCollectionGroup,
+  normalizeExternalUrl,
+} from './hubCollections';
 
 interface HubDepartmentCardProps {
-  department: Capability;
+  department: HubDepartmentData;
   index: number;
   hasDetails: boolean;
   detailsLabel?: string;
+  collections?: PhotoCollectionGroup[];
   isLightMode: boolean;
   isLightBrand?: boolean;
   theme?: ThemeDefinition;
@@ -19,6 +24,7 @@ interface HubDepartmentCardProps {
   fonts: { heading: string; body: string };
   onInquire: () => void;
   onOpenDetails: () => void;
+  onSelectCollection?: (collectionName: string) => void;
 }
 
 export default function HubDepartmentCard({
@@ -26,6 +32,7 @@ export default function HubDepartmentCard({
   index,
   hasDetails,
   detailsLabel = 'Photos & Details',
+  collections = [],
   isLightMode,
   isLightBrand = false,
   theme: passedTheme,
@@ -33,6 +40,7 @@ export default function HubDepartmentCard({
   fonts,
   onInquire,
   onOpenDetails,
+  onSelectCollection,
 }: HubDepartmentCardProps) {
   const theme = passedTheme || THEME_REGISTRY[themeStyle] || THEME_REGISTRY['industrial'];
 
@@ -42,7 +50,9 @@ export default function HubDepartmentCard({
 
   const priceAccent = isLightMode && isLightBrand ? 'text-zinc-900' : 'text-brand-primary';
   const indexLabel = index + 1 < 10 ? `0${index + 1}` : `${index + 1}`;
-  const visibleBullets = (department.bullets || []).filter(Boolean).slice(0, 3);
+  const ctaText = department.ctaLabel?.trim() || 'Quick Inquiry';
+  const bookingHref = normalizeExternalUrl(department.bookingUrl);
+  const bookingText = department.bookingLabel?.trim() || 'Book Online';
 
   return (
     <div
@@ -86,9 +96,21 @@ export default function HubDepartmentCard({
               onClick={onInquire}
               className={`inline-flex items-center justify-center gap-2 px-6 py-3.5 text-xs border transition-all cursor-pointer ${theme.controlRadius} ${theme.uiLabel} ${primaryBtn}`}
             >
-              <span>Quick Inquiry</span>
+              <span>{ctaText}</span>
               <ArrowRight className="w-4 h-4" />
             </button>
+
+            {bookingHref && (
+              <a
+                href={bookingHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`inline-flex items-center justify-center gap-2 px-5 py-3.5 text-xs border transition-all shadow-sm cursor-pointer ${theme.controlRadius} ${theme.uiLabel} ${theme.pillStyle}`}
+              >
+                <span>{bookingText}</span>
+                <ExternalLink className="w-3.5 h-3.5 text-brand-primary" />
+              </a>
+            )}
 
             {hasDetails && (
               <button
@@ -103,21 +125,16 @@ export default function HubDepartmentCard({
           </div>
         </div>
 
-        {visibleBullets.length > 0 && (
-          <div className={`grid grid-cols-1 md:grid-cols-3 gap-3 pt-5 border-t ${theme.borderColor}`}>
-            {visibleBullets.map((bullet, bIdx) => (
-              <div
-                key={bIdx}
-                className={`p-4 border flex items-start gap-3 ${theme.controlRadius} ${theme.subCardStyle}`}
-              >
-                {getThemeBullet(themeStyle, 'text-brand-primary')}
-                <span className={`text-xs md:text-sm leading-relaxed ${fonts.body}`}>
-                  {bullet}
-                </span>
-              </div>
-            ))}
-          </div>
-        )}
+        <HubCollectionStrip
+          bullets={department.bullets || []}
+          collections={collections}
+          theme={theme}
+          themeStyle={themeStyle}
+          fonts={fonts}
+          onSelectCollection={(name) =>
+            onSelectCollection ? onSelectCollection(name) : onOpenDetails()
+          }
+        />
       </div>
     </div>
   );
