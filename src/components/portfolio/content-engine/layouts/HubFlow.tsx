@@ -162,7 +162,6 @@ export default function HubFlow({
   const [selectedDept, setSelectedDept] = useState<HubCapability | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Derived directly when brandColor is parseable; async DOM probe fallback for CSS variables
   const directLightBrand = detectLightColor(brandColor);
   const [probedLightBrand, setProbedLightBrand] = useState(false);
   const brandProbeRef = useRef<HTMLSpanElement | null>(null);
@@ -197,8 +196,8 @@ export default function HubFlow({
 
   if (departments.length === 0) {
     return (
-      <div className={`w-full py-16 px-4 text-center ${theme?.pageBg || 'bg-zinc-950'}`}>
-        <p className="text-xs font-mono text-zinc-500 uppercase tracking-widest">
+      <div className={`w-full py-16 px-4 text-center ${theme.pageBg}`}>
+        <p className={`text-xs font-mono uppercase tracking-widest ${theme.mutedText}`}>
           No departments configured for this storefront yet.
         </p>
       </div>
@@ -268,12 +267,8 @@ export default function HubFlow({
     : departments.map((d) => d.title).filter(Boolean);
 
   const activePill = isLightBrand
-    ? 'bg-brand-primary text-zinc-950 border-brand-primary shadow-lg shadow-brand-primary/20 ring-1 ring-zinc-950/10 scale-[1.02]'
+    ? 'bg-brand-primary text-zinc-950 border-brand-primary shadow-lg shadow-brand-primary/20 scale-[1.02]'
     : 'bg-brand-primary text-white border-brand-primary shadow-lg shadow-brand-primary/25 scale-[1.02]';
-
-  const inactivePill = isLightMode
-    ? 'bg-white/90 text-zinc-700 border-zinc-900/10 hover:bg-white hover:text-zinc-950 hover:border-zinc-900/20 shadow-sm'
-    : 'bg-zinc-900/80 text-zinc-300 border-white/10 hover:bg-zinc-800 hover:text-white hover:border-white/20';
 
   return (
     <div className="w-full pb-16 md:pb-24 px-4 md:px-8 relative z-20">
@@ -284,7 +279,7 @@ export default function HubFlow({
         onMouseEnter={() => handleHover(true)}
         onMouseLeave={() => handleHover(false)}
       >
-        {/* Wide Single-Row Department Bar (wider than the spotlight card below) */}
+        {/* Theme-Driven Single-Row Department Bar */}
         <div className="w-full flex flex-wrap items-center justify-center gap-2 md:gap-2.5">
           {departments.map((dept, idx) => {
             const isActive = idx === activeIndexSafe;
@@ -296,19 +291,17 @@ export default function HubFlow({
                 key={idx}
                 type="button"
                 onClick={() => handleSelect(idx)}
-                className={`px-3.5 py-2.5 rounded-xl border text-[11px] font-bold uppercase tracking-wide whitespace-nowrap transition-all duration-300 backdrop-blur-md flex items-center gap-2 cursor-pointer ${
-                  isActive ? activePill : inactivePill
+                className={`px-4 py-2.5 border text-[11px] whitespace-nowrap transition-all duration-300 flex items-center gap-2.5 cursor-pointer ${theme.controlRadius} ${theme.uiLabel} ${
+                  isActive ? activePill : theme.pillStyle
                 }`}
               >
                 <span
-                  className={`font-mono text-[10px] font-bold ${
+                  className={`font-mono text-[10px] ${
                     isActive
                       ? isLightBrand
-                        ? 'text-zinc-950/75'
+                        ? 'text-zinc-950/70'
                         : 'text-white/80'
-                      : isLightMode
-                        ? 'text-zinc-400'
-                        : 'text-zinc-500'
+                      : 'opacity-50'
                   }`}
                 >
                   {indexLabel}
@@ -328,6 +321,8 @@ export default function HubFlow({
               hasDetails={deptPhotos.length > 0 || activeDeptTerms.length > 0 || activeDeptFaqs.length > 0}
               isLightMode={isLightMode}
               isLightBrand={isLightBrand}
+              theme={theme}
+              themeStyle={themeStyle}
               fonts={fonts}
               onInquire={() => handleOpenModal(activeDept)}
               onOpenDetails={() => toggleDetails(true)}

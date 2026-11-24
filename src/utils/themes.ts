@@ -13,6 +13,16 @@ export interface ThemeDefinition {
   useBrandAccent: boolean;
   useBrandTint: boolean;
   radius: string;
+  // Shared structural tokens consumed by Hub, Modals, Policy cards, and CTA banners
+  surfaceStyle: string;
+  subCardStyle: string;
+  pillStyle: string;
+  chipStyle: string;
+  mutedText: string;
+  borderColor: string;
+  surfaceRadius: string;
+  controlRadius: string;
+  uiLabel: string;
 }
 
 export const THEME_REGISTRY: Record<string, ThemeDefinition> = {
@@ -29,7 +39,16 @@ export const THEME_REGISTRY: Record<string, ThemeDefinition> = {
     prefix: "",
     useBrandAccent: true,
     useBrandTint: true,
-    radius: "rounded-none"
+    radius: "rounded-none",
+    surfaceStyle: "bg-zinc-900 border-2 border-zinc-700 text-zinc-100 shadow-[8px_8px_0_0_rgba(0,0,0,0.5)]",
+    subCardStyle: "bg-zinc-950/80 border border-zinc-800 text-zinc-200",
+    pillStyle: "bg-zinc-900 border-2 border-zinc-700 text-zinc-300 hover:border-zinc-400 hover:text-white",
+    chipStyle: "bg-zinc-950 border border-zinc-700 text-zinc-300",
+    mutedText: "text-zinc-400",
+    borderColor: "border-zinc-800",
+    surfaceRadius: "rounded-none",
+    controlRadius: "rounded-none",
+    uiLabel: "font-mono font-bold uppercase tracking-widest",
   },
   'industrial-light': {
     isLightMode: true,
@@ -43,7 +62,16 @@ export const THEME_REGISTRY: Record<string, ThemeDefinition> = {
     prefix: "",
     useBrandAccent: true,
     useBrandTint: false,
-    radius: "rounded-none"
+    radius: "rounded-none",
+    surfaceStyle: "bg-white border-2 border-zinc-300 text-zinc-950 shadow-[8px_8px_0_0_rgba(0,0,0,0.08)]",
+    subCardStyle: "bg-zinc-50 border border-zinc-200 text-zinc-800",
+    pillStyle: "bg-white border-2 border-zinc-300 text-zinc-700 hover:border-zinc-900 hover:text-zinc-950",
+    chipStyle: "bg-zinc-100 border border-zinc-300 text-zinc-800",
+    mutedText: "text-zinc-600",
+    borderColor: "border-zinc-200",
+    surfaceRadius: "rounded-none",
+    controlRadius: "rounded-none",
+    uiLabel: "font-mono font-bold uppercase tracking-widest",
   },
 
   // --- NEO-BRUTALIST ---
@@ -59,7 +87,16 @@ export const THEME_REGISTRY: Record<string, ThemeDefinition> = {
     prefix: "",
     useBrandAccent: true,
     useBrandTint: false,
-    radius: "rounded-none"
+    radius: "rounded-none",
+    surfaceStyle: "bg-white border-4 border-black text-black shadow-[10px_10px_0_0_rgba(0,0,0,1)]",
+    subCardStyle: "bg-yellow-50 border-2 border-black text-black",
+    pillStyle: "bg-white border-2 border-black text-black shadow-[3px_3px_0_0_rgba(0,0,0,1)] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none",
+    chipStyle: "bg-yellow-300 border-2 border-black text-black",
+    mutedText: "text-zinc-800",
+    borderColor: "border-black",
+    surfaceRadius: "rounded-none",
+    controlRadius: "rounded-none",
+    uiLabel: "font-sans font-black uppercase tracking-widest",
   },
   'neo-dark': {
     isLightMode: false,
@@ -73,7 +110,16 @@ export const THEME_REGISTRY: Record<string, ThemeDefinition> = {
     prefix: "",
     useBrandAccent: true,
     useBrandTint: true,
-    radius: "rounded-none"
+    radius: "rounded-none",
+    surfaceStyle: "bg-zinc-900 border-4 border-white/80 text-white shadow-[8px_8px_0_0_rgba(255,255,255,0.18)]",
+    subCardStyle: "bg-zinc-950 border-2 border-zinc-700 text-zinc-200",
+    pillStyle: "bg-zinc-900 border-2 border-zinc-600 text-zinc-200 shadow-[3px_3px_0_0_rgba(255,255,255,0.15)] hover:border-white hover:text-white",
+    chipStyle: "bg-zinc-950 border-2 border-zinc-700 text-zinc-200",
+    mutedText: "text-zinc-300",
+    borderColor: "border-zinc-700",
+    surfaceRadius: "rounded-none",
+    controlRadius: "rounded-none",
+    uiLabel: "font-sans font-black uppercase tracking-widest",
   },
 
   // --- CYBERPUNK ---
@@ -89,7 +135,16 @@ export const THEME_REGISTRY: Record<string, ThemeDefinition> = {
     prefix: ">> ",
     useBrandAccent: true,
     useBrandTint: true,
-    radius: "rounded-none"
+    radius: "rounded-none",
+    surfaceStyle: "bg-black/90 backdrop-blur-md border border-brand-primary/40 text-white shadow-[0_0_35px_rgba(0,0,0,0.85)]",
+    subCardStyle: "bg-zinc-950/90 border border-white/15 text-zinc-200",
+    pillStyle: "bg-black/85 border border-white/20 text-zinc-300 hover:border-brand-primary hover:text-white",
+    chipStyle: "bg-black border border-brand-primary/40 text-zinc-200",
+    mutedText: "text-zinc-400",
+    borderColor: "border-white/15",
+    surfaceRadius: "rounded-none",
+    controlRadius: "rounded-none",
+    uiLabel: "font-mono font-bold uppercase tracking-widest",
   },
   'cyberpunk-light': {
     isLightMode: true,
@@ -103,7 +158,16 @@ export const THEME_REGISTRY: Record<string, ThemeDefinition> = {
     prefix: ">> ",
     useBrandAccent: true,
     useBrandTint: false,
-    radius: "rounded-none"
+    radius: "rounded-none",
+    surfaceStyle: "bg-white/95 backdrop-blur-md border-2 border-black text-black shadow-[6px_6px_0_0_rgba(0,0,0,0.85)]",
+    subCardStyle: "bg-zinc-50 border border-zinc-300 text-zinc-800",
+    pillStyle: "bg-white border border-black/30 text-zinc-800 hover:border-black hover:text-black",
+    chipStyle: "bg-zinc-100 border border-black/25 text-zinc-900",
+    mutedText: "text-zinc-600",
+    borderColor: "border-black/20",
+    surfaceRadius: "rounded-none",
+    controlRadius: "rounded-none",
+    uiLabel: "font-mono font-bold uppercase tracking-widest",
   },
 
   // --- MINIMAL ---
@@ -119,7 +183,16 @@ export const THEME_REGISTRY: Record<string, ThemeDefinition> = {
     prefix: "",
     useBrandAccent: true,
     useBrandTint: false,
-    radius: "rounded-full"
+    radius: "rounded-full",
+    surfaceStyle: "bg-white border border-zinc-200/80 text-zinc-900 shadow-lg",
+    subCardStyle: "bg-zinc-50 border border-zinc-200/70 text-zinc-700",
+    pillStyle: "bg-white border border-zinc-200 text-zinc-600 hover:text-zinc-950 hover:border-zinc-400 shadow-xs",
+    chipStyle: "bg-zinc-100 border border-zinc-200 text-zinc-700",
+    mutedText: "text-zinc-500",
+    borderColor: "border-zinc-200",
+    surfaceRadius: "rounded-3xl",
+    controlRadius: "rounded-full",
+    uiLabel: "font-sans font-semibold uppercase tracking-[0.2em]",
   },
 
   // --- ELEGANT ---
@@ -135,7 +208,16 @@ export const THEME_REGISTRY: Record<string, ThemeDefinition> = {
     prefix: "",
     useBrandAccent: true,
     useBrandTint: true,
-    radius: "rounded-sm"
+    radius: "rounded-sm",
+    surfaceStyle: "bg-white border border-zinc-200 text-zinc-900 shadow-[0_20px_50px_rgba(0,0,0,0.05)]",
+    subCardStyle: "bg-[#FAFAFA] border border-zinc-200/80 text-stone-700",
+    pillStyle: "bg-white border border-zinc-200 text-stone-600 hover:border-zinc-500 hover:text-zinc-900",
+    chipStyle: "bg-[#FAFAFA] border border-zinc-200 text-stone-700",
+    mutedText: "text-stone-600",
+    borderColor: "border-zinc-200",
+    surfaceRadius: "rounded-sm",
+    controlRadius: "rounded-none",
+    uiLabel: "font-serif uppercase tracking-[0.2em] font-normal",
   },
 
   // --- ORGANIC ---
@@ -151,7 +233,16 @@ export const THEME_REGISTRY: Record<string, ThemeDefinition> = {
     prefix: "",
     useBrandAccent: true,
     useBrandTint: false,
-    radius: "rounded-[30px]"
+    radius: "rounded-[30px]",
+    surfaceStyle: "bg-[#EAE5D9] border border-[#2C3B2D]/15 text-[#2C3B2D] shadow-xl",
+    subCardStyle: "bg-[#F4F1EA] border border-[#2C3B2D]/15 text-[#3B4C3E]",
+    pillStyle: "bg-[#EAE5D9] border border-[#2C3B2D]/20 text-[#2C3B2D] hover:bg-[#E1DACB] hover:border-[#2C3B2D]/40",
+    chipStyle: "bg-[#F4F1EA] border border-[#2C3B2D]/20 text-[#2C3B2D]",
+    mutedText: "text-[#4A5D4E]",
+    borderColor: "border-[#2C3B2D]/15",
+    surfaceRadius: "rounded-3xl",
+    controlRadius: "rounded-full",
+    uiLabel: "font-serif tracking-wider font-normal",
   },
 
   // --- EDITORIAL ---
@@ -167,7 +258,16 @@ export const THEME_REGISTRY: Record<string, ThemeDefinition> = {
     prefix: "",
     useBrandAccent: true,
     useBrandTint: false,
-    radius: "rounded-none"
+    radius: "rounded-none",
+    surfaceStyle: "bg-[#F3F1EC] border-y-2 border-black text-black shadow-none",
+    subCardStyle: "bg-[#EAE8E3] border border-black/25 text-zinc-800",
+    pillStyle: "bg-transparent border border-black/30 text-zinc-800 hover:bg-black hover:text-white hover:border-black",
+    chipStyle: "bg-[#EAE8E3] border border-black/30 text-black",
+    mutedText: "text-zinc-700",
+    borderColor: "border-black/20",
+    surfaceRadius: "rounded-none",
+    controlRadius: "rounded-none",
+    uiLabel: "font-sans font-bold uppercase tracking-[0.2em]",
   },
 
   // --- MIDNIGHT ONYX ---
@@ -183,7 +283,16 @@ export const THEME_REGISTRY: Record<string, ThemeDefinition> = {
     prefix: "",
     useBrandAccent: true,
     useBrandTint: true,
-    radius: "rounded-2xl"
+    radius: "rounded-2xl",
+    surfaceStyle: "bg-zinc-900/40 backdrop-blur-2xl border border-white/10 text-white shadow-2xl",
+    subCardStyle: "bg-black/40 border border-white/10 text-zinc-200",
+    pillStyle: "bg-zinc-900/70 backdrop-blur-md border border-white/10 text-zinc-300 hover:bg-zinc-800 hover:text-white hover:border-white/20",
+    chipStyle: "bg-white/5 border border-white/10 text-zinc-200",
+    mutedText: "text-zinc-400",
+    borderColor: "border-white/10",
+    surfaceRadius: "rounded-2xl",
+    controlRadius: "rounded-xl",
+    uiLabel: "font-sans font-bold uppercase tracking-widest",
   },
 
   // --- GILDED NOIR ---
@@ -199,6 +308,15 @@ export const THEME_REGISTRY: Record<string, ThemeDefinition> = {
     prefix: "",
     useBrandAccent: true,
     useBrandTint: true,
-    radius: "rounded-sm"
-  }
+    radius: "rounded-sm",
+    surfaceStyle: "bg-[#12100E] border border-[#F3EFE6]/15 text-[#F3EFE6] shadow-[0_24px_60px_rgba(0,0,0,0.75)]",
+    subCardStyle: "bg-[#0B0A09]/85 border border-[#F3EFE6]/12 text-stone-300",
+    pillStyle: "bg-[#12100E] border border-[#F3EFE6]/15 text-stone-300 hover:border-brand-primary/60 hover:text-[#F3EFE6]",
+    chipStyle: "bg-[#0B0A09] border border-[#F3EFE6]/15 text-stone-300",
+    mutedText: "text-stone-300",
+    borderColor: "border-[#F3EFE6]/12",
+    surfaceRadius: "rounded-sm",
+    controlRadius: "rounded-none",
+    uiLabel: "font-cinzel uppercase tracking-[0.2em] font-normal",
+  },
 };

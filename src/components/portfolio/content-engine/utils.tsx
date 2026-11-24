@@ -5,9 +5,9 @@ import { Check, ChevronRight, ArrowRight, CheckCircle2 } from 'lucide-react';
 export const getFonts = (style: string) => {
   if (style === 'noir') {
     return {
-      heading: 'font-serif tracking-wide font-normal',
+      heading: 'font-cinzel tracking-[0.06em] font-normal',
       body: 'font-sans font-light',
-      accent: 'font-serif italic tracking-[0.2em] text-sm'
+      accent: 'font-serif italic tracking-[0.18em] text-sm',
     };
   }
   if (['elegant', 'organic', 'editorial'].includes(style)) {

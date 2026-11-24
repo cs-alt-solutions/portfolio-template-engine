@@ -40,60 +40,34 @@ export default function StorefrontClientActions({
 
   const headlineText = store.primary_cta || "Let's Work Together";
   const buttonText = store.secondary_cta || STOREFRONT_DEFAULTS.SECONDARY_CTA || "Get in Touch";
-  
+
   const activeSecondary = secondaryBrandColor || brandColor;
   const fonts = getFonts(themeStyle);
-  
-  // 🚀 THE FIX: Pull the shape rules directly from the Master Theme Registry
   const theme = THEME_REGISTRY[themeStyle] || THEME_REGISTRY['industrial'];
-  const shapeRadius = theme.radius || 'rounded-none';
-
-  const isNeo = themeStyle === 'neo';
-  const isCyber = themeStyle === 'cyberpunk';
-  const isMidnight = themeStyle === 'midnight';
-
-  const getBannerStyles = () => {
-    if (themeStyle === 'elegant') return 'bg-[#FAFAFA] border-y border-zinc-200 text-zinc-900 shadow-inner';
-    if (isNeo) return 'bg-white border-y-4 border-black text-black shadow-[0_-8px_0_0_rgba(0,0,0,1)]';
-    if (isCyber) return 'bg-black/90 border-y border-white/20 text-white font-mono shadow-[0_0_30px_rgba(255,255,255,0.05)]';
-    if (isMidnight) return 'bg-zinc-950/80 backdrop-blur-2xl border-y border-white/10 text-white shadow-2xl';
-    if (isLightMode) return 'bg-zinc-100/95 border-y border-zinc-200 text-zinc-900 shadow-inner';
-    
-    return 'bg-zinc-900/90 border-y border-zinc-800 text-white shadow-2xl';
-  };
-
-  const getButtonStyles = () => {
-    const secondaryPop = `bg-${activeSecondary} text-zinc-950 hover:scale-105 border-none shadow-xl`;
-    
-    // Applying shapeRadius universally to all buttons
-    if (themeStyle === 'elegant') return `bg-zinc-950 text-white border border-zinc-800 hover:bg-zinc-800 ${shapeRadius} font-serif tracking-widest shadow-lg`;
-    if (themeStyle === 'organic') return `${secondaryPop} ${shapeRadius} font-serif tracking-wide`;
-    if (themeStyle === 'editorial') return `bg-black text-white border-2 border-black hover:bg-zinc-800 ${shapeRadius} font-sans font-black tracking-[0.2em]`;
-    if (isNeo) return `bg-white text-black border-4 border-black ${shapeRadius} shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 font-black`;
-    if (isCyber) return `bg-black text-${activeSecondary} border border-current shadow-[0_0_15px_currentColor] hover:bg-white hover:text-black ${shapeRadius} font-mono font-bold`;
-    if (isLightMode) return `${secondaryPop} ${shapeRadius} font-black`;
-    
-    // Default Industrial / Base fallback (Now correctly inherits rounded-none!)
-    return `${secondaryPop} ${shapeRadius} font-black`;
-  };
 
   return (
     <>
-      <section id="contact" className={`py-16 px-6 text-center relative z-20 transition-colors overflow-hidden ${getBannerStyles()}`}>
-        <div className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-48 bg-${activeSecondary}/25 rounded-full blur-3xl pointer-events-none`} />
-        
+      <section
+        id="contact"
+        className={`py-16 md:py-20 px-6 text-center relative z-20 transition-colors overflow-hidden border-y border-x-0 ${theme.surfaceStyle}`}
+      >
+        <div
+          className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-48 bg-${activeSecondary}/15 rounded-full blur-3xl pointer-events-none`}
+        />
+
         <div className="max-w-3xl mx-auto space-y-4 relative z-10">
-          <h2 className={`text-3xl md:text-5xl tracking-tight drop-shadow-sm ${fonts.heading}`}>
+          <h2 className={`text-3xl md:text-5xl drop-shadow-sm ${fonts.heading}`}>
             {headlineText}
           </h2>
-          <p className={`text-xs md:text-sm max-w-lg mx-auto leading-relaxed ${fonts.body} ${isLightMode ? 'text-zinc-600' : 'text-zinc-400'}`}>
+          <p className={`text-xs md:text-sm max-w-lg mx-auto leading-relaxed ${fonts.body} ${theme.mutedText}`}>
             Connect directly with {store.business_name || 'our team'} today to discuss timelines, pricing, and your custom vision.
           </p>
-          
+
           <div className="pt-4">
             <button
+              type="button"
               onClick={() => handleOpenModal(buttonText)}
-              className={`group relative inline-flex items-center justify-center px-10 py-4 uppercase text-xs transition-all duration-300 ${getButtonStyles()}`}
+              className={`group relative inline-flex items-center justify-center px-10 py-4 text-xs transition-all duration-300 cursor-pointer bg-${activeSecondary} text-zinc-950 hover:brightness-110 shadow-xl ${theme.controlRadius} ${theme.uiLabel}`}
             >
               <span>{buttonText}</span>
             </button>
