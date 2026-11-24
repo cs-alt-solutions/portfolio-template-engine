@@ -6,6 +6,7 @@ import { ArrowRight, Sparkles, Images, ExternalLink } from 'lucide-react';
 import { THEME_REGISTRY, ThemeDefinition } from '@/utils/themes';
 import HubCollectionStrip from './HubCollectionStrip';
 import {
+  CollectionProfile,
   HubDepartmentData,
   PhotoCollectionGroup,
   normalizeExternalUrl,
@@ -17,6 +18,7 @@ interface HubDepartmentCardProps {
   hasDetails: boolean;
   detailsLabel?: string;
   collections?: PhotoCollectionGroup[];
+  profiles?: CollectionProfile[];
   isLightMode: boolean;
   isLightBrand?: boolean;
   theme?: ThemeDefinition;
@@ -33,6 +35,7 @@ export default function HubDepartmentCard({
   hasDetails,
   detailsLabel = 'Photos & Details',
   collections = [],
+  profiles = [],
   isLightMode,
   isLightBrand = false,
   theme: passedTheme,
@@ -128,6 +131,7 @@ export default function HubDepartmentCard({
         <HubCollectionStrip
           bullets={department.bullets || []}
           collections={collections}
+          profiles={profiles}
           theme={theme}
           themeStyle={themeStyle}
           fonts={fonts}

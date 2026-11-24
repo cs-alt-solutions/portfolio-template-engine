@@ -6,17 +6,34 @@ export interface HubCollectionPhoto extends HubPhoto {
   collection?: string;
 }
 
+export interface CollectionProfile {
+  name: string;
+  subtitle?: string;
+  bio?: string;
+  highlights?: string[];
+}
+
 export interface HubDepartmentData extends Capability {
   tabLabel?: string;
   ctaLabel?: string;
   bookingUrl?: string;
   bookingLabel?: string;
+  collectionProfiles?: CollectionProfile[];
 }
 
 export interface PhotoCollectionGroup {
   name: string;
   count: number;
-  coverPhoto: HubCollectionPhoto;
+  coverPhoto?: HubCollectionPhoto;
+}
+
+export interface MergedSpotlightEntry {
+  name: string;
+  subtitle: string;
+  bio: string;
+  highlights: string[];
+  photoCount: number;
+  coverPhoto?: HubCollectionPhoto;
 }
 
 export interface ParsedCollectionBullet {
@@ -44,6 +61,72 @@ export function extractCollections(photos: HubCollectionPhoto[]): PhotoCollectio
   }
 
   return Array.from(map.values());
+}
+
+export function getValidProfiles(profiles?: CollectionProfile[]): CollectionProfile[] {
+  if (!Array.isArray(profiles)) return [];
+  return profiles.filter((p) => p && p.name?.trim());
+}
+
+export function findCollectionProfile(
+  profiles: CollectionProfile[] | undefined,
+  name: string
+): CollectionProfile | undefined {
+  const target = name.trim().toLowerCase();
+  if (!target) return undefined;
+  return getValidProfiles(profiles).find(
+    (p) => p.name.trim().toLowerCase() === target
+  );
+}
+
+export function mergeCollectionsWithProfiles(
+  collections: PhotoCollectionGroup[],
+  profiles?: CollectionProfile[]
+): MergedSpotlightEntry[] {
+  const validProfiles = getValidProfiles(profiles);
+  const collectionMap = new Map<string, PhotoCollectionGroup>();
+
+  for (const col of collections) {
+    collectionMap.set(col.name.trim().toLowerCase(), col);
+  }
+
+  const seen = new Set<string>();
+  const merged: MergedSpotlightEntry[] = [];
+
+  // 1. Respect explicit HQ profile order first (e.g., Amie Grant -> Joseph Menicocci)
+  for (const profile of validProfiles) {
+    const key = profile.name.trim().toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+
+    const matchedCol = collectionMap.get(key);
+    merged.push({
+      name: profile.name.trim(),
+      subtitle: profile.subtitle?.trim() || '',
+      bio: profile.bio?.trim() || '',
+      highlights: (profile.highlights || []).map((h) => h.trim()).filter(Boolean),
+      photoCount: matchedCol?.count || 0,
+      coverPhoto: matchedCol?.coverPhoto,
+    });
+  }
+
+  // 2. Append any photo-only collections that don't have a profile yet
+  for (const col of collections) {
+    const key = col.name.trim().toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+
+    merged.push({
+      name: col.name.trim(),
+      subtitle: '',
+      bio: col.coverPhoto?.description?.trim() || '',
+      highlights: [],
+      photoCount: col.count,
+      coverPhoto: col.coverPhoto,
+    });
+  }
+
+  return merged;
 }
 
 export function matchBulletToCollection(

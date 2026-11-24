@@ -1,17 +1,19 @@
 /* src/components/portfolio/content-engine/layouts/hub/HubDetailsModal.tsx */
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
-import { X, ShieldCheck, ArrowRight, ExternalLink } from 'lucide-react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { X, ShieldCheck, ArrowRight, ExternalLink, Images } from 'lucide-react';
 import { THEME_REGISTRY } from '@/utils/themes';
 import { HUB_DETAILS_DEFAULTS } from '@/utils/glossary';
 import PolicyCard, { OperationalTerm } from './PolicyCard';
 import HubStoryGallery from './HubStoryGallery';
 import HubFaqAccordion from './HubFaqAccordion';
+import HubCollectionProfilePanel from './HubCollectionProfilePanel';
 import {
   HubCollectionPhoto,
   HubDepartmentData,
   extractCollections,
+  mergeCollectionsWithProfiles,
   normalizeExternalUrl,
 } from './hubCollections';
 
@@ -46,47 +48,75 @@ export default function HubDetailsModal({
   fonts,
 }: HubDetailsModalProps) {
   const [isGalleryZoomed, setIsGalleryZoomed] = useState(false);
-  const [activeCollection, setActiveCollection] = useState<string>(initialCollection || 'ALL');
+  const [selection, setSelection] = useState<{ key: string; value: string } | null>(null);
 
-  useEffect(() => {
-    if (isOpen) {
-      setActiveCollection(initialCollection || 'ALL');
-    }
-  }, [isOpen, initialCollection, department.title]);
+  const sessionKey = `${department.title}::${initialCollection || 'ALL'}`;
+  const activeCollection =
+    selection && selection.key === sessionKey
+      ? selection.value
+      : initialCollection || 'ALL';
+
+  const handleSelectCollection = (next: string) => {
+    setSelection({ key: sessionKey, value: next });
+  };
+
+  const handleClose = useCallback(() => {
+    setSelection(null);
+    setIsGalleryZoomed(false);
+    onClose();
+  }, [onClose]);
 
   useEffect(() => {
     if (!isOpen) return;
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && !isGalleryZoomed) onClose();
+      if (e.key === 'Escape' && !isGalleryZoomed) handleClose();
     };
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
-  }, [isOpen, isGalleryZoomed, onClose]);
+  }, [isOpen, isGalleryZoomed, handleClose]);
 
   const collections = useMemo(() => extractCollections(photos), [photos]);
+  const spotlightEntries = useMemo(
+    () => mergeCollectionsWithProfiles(collections, department.collectionProfiles),
+    [collections, department.collectionProfiles]
+  );
+
+  const isViewingAll = !activeCollection || activeCollection === 'ALL';
+
+  const activeEntry = useMemo(() => {
+    if (isViewingAll) return undefined;
+    const target = activeCollection.toLowerCase();
+    return spotlightEntries.find((e) => e.name.toLowerCase() === target);
+  }, [spotlightEntries, activeCollection, isViewingAll]);
 
   const filteredPhotos = useMemo(() => {
-    if (!activeCollection || activeCollection === 'ALL') return photos;
+    if (isViewingAll) return photos;
     const target = activeCollection.toLowerCase();
-    const matches = photos.filter((p) => p.collection?.trim().toLowerCase() === target);
-    return matches.length > 0 ? matches : photos;
-  }, [photos, activeCollection]);
+    return photos.filter((p) => p.collection?.trim().toLowerCase() === target);
+  }, [photos, activeCollection, isViewingAll]);
 
   if (!isOpen) return null;
 
   const theme = THEME_REGISTRY[themeStyle] || THEME_REGISTRY['industrial'];
   const validFaqs = (department.faqs || []).filter((f) => f && f.question?.trim() && f.answer?.trim());
-  const hasRightColumn = terms.length > 0 || validFaqs.length > 0;
-  const hasBoth = photos.length > 0 && hasRightColumn;
+
+  const hasProfileContent = isViewingAll
+    ? spotlightEntries.some((e) => e.bio || e.subtitle || e.highlights.length > 0)
+    : Boolean(activeEntry && (activeEntry.bio || activeEntry.subtitle || activeEntry.highlights.length > 0));
+
+  const hasPhotoColumn = photos.length > 0;
+  const hasRightColumn = hasProfileContent || terms.length > 0 || validFaqs.length > 0;
+  const hasBoth = hasPhotoColumn && hasRightColumn;
 
   const showFilterBar =
-    collections.length > 1 || (collections.length === 1 && photos.length > collections[0].count);
+    spotlightEntries.length > 1 ||
+    (spotlightEntries.length === 1 && photos.length > spotlightEntries[0].photoCount);
 
   const badgeLabel = hasBoth
     ? HUB_DETAILS_DEFAULTS.PHOTOS_DETAILS_BADGE
-    : photos.length > 0
+    : hasPhotoColumn
       ? HUB_DETAILS_DEFAULTS.STORY_GALLERY_BADGE
-      : validFaqs.length > 0 && terms.length === 0
+      : validFaqs.length > 0 && terms.length === 0 && !hasProfileContent
         ? HUB_DETAILS_DEFAULTS.FAQS_ONLY_BADGE
         : HUB_DETAILS_DEFAULTS.BOOKING_DETAILS_BADGE;
 
@@ -98,7 +128,7 @@ export default function HubDetailsModal({
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 md:p-6 bg-black/85 backdrop-blur-md animate-in fade-in duration-200"
-      onClick={onClose}
+      onClick={handleClose}
     >
       <div
         className={`relative ${hasBoth ? 'w-[95vw] max-w-7xl' : 'w-[94vw] max-w-4xl'} max-h-[92vh] border shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 ${theme.surfaceRadius} ${theme.surfaceStyle}`}
@@ -135,7 +165,7 @@ export default function HubDetailsModal({
             <button
               type="button"
               onClick={() => {
-                onClose();
+                handleClose();
                 onInquire();
               }}
               className={`inline-flex items-center gap-2 px-5 py-3 text-xs bg-brand-primary ${brandBtnText} border border-brand-primary hover:brightness-110 transition-all shadow-lg cursor-pointer ${theme.controlRadius} ${theme.uiLabel}`}
@@ -146,7 +176,7 @@ export default function HubDetailsModal({
 
             <button
               type="button"
-              onClick={onClose}
+              onClick={handleClose}
               aria-label="Close modal"
               className={`p-2.5 border transition-colors cursor-pointer ${theme.controlRadius} ${theme.pillStyle}`}
             >
@@ -156,63 +186,86 @@ export default function HubDetailsModal({
         </div>
 
         {/* Body */}
-        <div className="p-6 md:p-8 overflow-y-auto flex-1">
-          <div className={`grid grid-cols-1 ${hasBoth ? 'lg:grid-cols-12' : ''} gap-6 lg:gap-8 items-start`}>
-            {photos.length > 0 && (
-              <div className={`${hasBoth ? 'lg:col-span-7' : ''} space-y-4`}>
-                {showFilterBar && (
-                  <div className="flex flex-wrap items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setActiveCollection('ALL')}
-                      className={`px-3.5 py-2 text-[11px] border transition-all cursor-pointer ${theme.controlRadius} ${theme.uiLabel} ${
-                        activeCollection === 'ALL'
-                          ? `bg-brand-primary ${brandBtnText} border-brand-primary shadow-sm`
-                          : theme.pillStyle
-                      }`}
-                    >
-                      All ({photos.length})
-                    </button>
+        <div className="p-6 md:p-8 overflow-y-auto flex-1 space-y-5">
+          {/* Shared Filter Bar (switches both Gallery Photos AND Artist/Project Bio simultaneously) */}
+          {showFilterBar && (
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() => handleSelectCollection('ALL')}
+                className={`px-3.5 py-2 text-[11px] border transition-all cursor-pointer ${theme.controlRadius} ${theme.uiLabel} ${
+                  isViewingAll
+                    ? `bg-brand-primary ${brandBtnText} border-brand-primary shadow-sm`
+                    : theme.pillStyle
+                }`}
+              >
+                All{photos.length > 0 ? ` (${photos.length})` : ''}
+              </button>
 
-                    {collections.map((col) => {
-                      const isSelected = activeCollection.toLowerCase() === col.name.toLowerCase();
-                      return (
-                        <button
-                          key={col.name}
-                          type="button"
-                          onClick={() => setActiveCollection(col.name)}
-                          className={`px-3.5 py-2 text-[11px] border transition-all cursor-pointer ${theme.controlRadius} ${theme.uiLabel} ${
-                            isSelected
-                              ? `bg-brand-primary ${brandBtnText} border-brand-primary shadow-sm`
-                              : theme.pillStyle
-                          }`}
-                        >
-                          {col.name} ({col.count})
-                        </button>
-                      );
-                    })}
+              {spotlightEntries.map((entry) => {
+                const isSelected = !isViewingAll && activeCollection.toLowerCase() === entry.name.toLowerCase();
+                return (
+                  <button
+                    key={entry.name}
+                    type="button"
+                    onClick={() => handleSelectCollection(entry.name)}
+                    className={`px-3.5 py-2 text-[11px] border transition-all cursor-pointer ${theme.controlRadius} ${theme.uiLabel} ${
+                      isSelected
+                        ? `bg-brand-primary ${brandBtnText} border-brand-primary shadow-sm`
+                        : theme.pillStyle
+                    }`}
+                  >
+                    {entry.name}
+                    {entry.photoCount > 0 ? ` (${entry.photoCount})` : ''}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          <div className={`grid grid-cols-1 ${hasBoth ? 'lg:grid-cols-12' : ''} gap-6 lg:gap-8 items-start`}>
+            {hasPhotoColumn && (
+              <div className={hasBoth ? 'lg:col-span-7' : ''}>
+                {filteredPhotos.length > 0 ? (
+                  <HubStoryGallery
+                    key={`${department.title}-${activeCollection}`}
+                    photos={filteredPhotos}
+                    departmentTitle={
+                      !isViewingAll
+                        ? `${department.title} — ${activeCollection}`
+                        : department.title
+                    }
+                    isLightMode={isLightMode}
+                    themeStyle={themeStyle}
+                    bodyFont={fonts.body}
+                    headingFont={fonts.heading}
+                    onZoomChange={setIsGalleryZoomed}
+                  />
+                ) : (
+                  <div
+                    className={`aspect-16/10 border border-dashed ${theme.borderColor} ${theme.surfaceRadius} flex flex-col items-center justify-center gap-2 p-6 text-center opacity-70`}
+                  >
+                    <Images className="w-6 h-6 text-brand-primary opacity-70" />
+                    <p className="text-xs font-mono uppercase tracking-widest">
+                      Portfolio pieces for {activeCollection} coming soon
+                    </p>
                   </div>
                 )}
-
-                <HubStoryGallery
-                  key={`${department.title}-${activeCollection}`}
-                  photos={filteredPhotos}
-                  departmentTitle={
-                    activeCollection !== 'ALL'
-                      ? `${department.title} — ${activeCollection}`
-                      : department.title
-                  }
-                  isLightMode={isLightMode}
-                  themeStyle={themeStyle}
-                  bodyFont={fonts.body}
-                  headingFont={fonts.heading}
-                  onZoomChange={setIsGalleryZoomed}
-                />
               </div>
             )}
 
             {hasRightColumn && (
               <div className={`${hasBoth ? 'lg:col-span-5' : ''} space-y-6`}>
+                <HubCollectionProfilePanel
+                  activeEntry={activeEntry}
+                  allEntries={spotlightEntries}
+                  isViewingAll={isViewingAll}
+                  theme={theme}
+                  themeStyle={themeStyle}
+                  fonts={fonts}
+                  onSelectEntry={handleSelectCollection}
+                />
+
                 <HubFaqAccordion
                   key={`faqs-${department.title}`}
                   faqs={validFaqs}

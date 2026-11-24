@@ -323,8 +323,14 @@ export default function HubFlow({
             <HubDepartmentCard
               department={activeDept}
               index={activeIndexSafe}
-              hasDetails={deptPhotos.length > 0 || activeDeptTerms.length > 0 || activeDeptFaqs.length > 0}
+              hasDetails={
+                deptPhotos.length > 0 ||
+                activeDeptTerms.length > 0 ||
+                activeDeptFaqs.length > 0 ||
+                (activeDept.collectionProfiles || []).some((p) => p && p.name?.trim())
+              }
               collections={deptCollections}
+              profiles={activeDept.collectionProfiles || []}
               isLightMode={isLightMode}
               isLightBrand={isLightBrand}
               theme={theme}
