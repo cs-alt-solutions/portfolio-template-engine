@@ -2,8 +2,16 @@
 /* src/components/portfolio/events/EventTicketCard.tsx */
 'use client';
 
-import React from 'react';
-import { Clock, MapPin, CalendarPlus, Download, ExternalLink, MessageSquare, Sparkles } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import {
+  Clock,
+  MapPin,
+  CalendarPlus,
+  ChevronDown,
+  ExternalLink,
+  MessageSquare,
+  Sparkles,
+} from 'lucide-react';
 import { EVENTS_DEFAULTS } from '@/utils/glossary';
 import {
   StorefrontEvent,
@@ -35,6 +43,25 @@ export default function EventTicketCard({
   bodyFont,
   onInquire,
 }: EventTicketCardProps) {
+  const [calMenuOpen, setCalMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!calMenuOpen) return;
+    const handleOutside = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setCalMenuOpen(false);
+    };
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setCalMenuOpen(false);
+    };
+    document.addEventListener('mousedown', handleOutside);
+    window.addEventListener('keydown', handleEsc);
+    return () => {
+      document.removeEventListener('mousedown', handleOutside);
+      window.removeEventListener('keydown', handleEsc);
+    };
+  }, [calMenuOpen]);
+
   const stub = getDateStubParts(event.date);
   const countdown = getCountdownBadge(event.date);
   const mapsUrl = buildMapsUrl(event);
@@ -49,6 +76,7 @@ export default function EventTicketCard({
     themeStyle
   );
   const radiusClass = isSharp ? 'rounded-none' : 'rounded-2xl';
+  const stubRadiusClass = isSharp ? 'rounded-none' : 'rounded-t-2xl sm:rounded-l-2xl sm:rounded-tr-none';
 
   const cardSurface = isNeo
     ? 'bg-white border-4 border-black text-black shadow-[8px_8px_0_0_#000]'
@@ -62,16 +90,22 @@ export default function EventTicketCard({
     ? 'bg-zinc-100 hover:bg-zinc-200 text-zinc-800 border-zinc-900/10'
     : 'bg-white/5 hover:bg-white/12 text-zinc-200 border-white/10';
 
+  const dropdownSurface = isLightMode
+    ? 'bg-white border-zinc-900/15 text-zinc-900 shadow-xl'
+    : 'bg-zinc-950 border-white/15 text-white shadow-2xl';
+
   const dividerClass = isLightMode ? 'border-zinc-900/10' : 'border-white/10';
 
   return (
     <article
-      className={`group relative overflow-hidden transition-all duration-300 flex flex-col sm:flex-row ${radiusClass} ${cardSurface} ${
+      className={`group relative transition-all duration-300 flex flex-col sm:flex-row ${radiusClass} ${cardSurface} ${
         isSpotlight ? 'ring-1 ring-brand-primary/50' : ''
       }`}
     >
       {/* Left Tear-Off Date Stub */}
-      <div className="sm:w-28 shrink-0 p-4 sm:p-5 flex sm:flex-col items-center justify-between sm:justify-center gap-2 bg-brand-primary text-white border-b sm:border-b-0 sm:border-r border-dashed border-white/25 relative">
+      <div
+        className={`sm:w-28 shrink-0 p-4 sm:p-5 flex sm:flex-col items-center justify-between sm:justify-center gap-2 bg-brand-primary text-white border-b sm:border-b-0 sm:border-r border-dashed border-white/25 relative ${stubRadiusClass}`}
+      >
         <div className="flex sm:flex-col items-baseline sm:items-center gap-2 sm:gap-0.5 text-center">
           <span className="text-[11px] font-mono font-bold tracking-[0.25em] uppercase opacity-90">
             {stub.month}
@@ -162,26 +196,58 @@ export default function EventTicketCard({
           )}
         </div>
 
+        {/* Footer: Unified Add to Calendar Menu + RSVP / Details */}
         <div className={`pt-3.5 border-t flex flex-wrap items-center justify-between gap-2.5 ${dividerClass}`}>
-          <div className="flex items-center gap-1.5">
-            <a
-              href={gcalUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-[11px] font-mono font-bold transition-colors ${subtleBtnClass}`}
-            >
-              <CalendarPlus className="w-3.5 h-3.5" />
-              <span>{EVENTS_DEFAULTS.GOOGLE_CAL_BTN}</span>
-            </a>
-
+          <div className="relative" ref={menuRef}>
             <button
               type="button"
-              onClick={() => downloadIcsFile(event, businessName)}
-              className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-[11px] font-mono font-bold transition-colors cursor-pointer ${subtleBtnClass}`}
+              onClick={() => setCalMenuOpen((v) => !v)}
+              className={`inline-flex items-center gap-1.5 px-3 py-2 border text-xs font-bold transition-colors cursor-pointer ${
+                isSharp ? 'rounded-none' : 'rounded-xl'
+              } ${subtleBtnClass}`}
             >
-              <Download className="w-3.5 h-3.5" />
-              <span>{EVENTS_DEFAULTS.ICS_BTN}</span>
+              <CalendarPlus className="w-3.5 h-3.5" />
+              <span>{EVENTS_DEFAULTS.ADD_TO_CALENDAR_BTN}</span>
+              <ChevronDown className={`w-3.5 h-3.5 opacity-70 transition-transform ${calMenuOpen ? 'rotate-180' : ''}`} />
             </button>
+
+            {calMenuOpen && (
+              <div
+                className={`absolute left-0 bottom-full mb-2 w-48 border p-1.5 z-30 animate-in fade-in zoom-in-95 duration-150 ${
+                  isSharp ? 'rounded-none' : 'rounded-xl'
+                } ${dropdownSurface}`}
+              >
+                <a
+                  href={gcalUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => setCalMenuOpen(false)}
+                  className="block w-full text-left px-3 py-2 rounded-lg text-xs font-semibold hover:bg-brand-primary hover:text-white transition-colors"
+                >
+                  {EVENTS_DEFAULTS.GOOGLE_CAL_OPTION}
+                </a>
+                <button
+                  type="button"
+                  onClick={() => {
+                    downloadIcsFile(event, businessName);
+                    setCalMenuOpen(false);
+                  }}
+                  className="block w-full text-left px-3 py-2 rounded-lg text-xs font-semibold hover:bg-brand-primary hover:text-white transition-colors cursor-pointer"
+                >
+                  {EVENTS_DEFAULTS.APPLE_CAL_OPTION}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    downloadIcsFile(event, businessName);
+                    setCalMenuOpen(false);
+                  }}
+                  className="block w-full text-left px-3 py-2 rounded-lg text-xs font-semibold hover:bg-brand-primary hover:text-white transition-colors cursor-pointer"
+                >
+                  {EVENTS_DEFAULTS.OUTLOOK_CAL_OPTION}
+                </button>
+              </div>
+            )}
           </div>
 
           {event.linkUrl?.trim() ? (

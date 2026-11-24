@@ -1,4 +1,9 @@
-// src/components/portfolio/content-engine/types.ts
+/* src/components/portfolio/content-engine/types.ts */
+
+export interface DepartmentFaq {
+  question: string;
+  answer: string;
+}
 
 export interface Capability {
   title: string;
@@ -8,6 +13,8 @@ export interface Capability {
   isAlaCarte?: boolean;
   coverImage?: string;
   addons?: Array<{ title?: string; name?: string; price?: string; description?: string } | string>;
+  faqs?: DepartmentFaq[];
+  askTimeframe?: boolean;
 }
 
 export interface GalleryItem {

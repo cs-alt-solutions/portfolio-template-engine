@@ -47,9 +47,13 @@ export default function EventsSection({
   const hasSingleEvent = upcoming.length === 1;
   const featuredFirst = upcoming.length >= 3 || upcoming[0]?.isFeatured;
 
-  const ctaLabel = selectedEvent
+  const eventTopic = selectedEvent
     ? `${EVENTS_DEFAULTS.INQUIRY_PREFIX} ${selectedEvent.title} (${getDateStubParts(selectedEvent.date).full})`
-    : EVENTS_DEFAULTS.INQUIRY_PREFIX;
+    : '';
+
+  const modalTopics = eventTopic
+    ? [eventTopic, ...(inquiryOptions || []).filter((opt) => opt !== eventTopic)]
+    : inquiryOptions;
 
   return (
     <>
@@ -74,18 +78,16 @@ export default function EventsSection({
           </div>
 
           {hasSingleEvent ? (
-            <div className="max-w-3xl">
-              <EventTicketCard
-                event={upcoming[0]}
-                businessName={businessName}
-                isSpotlight={true}
-                isLightMode={isLightMode}
-                themeStyle={themeStyle}
-                headingFont={fonts.heading}
-                bodyFont={fonts.body}
-                onInquire={setSelectedEvent}
-              />
-            </div>
+            <EventTicketCard
+              event={upcoming[0]}
+              businessName={businessName}
+              isSpotlight={true}
+              isLightMode={isLightMode}
+              themeStyle={themeStyle}
+              headingFont={fonts.heading}
+              bodyFont={fonts.body}
+              onInquire={setSelectedEvent}
+            />
           ) : featuredFirst ? (
             <div className="space-y-5">
               <EventTicketCard
@@ -134,16 +136,16 @@ export default function EventsSection({
       </section>
 
       <UniversalLeadModal
+        key={selectedEvent?.id || 'evt-lead'}
         isOpen={!!selectedEvent}
         onClose={() => setSelectedEvent(null)}
-        ctaLabel={ctaLabel}
         businessName={businessName}
         storefrontSlug={storefrontSlug}
         contactEmail={contactEmail}
         brandColor={brandColor}
         isLightMode={isLightMode}
         themeStyle={themeStyle}
-        inquiryOptions={inquiryOptions}
+        inquiryOptions={modalTopics}
       />
     </>
   );

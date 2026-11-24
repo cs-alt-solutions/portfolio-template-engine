@@ -162,8 +162,10 @@ export const EVENTS_DEFAULTS = {
   NEXT_UP_BADGE: 'Next Up',
   TODAY_BADGE: 'Happening Today',
   TOMORROW_BADGE: 'Tomorrow',
-  GOOGLE_CAL_BTN: 'Google Cal',
-  ICS_BTN: '.ICS',
+  ADD_TO_CALENDAR_BTN: 'Add to Calendar',
+  GOOGLE_CAL_OPTION: 'Google Calendar',
+  APPLE_CAL_OPTION: 'Apple Calendar',
+  OUTLOOK_CAL_OPTION: 'Outlook / Other',
   DETAILS_BTN: 'Event Details',
   RSVP_BTN: 'RSVP / Inquire',
   INQUIRY_PREFIX: 'Event Inquiry:',
@@ -176,4 +178,38 @@ export const EVENTS_DEFAULTS = {
     live: 'Live Night',
     special: 'Special Event',
   } as Record<string, string>,
+};
+
+// 9. Department Hub Details Modal Defaults
+export const HUB_DETAILS_DEFAULTS = {
+  PHOTOS_DETAILS_BADGE: 'Photos & Details',
+  STORY_GALLERY_BADGE: 'Story Gallery',
+  BOOKING_DETAILS_BADGE: 'Booking Details',
+  FAQS_ONLY_BADGE: 'Frequently Asked Questions',
+  FAQS_HEADING: 'Frequently Asked Questions',
+  POLICIES_HEADING: 'Booking Details & Policies',
+  QUICK_INQUIRY_BTN: 'Quick Inquiry',
+};
+// 10. Universal Lead Modal Defaults
+export const LEAD_MODAL_DEFAULTS = {
+  EYEBROW: 'Direct Inquiry',
+  SUBTEXT_PREFIX: 'Fill out the details below to connect directly with',
+  TOPIC_LABEL: 'Topic *',
+  OPTIONS_LABEL: 'Interested In (Optional)',
+  TIMEFRAME_HEADING: 'Preferred Timing (Request Only)',
+  TIMEFRAME_NOTE: 'Not a guaranteed booking — we will follow up to confirm availability.',
+  PREFERRED_DATE_LABEL: 'Preferred Date / Timeframe',
+  PREFERRED_DATE_PLACEHOLDER: 'e.g., Mid-December or Sat, Dec 14',
+  BACKUP_DATE_LABEL: 'Backup Window (Optional)',
+  BACKUP_DATE_PLACEHOLDER: 'e.g., Flexible on Sundays',
+  NAME_LABEL: 'Your Name *',
+  NAME_PLACEHOLDER: 'e.g., Jordan Smith',
+  EMAIL_LABEL: 'Email Address *',
+  EMAIL_PLACEHOLDER: 'jordan@example.com',
+  PHONE_LABEL: 'Phone Number',
+  PHONE_PLACEHOLDER: '(555) 000-0000',
+  SUBMIT_BTN: 'Submit Request',
+  SUBMITTING_BTN: 'Transmitting...',
+  SUCCESS_HEADING: 'Request Received!',
+  SUCCESS_BTN: 'Back to Website',
 };

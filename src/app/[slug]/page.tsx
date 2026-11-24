@@ -97,6 +97,20 @@ export default async function DynamicStorefront({
   const hasAbout = !!store.about_bio || !!store.about_image || !!store.about_heading;
   const formattedGalleryItems = formatGalleryItems(store.gallery_items);
 
+  const hubDeptTitles: string[] = Array.isArray(store.capabilities)
+    ? store.capabilities
+        .filter((c: { title?: string; isAlaCarte?: boolean }) => c && c.title && !c.isAlaCarte)
+        .map((c: { title: string }) => c.title)
+    : [];
+
+  const hubStoreActions = {
+    ...store,
+    lead_inquiry_types:
+      Array.isArray(store.lead_inquiry_types) && store.lead_inquiry_types.length > 0
+        ? store.lead_inquiry_types
+        : hubDeptTitles,
+  };
+
   const sharedHeroProps = {
     layout,
     store,
@@ -176,6 +190,7 @@ export default async function DynamicStorefront({
               </div>
             </div>
           )}
+          <StorefrontClientActions store={hubStoreActions} brandColor={brandColor} secondaryBrandColor={secondaryBrandColor} isLightMode={isLightMode} themeStyle={themeStyle} />
         </>
       ) : (
         <>

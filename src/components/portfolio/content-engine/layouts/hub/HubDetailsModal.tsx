@@ -2,11 +2,13 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { X, ShieldCheck, ArrowRight, CheckCircle2, Info } from 'lucide-react';
+import { X, ShieldCheck, ArrowRight } from 'lucide-react';
 import { THEME_REGISTRY } from '@/utils/themes';
+import { HUB_DETAILS_DEFAULTS } from '@/utils/glossary';
 import { Capability } from '../../types';
 import PolicyCard, { OperationalTerm } from './PolicyCard';
 import HubStoryGallery, { HubPhoto } from './HubStoryGallery';
+import HubFaqAccordion from './HubFaqAccordion';
 
 export type { OperationalTerm } from './PolicyCard';
 export type { HubPhoto } from './HubStoryGallery';
@@ -59,20 +61,21 @@ export default function HubDetailsModal({
       ? 'bg-black/95 border-white/10 text-white shadow-[0_0_90px_rgba(0,0,0,0.95)]'
       : 'bg-zinc-950/95 border-white/15 text-white';
 
-  const subCardSurface = isLightMode
-    ? 'bg-white/80 border-zinc-900/10 text-zinc-800'
-    : isMidnight
-      ? 'bg-zinc-950/90 border-white/10 text-zinc-200'
-      : 'bg-zinc-900/70 border-white/10 text-zinc-200';
-
   const closeBtnSurface = isLightMode
     ? 'bg-zinc-100 border-zinc-900/10 text-zinc-800 hover:bg-zinc-200'
     : 'bg-white/5 border-white/10 text-zinc-200 hover:bg-white/15 hover:text-white';
 
-  const visibleBullets = (department.bullets || []).filter(Boolean);
-  const hasOverview = !!(department.description?.trim() || visibleBullets.length > 0);
-  const hasRightColumn = terms.length > 0 || hasOverview;
+  const validFaqs = (department.faqs || []).filter((f) => f && f.question?.trim() && f.answer?.trim());
+  const hasRightColumn = terms.length > 0 || validFaqs.length > 0;
   const hasBoth = photos.length > 0 && hasRightColumn;
+
+  const badgeLabel = hasBoth
+    ? HUB_DETAILS_DEFAULTS.PHOTOS_DETAILS_BADGE
+    : photos.length > 0
+      ? HUB_DETAILS_DEFAULTS.STORY_GALLERY_BADGE
+      : validFaqs.length > 0 && terms.length === 0
+        ? HUB_DETAILS_DEFAULTS.FAQS_ONLY_BADGE
+        : HUB_DETAILS_DEFAULTS.BOOKING_DETAILS_BADGE;
 
   return (
     <div
@@ -83,18 +86,13 @@ export default function HubDetailsModal({
         className={`relative ${hasBoth ? 'w-[95vw] max-w-7xl' : 'w-[94vw] max-w-4xl'} max-h-[92vh] border shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 ${modalRadius} ${modalSurface}`}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Top Accent Hairline */}
         <div className="h-0.5 w-full bg-brand-primary shrink-0" />
 
         {/* Header */}
         <div className="px-6 py-4 md:px-8 md:py-5 border-b border-current/10 flex items-center justify-between gap-4 shrink-0">
           <div className="min-w-0 space-y-1">
             <span className="inline-flex items-center px-2.5 py-0.5 rounded-md bg-brand-primary text-white text-[10px] font-mono font-bold uppercase tracking-widest">
-              {photos.length > 0 && terms.length > 0
-                ? 'Photos & Details'
-                : photos.length > 0
-                  ? 'Story Gallery'
-                  : 'Booking Details'}
+              {badgeLabel}
             </span>
             <h4 className={`text-xl md:text-3xl font-black tracking-tight truncate ${fonts.heading}`}>
               {department.title}
@@ -110,7 +108,7 @@ export default function HubDetailsModal({
               }}
               className="inline-flex items-center gap-2 px-5 py-3 rounded-xl text-xs font-black uppercase tracking-widest bg-brand-primary text-white border border-white/15 hover:brightness-110 transition-all shadow-lg cursor-pointer"
             >
-              <span>Quick Inquiry</span>
+              <span>{HUB_DETAILS_DEFAULTS.QUICK_INQUIRY_BTN}</span>
               <ArrowRight className="w-4 h-4" />
             </button>
 
@@ -145,39 +143,20 @@ export default function HubDetailsModal({
 
             {hasRightColumn && (
               <div className={`${hasBoth ? 'lg:col-span-5' : ''} space-y-6`}>
-                {hasOverview && (
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2 text-[11px] font-mono uppercase tracking-widest opacity-80">
-                      <Info className="w-3.5 h-3.5 opacity-80" />
-                      <span>Overview &amp; Highlights</span>
-                    </div>
-
-                    <div className={`p-5 border space-y-3.5 ${cardRadius} ${subCardSurface}`}>
-                      {department.description?.trim() && (
-                        <p className={`text-sm leading-relaxed ${fonts.body}`}>{department.description}</p>
-                      )}
-
-                      {visibleBullets.length > 0 && (
-                        <ul className="space-y-2.5 pt-3 border-t border-current/10">
-                          {visibleBullets.map((bullet, idx) => (
-                            <li key={idx} className="flex items-start gap-2.5 text-sm leading-relaxed">
-                              <span className="mt-1 p-0.5 rounded-full bg-brand-primary text-white shrink-0">
-                                <CheckCircle2 className="w-3 h-3" />
-                              </span>
-                              <span className={fonts.body}>{bullet}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                    </div>
-                  </div>
-                )}
+                <HubFaqAccordion
+                  key={`faqs-${department.title}`}
+                  faqs={validFaqs}
+                  isLightMode={isLightMode}
+                  themeStyle={themeStyle}
+                  cardRadius={cardRadius}
+                  bodyFont={fonts.body}
+                />
 
                 {terms.length > 0 && (
                   <div className="space-y-3">
                     <div className="flex items-center gap-2 text-[11px] font-mono uppercase tracking-widest opacity-80">
                       <ShieldCheck className="w-3.5 h-3.5 opacity-80" />
-                      <span>Booking Details &amp; Policies</span>
+                      <span>{HUB_DETAILS_DEFAULTS.POLICIES_HEADING}</span>
                     </div>
 
                     <div className="space-y-3.5">

@@ -1,8 +1,8 @@
 /* src/components/portfolio/content-engine/layouts/HubFlow.tsx */
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import UniversalLeadModal from '../../UniversalLeadModal';
+import React, { useState, useEffect, useMemo } from 'react';
+import UniversalLeadModal, { TopicConfig } from '../../UniversalLeadModal';
 import { getFonts } from '../utils';
 import { THEME_REGISTRY } from '@/utils/themes';
 import { Capability, GalleryItem } from '../types';
@@ -56,25 +56,40 @@ export default function HubFlow({
   onHoverChange,
   onFlipChange,
 }: HubFlowProps) {
-  const rawList = [...(items || []), ...(capabilities || [])];
-  const safeItems = rawList.filter(
-    (item, index, self) =>
-      item && item.title && !item.isAlaCarte && self.findIndex((t) => t.title === item.title) === index
-  );
-  const safeGallery = Array.isArray(galleryItems) ? galleryItems : [];
-  const safeTerms = Array.isArray(operationalTerms) ? operationalTerms.filter((t) => t && t.title) : [];
+  const departments = useMemo<Capability[]>(() => {
+    const rawList = [...(items || []), ...(capabilities || [])];
+    const safeItems = rawList.filter(
+      (item, index, self) =>
+        item && item.title && !item.isAlaCarte && self.findIndex((t) => t.title === item.title) === index
+    );
+    if (safeItems.length > 0) return safeItems;
 
-  let departments: Capability[] = safeItems;
-  if (departments.length === 0 && safeGallery.length > 0) {
+    const safeGallery = Array.isArray(galleryItems) ? galleryItems : [];
     const uniqueCategories = Array.from(new Set(safeGallery.map((g) => g.category).filter(Boolean))) as string[];
-    departments = uniqueCategories.map((cat) => ({
+    return uniqueCategories.map((cat) => ({
       title: cat,
       description: `Explore offerings and services under ${cat}.`,
       price: '',
       bullets: [],
       addons: [],
     }));
-  }
+  }, [items, capabilities, galleryItems]);
+
+  const topicConfigs = useMemo<Record<string, TopicConfig>>(() => {
+    const map: Record<string, TopicConfig> = {};
+    departments.forEach((dept) => {
+      if (dept.title) {
+        map[dept.title] = {
+          addons: dept.addons || [],
+          askTimeframe: dept.askTimeframe === true,
+        };
+      }
+    });
+    return map;
+  }, [departments]);
+
+  const safeGallery = Array.isArray(galleryItems) ? galleryItems : [];
+  const safeTerms = Array.isArray(operationalTerms) ? operationalTerms.filter((t) => t && t.title) : [];
 
   const isControlled = typeof controlledActiveIndex === 'number';
   const [internalIndex, setInternalIndex] = useState(0);
@@ -114,7 +129,8 @@ export default function HubFlow({
     return t.appliesTo.toLowerCase() === activeDept?.title?.toLowerCase();
   });
 
-  // Drop Vault visible photos are the single source of truth (legacy coverImage only if vault is empty)
+  const activeDeptFaqs = (activeDept?.faqs || []).filter((f) => f && f.question?.trim() && f.answer?.trim());
+
   const deptPhotos: HubPhoto[] = safeGallery
     .filter(
       (g) =>
@@ -163,9 +179,9 @@ export default function HubFlow({
     setIsModalOpen(true);
   };
 
-  const currentAddons = (selectedDept || activeDept)?.addons || [];
-  const inquiryTopicList = selectedDept
-    ? [selectedDept.title, ...departments.map((d) => d.title).filter((t) => t !== selectedDept.title)]
+  const modalDept = selectedDept || activeDept;
+  const inquiryTopicList = modalDept
+    ? [modalDept.title, ...departments.map((d) => d.title).filter((t) => t !== modalDept.title)]
     : departments.map((d) => d.title).filter(Boolean);
 
   const inactivePill = isLightMode
@@ -204,7 +220,7 @@ export default function HubFlow({
           <HubDepartmentCard
             department={activeDept}
             index={activeIndexSafe}
-            hasDetails={deptPhotos.length > 0 || activeDeptTerms.length > 0}
+            hasDetails={deptPhotos.length > 0 || activeDeptTerms.length > 0 || activeDeptFaqs.length > 0}
             isLightMode={isLightMode}
             fonts={fonts}
             onInquire={() => handleOpenModal(activeDept)}
@@ -228,6 +244,7 @@ export default function HubFlow({
       )}
 
       <UniversalLeadModal
+        key={modalDept?.title || 'hub-lead'}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         businessName={businessName || 'Our Business'}
@@ -237,7 +254,9 @@ export default function HubFlow({
         isLightMode={isLightMode}
         themeStyle={themeStyle || 'industrial'}
         inquiryOptions={inquiryTopicList.length > 0 ? inquiryTopicList : ['General Inquiry']}
-        addonOptions={currentAddons}
+        addonOptions={modalDept?.addons || []}
+        showTimeframeFields={modalDept?.askTimeframe === true}
+        topicConfigs={topicConfigs}
       />
     </div>
   );
