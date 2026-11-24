@@ -4,6 +4,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { ChevronLeft, ChevronRight, ZoomIn, Images } from 'lucide-react';
+import { THEME_REGISTRY } from '@/utils/themes';
 import HubPhotoLightbox from './HubPhotoLightbox';
 
 export interface HubPhoto {
@@ -28,7 +29,6 @@ interface HubStoryGalleryProps {
 export default function HubStoryGallery({
   photos,
   departmentTitle,
-  isLightMode,
   themeStyle = 'industrial',
   bodyFont,
   headingFont = '',
@@ -71,12 +71,11 @@ export default function HubStoryGallery({
 
   if (!activePhoto) return null;
 
-  const isMidnight = themeStyle === 'midnight';
-  const captionSurface = isLightMode
-    ? 'bg-white/85 border-zinc-900/10 text-zinc-900'
-    : isMidnight
-      ? 'bg-zinc-950/90 border-white/10 text-white'
-      : 'bg-zinc-900/80 border-white/10 text-white';
+  const theme = THEME_REGISTRY[themeStyle] || THEME_REGISTRY['industrial'];
+  const thumbRadius =
+    theme.radius === 'rounded-full' || theme.radius === 'rounded-[30px]'
+      ? 'rounded-xl'
+      : theme.radius || 'rounded-none';
 
   const hasCaption = !!(activePhoto.title?.trim() || activePhoto.description?.trim());
   const isContain = activePhoto.imageFit === 'contain';
@@ -97,7 +96,9 @@ export default function HubStoryGallery({
       </div>
 
       {/* Spotlight Stage */}
-      <div className="relative aspect-16/10 w-full rounded-2xl overflow-hidden border border-current/10 bg-black group">
+      <div
+        className={`relative aspect-16/10 w-full overflow-hidden border bg-black group ${theme.surfaceRadius} ${theme.borderColor}`}
+      >
         {isContain ? (
           <>
             <img
@@ -131,7 +132,7 @@ export default function HubStoryGallery({
           type="button"
           onClick={() => setZoom(true)}
           aria-label="Expand image"
-          className="absolute top-3 right-3 z-20 p-2.5 rounded-xl bg-black/65 hover:bg-black/85 text-white border border-white/15 backdrop-blur-md opacity-85 group-hover:opacity-100 transition-all cursor-pointer"
+          className={`absolute top-3 right-3 z-20 p-2.5 bg-black/65 hover:bg-black/85 text-white border border-white/15 backdrop-blur-md opacity-85 group-hover:opacity-100 transition-all cursor-pointer ${theme.controlRadius}`}
         >
           <ZoomIn className="w-4 h-4" />
         </button>
@@ -142,7 +143,7 @@ export default function HubStoryGallery({
               type="button"
               onClick={handlePrev}
               aria-label="Previous photo"
-              className="absolute left-3 top-1/2 -translate-y-1/2 z-20 p-2.5 rounded-full bg-black/65 hover:bg-brand-primary text-white border border-white/15 backdrop-blur-md transition-all cursor-pointer"
+              className="absolute left-3 top-1/2 -translate-y-1/2 z-20 p-2.5 rounded-full bg-black/65 hover:bg-brand-primary hover:text-zinc-950 text-white border border-white/15 backdrop-blur-md transition-all cursor-pointer"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
@@ -150,7 +151,7 @@ export default function HubStoryGallery({
               type="button"
               onClick={handleNext}
               aria-label="Next photo"
-              className="absolute right-3 top-1/2 -translate-y-1/2 z-20 p-2.5 rounded-full bg-black/65 hover:bg-brand-primary text-white border border-white/15 backdrop-blur-md transition-all cursor-pointer"
+              className="absolute right-3 top-1/2 -translate-y-1/2 z-20 p-2.5 rounded-full bg-black/65 hover:bg-brand-primary hover:text-zinc-950 text-white border border-white/15 backdrop-blur-md transition-all cursor-pointer"
             >
               <ChevronRight className="w-5 h-5" />
             </button>
@@ -158,13 +159,13 @@ export default function HubStoryGallery({
         )}
       </div>
 
-      {/* High-Contrast Editorial Caption Card */}
+      {/* Editorial Caption Card */}
       {hasCaption && (
-        <div className={`px-5 py-4 rounded-2xl border flex gap-3.5 items-stretch ${captionSurface}`}>
-          <div className="w-1 rounded-full bg-brand-primary shrink-0" />
+        <div className={`px-5 py-4 border flex gap-3.5 items-stretch ${theme.surfaceRadius} ${theme.subCardStyle}`}>
+          <div className={`w-1 bg-brand-primary shrink-0 ${theme.controlRadius}`} />
           <div className="space-y-1 min-w-0">
             {activePhoto.title?.trim() && (
-              <h5 className={`text-base md:text-lg font-black tracking-tight ${headingFont}`}>
+              <h5 className={`text-base md:text-lg ${headingFont}`}>
                 {activePhoto.title}
               </h5>
             )}
@@ -189,9 +190,9 @@ export default function HubStoryGallery({
                 key={idx}
                 type="button"
                 onClick={() => setActiveIndex(idx)}
-                className={`relative w-20 h-14 rounded-xl overflow-hidden shrink-0 border-2 bg-black transition-all cursor-pointer ${
+                className={`relative w-20 h-14 overflow-hidden shrink-0 border-2 bg-black transition-all cursor-pointer ${thumbRadius} ${
                   isActive
-                    ? 'border-brand-primary opacity-100 ring-1 ring-white/25'
+                    ? 'border-brand-primary opacity-100'
                     : 'border-transparent opacity-50 hover:opacity-90'
                 }`}
               >
@@ -213,6 +214,8 @@ export default function HubStoryGallery({
           index={safeIndex}
           total={total}
           departmentTitle={departmentTitle}
+          themeStyle={themeStyle}
+          headingFont={headingFont}
           onPrev={handlePrev}
           onNext={handleNext}
           onClose={() => setZoom(false)}

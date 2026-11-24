@@ -19,57 +19,44 @@ export function getLeadBrandHex(val: string): string {
     'rose-500': '#f43f5e',
     'indigo-500': '#6366f1',
     'zinc-500': '#71717a',
+    'yellow-400': '#facc15',
+    'lime-400': '#a3e635',
   };
   return legacyMap[val] || '#06b6d4';
 }
 
-export function getLeadModalClasses(themeStyle: string, isLightMode: boolean, brandColor: string) {
-  const isNeo = themeStyle === 'neo';
-  const isCyber = themeStyle === 'cyberpunk';
-  const isMidnight = themeStyle === 'midnight';
+function isLightHex(hex: string): boolean {
+  const clean = hex.replace('#', '');
+  const full =
+    clean.length === 3
+      ? clean
+          .split('')
+          .map((c) => c + c)
+          .join('')
+      : clean;
+  if (full.length !== 6) return false;
+  const r = parseInt(full.slice(0, 2), 16);
+  const g = parseInt(full.slice(2, 4), 16);
+  const b = parseInt(full.slice(4, 6), 16);
+  return (r * 299 + g * 587 + b * 114) / 1000 >= 130;
+}
+
+export function getLeadModalClasses(themeStyle: string, _isLightMode: boolean, brandColor: string) {
   const theme = THEME_REGISTRY[themeStyle] || THEME_REGISTRY['industrial'];
-  const shapeRadius = theme.radius || 'rounded-none';
+  const isNeo = themeStyle.startsWith('neo');
 
-  const inputRadius =
-    themeStyle === 'elegant'
-      ? 'rounded-sm'
-      : ['industrial', 'neo', 'cyberpunk', 'editorial'].includes(themeStyle)
-        ? 'rounded-none'
-        : 'rounded-xl';
+  const shapeRadius = theme.surfaceRadius || theme.radius || 'rounded-none';
+  // Keep multi-line textareas & selects clean on pill-button themes (minimal / organic)
+  const inputRadius = theme.controlRadius === 'rounded-full' ? 'rounded-xl' : theme.controlRadius;
 
-  const modalSurface =
-    themeStyle === 'elegant'
-      ? 'bg-white text-zinc-900 border border-zinc-200 shadow-[0_20px_50px_rgba(0,0,0,0.15)]'
-      : isNeo
-        ? 'bg-white text-black border-4 border-black shadow-[12px_12px_0px_0px_rgba(0,0,0,1)]'
-        : isCyber
-          ? 'bg-black/95 text-white border-2 border-white/20 shadow-[0_0_50px_rgba(255,255,255,0.1)] font-mono'
-          : isMidnight
-            ? 'bg-zinc-950/95 text-white backdrop-blur-2xl border border-white/10 shadow-2xl'
-            : isLightMode
-              ? 'bg-white text-slate-900 border border-slate-200 shadow-2xl'
-              : 'bg-zinc-900 text-white border-2 border-zinc-800 shadow-2xl';
+  const modalSurface = theme.surfaceStyle;
+  const inputSurface = `${theme.subCardStyle} focus:border-brand-primary placeholder:opacity-45 ${inputRadius}`;
 
-  const inputSurface =
-    themeStyle === 'elegant'
-      ? `bg-zinc-50 border border-zinc-300 text-zinc-900 focus:bg-white focus:border-zinc-800 ${inputRadius}`
-      : isNeo
-        ? `bg-white border-2 border-black text-black focus:bg-yellow-100 ${inputRadius}`
-        : isCyber
-          ? `bg-black/80 border border-white/20 text-white focus:border-brand-primary font-mono ${inputRadius}`
-          : isLightMode
-            ? `bg-slate-50 border border-slate-300 text-slate-900 focus:bg-white ${inputRadius}`
-            : `bg-zinc-950 border border-zinc-800 text-white focus:bg-zinc-900 ${inputRadius}`;
-
-  const isLightBrandTone = ['yellow-400', 'lime-400', 'amber-500', 'cyan-500', 'emerald-500'].includes(brandColor);
-  const submitSurface =
-    themeStyle === 'elegant'
-      ? `bg-zinc-950 text-white hover:bg-zinc-800 font-serif tracking-widest shadow-md ${inputRadius}`
-      : isNeo
-        ? `bg-white text-black border-4 border-black font-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 ${inputRadius}`
-        : isCyber
-          ? `bg-black text-white border border-current shadow-[0_0_15px_currentColor] hover:bg-white hover:text-black font-mono font-bold ${inputRadius}`
-          : `bg-brand-primary ${isLightBrandTone ? 'text-zinc-950' : 'text-white'} font-black border border-white/25 shadow-lg hover:brightness-110 active:scale-[0.99] ${inputRadius}`;
+  const resolvedHex = getLeadBrandHex(brandColor);
+  const isLightBrandTone = isLightHex(resolvedHex);
+  const submitSurface = `bg-brand-primary ${
+    isLightBrandTone ? 'text-zinc-950' : 'text-white'
+  } border border-brand-primary shadow-lg hover:brightness-110 active:scale-[0.99] ${theme.controlRadius} ${theme.uiLabel}`;
 
   return { isNeo, shapeRadius, inputRadius, modalSurface, inputSurface, submitSurface };
 }

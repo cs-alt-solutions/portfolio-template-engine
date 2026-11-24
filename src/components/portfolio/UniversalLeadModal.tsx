@@ -4,6 +4,7 @@
 import React, { useState } from 'react';
 import { X, Send, CheckCircle2, Sparkles, AlertCircle } from 'lucide-react';
 import { getFonts } from './content-engine/utils';
+import { THEME_REGISTRY } from '@/utils/themes';
 import { submitStorefrontLead } from '@/actions/submitLead';
 import { LEAD_MODAL_DEFAULTS } from '@/utils/glossary';
 import {
@@ -74,8 +75,10 @@ export default function UniversalLeadModal({
   const activeAddons = activeTopicConfig ? activeTopicConfig.addons || [] : addonOptions;
   const shouldAskTimeframe = activeTopicConfig ? !!activeTopicConfig.askTimeframe : showTimeframeFields;
 
-  const fonts = getFonts(themeStyle || 'industrial');
-  const styles = getLeadModalClasses(themeStyle || 'industrial', isLightMode, brandColor || '');
+  const activeThemeKey = themeStyle || 'industrial';
+  const fonts = getFonts(activeThemeKey);
+  const theme = THEME_REGISTRY[activeThemeKey] || THEME_REGISTRY['industrial'];
+  const styles = getLeadModalClasses(activeThemeKey, isLightMode, brandColor || '');
 
   const handleTopicChange = (nextTopic: string) => {
     setFormData((prev) => ({ ...prev, inquiryType: nextTopic }));
@@ -136,25 +139,22 @@ export default function UniversalLeadModal({
       onClick={onClose}
     >
       <div
-        className={`relative w-full max-w-lg p-6 md:p-8 transition-all max-h-[90vh] overflow-y-auto custom-scrollbar ${styles.shapeRadius} ${styles.modalSurface}`}
+        className={`relative w-full max-w-lg p-6 md:p-8 transition-all max-h-[90vh] overflow-y-auto custom-scrollbar ${theme.surfaceRadius} ${styles.modalSurface}`}
         onClick={(e) => e.stopPropagation()}
       >
         <button
           type="button"
           onClick={onClose}
-          className={`absolute top-4 right-4 p-2 transition-colors cursor-pointer ${
-            styles.isNeo
-              ? 'text-black hover:bg-black hover:text-white border-2 border-black rounded-none'
-              : 'text-zinc-400 hover:text-white rounded-full'
-          }`}
+          aria-label="Close modal"
+          className={`absolute top-4 right-4 p-2 border transition-colors cursor-pointer ${theme.controlRadius} ${theme.pillStyle}`}
         >
-          <X className="w-5 h-5" />
+          <X className="w-4 h-4" />
         </button>
 
         {isSubmitted ? (
           <div className="py-10 text-center space-y-4">
             <CheckCircle2 className="w-16 h-16 mx-auto text-emerald-500 animate-bounce" />
-            <h3 className={`text-2xl font-bold ${fonts.heading}`}>{LEAD_MODAL_DEFAULTS.SUCCESS_HEADING}</h3>
+            <h3 className={`text-2xl md:text-3xl ${fonts.heading}`}>{LEAD_MODAL_DEFAULTS.SUCCESS_HEADING}</h3>
             <p className={`text-sm opacity-80 max-w-xs mx-auto ${fonts.body}`}>
               Thank you, {formData.name}. {businessName} has logged your details and will be in touch shortly.
             </p>
@@ -164,30 +164,30 @@ export default function UniversalLeadModal({
                 setIsSubmitted(false);
                 onClose();
               }}
-              className={`mt-6 px-6 py-2.5 font-medium transition-all text-xs uppercase tracking-wider cursor-pointer ${
-                styles.isNeo
-                  ? 'bg-black text-white border-2 border-black rounded-none font-bold'
-                  : 'bg-zinc-800 text-white hover:bg-zinc-700 rounded-sm'
-              }`}
+              className={`mt-6 px-6 py-2.5 border transition-all text-xs cursor-pointer ${theme.controlRadius} ${theme.uiLabel} ${theme.pillStyle}`}
             >
               {LEAD_MODAL_DEFAULTS.SUCCESS_BTN}
             </button>
           </div>
         ) : (
           <div>
-            <div className="mb-6 space-y-1.5">
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-brand-primary text-white text-[10px] font-mono font-bold uppercase tracking-widest">
+            <div className="mb-6 space-y-1.5 pr-8">
+              <div
+                className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-brand-primary text-zinc-950 text-[10px] font-mono font-bold uppercase tracking-widest ${theme.controlRadius}`}
+              >
                 <Sparkles className="w-3 h-3" />
                 <span>{LEAD_MODAL_DEFAULTS.EYEBROW}</span>
               </div>
-              <h2 className={`text-2xl md:text-3xl font-black tracking-tight ${fonts.heading}`}>{ctaLabel}</h2>
+              <h2 className={`text-2xl md:text-3xl ${fonts.heading}`}>{ctaLabel}</h2>
               <p className={`text-xs md:text-sm opacity-80 ${fonts.body}`}>
                 {LEAD_MODAL_DEFAULTS.SUBTEXT_PREFIX} {businessName}.
               </p>
             </div>
 
             {errorMessage && (
-              <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-sm flex items-center gap-2 text-xs text-red-400 font-mono">
+              <div
+                className={`mb-4 p-3 bg-red-500/10 border border-red-500/30 flex items-center gap-2 text-xs text-red-400 font-mono ${theme.controlRadius}`}
+              >
                 <AlertCircle className="w-4 h-4 shrink-0" />
                 <span>{errorMessage}</span>
               </div>
@@ -204,7 +204,7 @@ export default function UniversalLeadModal({
                 isLightMode={isLightMode}
                 bodyFont={fonts.body}
                 inputSurface={styles.inputSurface}
-                inputRadius={styles.inputRadius}
+                inputRadius={theme.controlRadius}
                 onFieldChange={(patch) => setFormData((prev) => ({ ...prev, ...patch }))}
                 onTopicChange={handleTopicChange}
                 onToggleAddon={toggleAddon}
@@ -213,7 +213,7 @@ export default function UniversalLeadModal({
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className={`w-full py-3.5 px-6 transition-all flex items-center justify-center gap-2 mt-2 disabled:opacity-50 text-xs uppercase tracking-widest cursor-pointer ${styles.submitSurface}`}
+                className={`w-full py-3.5 px-6 transition-all flex items-center justify-center gap-2 mt-2 disabled:opacity-50 text-xs cursor-pointer ${theme.controlRadius} ${theme.uiLabel} ${styles.submitSurface}`}
               >
                 {isSubmitting ? (
                   <span>{LEAD_MODAL_DEFAULTS.SUBMITTING_BTN}</span>

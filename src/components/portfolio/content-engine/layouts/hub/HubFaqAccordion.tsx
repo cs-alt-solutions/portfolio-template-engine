@@ -3,6 +3,7 @@
 
 import React, { useState } from 'react';
 import { HelpCircle, ChevronDown } from 'lucide-react';
+import { THEME_REGISTRY } from '@/utils/themes';
 import { HUB_DETAILS_DEFAULTS } from '@/utils/glossary';
 import { DepartmentFaq } from '../../types';
 
@@ -16,7 +17,6 @@ interface HubFaqAccordionProps {
 
 export default function HubFaqAccordion({
   faqs,
-  isLightMode,
   themeStyle = 'industrial',
   cardRadius,
   bodyFont,
@@ -25,12 +25,8 @@ export default function HubFaqAccordion({
 
   if (faqs.length === 0) return null;
 
-  const isMidnight = themeStyle === 'midnight';
-  const itemSurface = isLightMode
-    ? 'bg-white/85 border-zinc-900/10 text-zinc-900'
-    : isMidnight
-      ? 'bg-zinc-950/90 border-white/10 text-white'
-      : 'bg-zinc-900/75 border-white/10 text-white';
+  const theme = THEME_REGISTRY[themeStyle] || THEME_REGISTRY['industrial'];
+  const containerRadius = cardRadius || theme.surfaceRadius;
 
   return (
     <div className="space-y-3">
@@ -43,16 +39,19 @@ export default function HubFaqAccordion({
         {faqs.map((faq, idx) => {
           const isOpen = openIndex === idx;
           return (
-            <div key={idx} className={`border overflow-hidden transition-colors ${cardRadius} ${itemSurface}`}>
+            <div
+              key={idx}
+              className={`border overflow-hidden transition-colors ${containerRadius} ${theme.subCardStyle}`}
+            >
               <button
                 type="button"
                 onClick={() => setOpenIndex(isOpen ? null : idx)}
                 className="w-full px-4 py-3.5 flex items-center justify-between gap-3 text-left cursor-pointer"
               >
-                <span className="text-sm font-bold leading-snug">{faq.question}</span>
+                <span className="text-sm font-medium leading-snug">{faq.question}</span>
                 <span
-                  className={`p-1 rounded-md shrink-0 transition-transform duration-200 ${
-                    isOpen ? 'rotate-180 bg-brand-primary text-white' : 'opacity-65'
+                  className={`p-1 shrink-0 transition-transform duration-200 ${theme.controlRadius} ${
+                    isOpen ? 'rotate-180 bg-brand-primary text-zinc-950' : 'opacity-65'
                   }`}
                 >
                   <ChevronDown className="w-4 h-4" />
@@ -60,7 +59,7 @@ export default function HubFaqAccordion({
               </button>
 
               {isOpen && (
-                <div className="px-4 pb-4 pt-1 border-t border-current/10 animate-in fade-in duration-150">
+                <div className={`px-4 pb-4 pt-2 border-t ${theme.borderColor} animate-in fade-in duration-150`}>
                   <p className={`text-sm leading-relaxed opacity-85 ${bodyFont}`}>{faq.answer}</p>
                 </div>
               )}
