@@ -2,7 +2,7 @@
 'use client';
 
 import React from 'react';
-import { ArrowRight, Sparkles, Images, ExternalLink } from 'lucide-react';
+import { ArrowRight, Sparkles, Images, FileText, ExternalLink } from 'lucide-react';
 import { THEME_REGISTRY, ThemeDefinition } from '@/utils/themes';
 import HubCollectionStrip from './HubCollectionStrip';
 import {
@@ -16,6 +16,7 @@ interface HubDepartmentCardProps {
   department: HubDepartmentData;
   index: number;
   hasDetails: boolean;
+  hasPhotos?: boolean;
   detailsLabel?: string;
   collections?: PhotoCollectionGroup[];
   profiles?: CollectionProfile[];
@@ -33,6 +34,7 @@ export default function HubDepartmentCard({
   department,
   index,
   hasDetails,
+  hasPhotos = true,
   detailsLabel = 'Photos & Details',
   collections = [],
   profiles = [],
@@ -54,6 +56,7 @@ export default function HubDepartmentCard({
   const priceAccent = isLightMode && isLightBrand ? 'text-zinc-900' : 'text-brand-primary';
   const indexLabel = index + 1 < 10 ? `0${index + 1}` : `${index + 1}`;
   const ctaText = department.ctaLabel?.trim() || 'Quick Inquiry';
+  const resolvedDetailsLabel = department.detailsLabel?.trim() || detailsLabel;
   const bookingHref = normalizeExternalUrl(department.bookingUrl);
   const bookingText = department.bookingLabel?.trim() || 'Book Online';
 
@@ -87,7 +90,9 @@ export default function HubDepartmentCard({
             </h3>
 
             {department.description && (
-              <p className={`text-sm md:text-base leading-relaxed ${theme.mutedText} ${fonts.body}`}>
+              <p
+                className={`text-sm md:text-base leading-relaxed whitespace-pre-line ${theme.mutedText} ${fonts.body}`}
+              >
                 {department.description}
               </p>
             )}
@@ -121,8 +126,12 @@ export default function HubDepartmentCard({
                 onClick={onOpenDetails}
                 className={`inline-flex items-center justify-center gap-2 px-5 py-3.5 text-xs border transition-all shadow-sm cursor-pointer ${theme.controlRadius} ${theme.uiLabel} ${theme.pillStyle}`}
               >
-                <Images className="w-4 h-4 text-brand-primary" />
-                <span>{detailsLabel}</span>
+                {hasPhotos ? (
+                  <Images className="w-4 h-4 text-brand-primary" />
+                ) : (
+                  <FileText className="w-4 h-4 text-brand-primary" />
+                )}
+                <span>{resolvedDetailsLabel}</span>
               </button>
             )}
           </div>

@@ -207,9 +207,10 @@ export default function HubFlow({
 
   const activeDept = departments[activeIndexSafe] || departments[0];
 
+  // Scope modal policies strictly to this department (storewide ALL policies live at the bottom of the page)
   const activeDeptTerms = safeTerms.filter((t) => {
-    if (!t.appliesTo || t.appliesTo === 'ALL') return true;
-    return t.appliesTo.toLowerCase() === activeDept?.title?.toLowerCase();
+    if (!t.appliesTo || t.appliesTo === 'ALL') return false;
+    return t.appliesTo.trim().toLowerCase() === activeDept?.title?.trim().toLowerCase();
   });
 
   const activeDeptFaqs = (activeDept?.faqs || []).filter((f) => f && f.question?.trim() && f.answer?.trim());
@@ -243,6 +244,22 @@ export default function HubFlow({
   }
 
   const deptCollections = extractCollections(deptPhotos);
+  const activeDeptProfiles = (activeDept?.collectionProfiles || []).filter(
+    (p) => p && p.name?.trim()
+  );
+
+  const hasSecondaryContent =
+    activeDeptTerms.length > 0 || activeDeptFaqs.length > 0 || activeDeptProfiles.length > 0;
+
+  const smartDetailsLabel =
+    activeDept?.detailsLabel?.trim() ||
+    (deptPhotos.length > 0 && hasSecondaryContent
+      ? 'Photos & Details'
+      : deptPhotos.length > 0
+        ? 'View Gallery'
+        : activeDeptProfiles.length > 0
+          ? 'Bios & Details'
+          : 'Policies & Details');
 
   const toggleDetails = (open: boolean, collectionName: string | null = null) => {
     setActiveCollection(open ? collectionName : null);
@@ -323,14 +340,11 @@ export default function HubFlow({
             <HubDepartmentCard
               department={activeDept}
               index={activeIndexSafe}
-              hasDetails={
-                deptPhotos.length > 0 ||
-                activeDeptTerms.length > 0 ||
-                activeDeptFaqs.length > 0 ||
-                (activeDept.collectionProfiles || []).some((p) => p && p.name?.trim())
-              }
+              hasDetails={deptPhotos.length > 0 || hasSecondaryContent}
+              hasPhotos={deptPhotos.length > 0}
+              detailsLabel={smartDetailsLabel}
               collections={deptCollections}
-              profiles={activeDept.collectionProfiles || []}
+              profiles={activeDeptProfiles}
               isLightMode={isLightMode}
               isLightBrand={isLightBrand}
               theme={theme}

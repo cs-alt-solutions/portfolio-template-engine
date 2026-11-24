@@ -16,6 +16,7 @@ export interface CollectionProfile {
 export interface HubDepartmentData extends Capability {
   tabLabel?: string;
   ctaLabel?: string;
+  detailsLabel?: string;
   bookingUrl?: string;
   bookingLabel?: string;
   collectionProfiles?: CollectionProfile[];

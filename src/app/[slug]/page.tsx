@@ -18,10 +18,13 @@ import HubStage from '@/components/portfolio/HubStage';
 import AboutSection from '@/components/portfolio/AboutSection';
 import ContentEngine from '@/components/portfolio/content-engine';
 import EventsSection from '@/components/portfolio/events/EventsSection';
+import StorewidePoliciesSection from '@/components/portfolio/StorewidePoliciesSection';
+import LocationPanel from '@/components/portfolio/LocationPanel';
 import PrototypeTourGuide from '@/components/portfolio/PrototypeTourGuide';
 import StorefrontClientActions from '../../components/portfolio/StorefrontClientActions';
 import StagingReviewOverlay from '@/components/portfolio/staging-review/StagingReviewOverlay';
 import StorefrontAnalyticsBeacon from '@/components/portfolio/StorefrontAnalyticsBeacon';
+import { OperationalTerm } from '@/components/portfolio/content-engine/layouts/hub/PolicyCard';
 
 export type { SocialPlatform } from '@/utils/storefrontHelpers';
 
@@ -97,6 +100,14 @@ export default async function DynamicStorefront({
   const hasAbout = !!store.about_bio || !!store.about_image || !!store.about_heading;
   const formattedGalleryItems = formatGalleryItems(store.gallery_items);
 
+  const safeTerms: OperationalTerm[] = Array.isArray(store.operational_terms)
+    ? store.operational_terms.filter((t: OperationalTerm) => t && t.title?.trim())
+    : [];
+
+  const storewideTerms = safeTerms.filter((t) => !t.appliesTo || t.appliesTo === 'ALL');
+  const storewideSchedules = storewideTerms.filter((t) => t.type === 'schedule');
+  const storewidePolicies = storewideTerms.filter((t) => t.type !== 'schedule');
+
   const hubDeptTitles: string[] = Array.isArray(store.capabilities)
     ? store.capabilities
         .filter((c: { title?: string; isAlaCarte?: boolean }) => c && c.title && !c.isAlaCarte)
@@ -152,6 +163,18 @@ export default async function DynamicStorefront({
     />
   );
 
+  const locationSection = (
+    <LocationPanel
+      businessName={store.business_name || 'Our Location'}
+      mapEmbedUrl={store.map_embed_url}
+      scheduleTerms={isHubMode ? storewideSchedules : []}
+      themeStyle={themeStyle}
+      brandColor={brandColor}
+      isLightMode={isLightMode}
+      industryTag={store.industry_tag}
+    />
+  );
+
   const parallaxDivider = isHeroFixed && store.hero_image && (
     <div className="relative w-full h-[30vh] md:h-[40vh] border-y border-white/10 shadow-[inset_0_0_100px_rgba(0,0,0,0.8)]" style={{ clipPath: 'inset(0)' }}>
       <div className="fixed inset-0 w-full h-full bg-cover bg-center opacity-50 pointer-events-none" style={{ backgroundImage: `url('${store.hero_image}')` }} />
@@ -190,6 +213,13 @@ export default async function DynamicStorefront({
               </div>
             </div>
           )}
+          <StorewidePoliciesSection
+            terms={storewidePolicies}
+            themeStyle={themeStyle}
+            isLightMode={isLightMode}
+            industryTag={store.industry_tag}
+          />
+          {locationSection}
           <StorefrontClientActions store={hubStoreActions} brandColor={brandColor} secondaryBrandColor={secondaryBrandColor} isLightMode={isLightMode} themeStyle={themeStyle} />
         </>
       ) : (
@@ -224,6 +254,7 @@ export default async function DynamicStorefront({
           </div>
           {eventsSection}
           <StorefrontClientActions store={store} brandColor={brandColor} secondaryBrandColor={secondaryBrandColor} isLightMode={isLightMode} themeStyle={themeStyle} />
+          {locationSection}
         </>
       )}
 
