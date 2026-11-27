@@ -9,6 +9,86 @@ const MASTHEAD_FONTS: Record<string, { fontClass: string; trackingClass: string 
   cinzel: { fontClass: 'font-cinzel', trackingClass: 'tracking-[0.08em]' },
 };
 
+function resolveMastheadColor(colorKey: string): {
+  isCustomColor: boolean;
+  isGradient: boolean;
+  style?: React.CSSProperties;
+} {
+  if (!colorKey || colorKey === 'default') {
+    return { isCustomColor: false, isGradient: false };
+  }
+
+  if (colorKey === 'primary') {
+    return {
+      isCustomColor: true,
+      isGradient: false,
+      style: { color: 'var(--brand-primary)' },
+    };
+  }
+
+  if (colorKey === 'duotone') {
+    return {
+      isCustomColor: true,
+      isGradient: true,
+      style: {
+        backgroundImage: 'linear-gradient(180deg, var(--brand-primary) 0%, var(--brand-secondary) 100%)',
+        WebkitBackgroundClip: 'text',
+        backgroundClip: 'text',
+        WebkitTextFillColor: 'transparent',
+        color: 'transparent',
+        filter: 'drop-shadow(0 4px 18px rgba(0, 0, 0, 0.45))',
+      },
+    };
+  }
+
+  if (colorKey === 'gold') {
+    return {
+      isCustomColor: true,
+      isGradient: true,
+      style: {
+        backgroundImage: 'linear-gradient(180deg, #FFF4B8 0%, #F5C518 46%, #B47809 100%)',
+        WebkitBackgroundClip: 'text',
+        backgroundClip: 'text',
+        WebkitTextFillColor: 'transparent',
+        color: 'transparent',
+        filter: 'drop-shadow(0 4px 18px rgba(0, 0, 0, 0.45))',
+      },
+    };
+  }
+
+  if (colorKey.startsWith('hex-')) {
+    const hexParts = colorKey
+      .slice(4)
+      .split('-')
+      .filter((h) => /^[0-9a-fA-F]{3,6}$/.test(h));
+
+    if (hexParts.length >= 2) {
+      return {
+        isCustomColor: true,
+        isGradient: true,
+        style: {
+          backgroundImage: `linear-gradient(180deg, #${hexParts[0]} 0%, #${hexParts[1]} 100%)`,
+          WebkitBackgroundClip: 'text',
+          backgroundClip: 'text',
+          WebkitTextFillColor: 'transparent',
+          color: 'transparent',
+          filter: 'drop-shadow(0 4px 18px rgba(0, 0, 0, 0.45))',
+        },
+      };
+    }
+
+    if (hexParts.length === 1) {
+      return {
+        isCustomColor: true,
+        isGradient: false,
+        style: { color: `#${hexParts[0]}` },
+      };
+    }
+  }
+
+  return { isCustomColor: false, isGradient: false };
+}
+
 export default function MastheadHero({
   layout,
   store,
@@ -24,10 +104,11 @@ export default function MastheadHero({
   const safeTheme = theme || {};
   const isLight = Boolean(safeTheme.isLightMode);
 
-  const [baseLayout, fontKey = 'default'] = (layout || 'masthead').split('--');
+  const [baseLayout, fontKey = 'default', colorKey = 'default'] = (layout || 'masthead').split('--');
   const showWash = baseLayout === 'masthead-wash' && Boolean(store?.hero_image);
   const rawBgColor = getRawBgColor(safeTheme.pageBg || '', isLight);
   const customFont = MASTHEAD_FONTS[fontKey];
+  const mastheadColor = resolveMastheadColor(colorKey);
 
   const displayName = (store?.business_name || store?.tagline || 'Studio').trim();
   const charCount = displayName.length;
@@ -54,12 +135,19 @@ export default function MastheadHero({
   const borderClass = isLight ? 'border-zinc-900/10' : 'border-white/10';
   const eyebrowTone = isLight ? 'text-zinc-600' : 'text-stone-400';
 
-  // Strip theme font-family & tracking when a custom display lettering is chosen
-  const basePrimaryText = customFont
-    ? (safeTheme.primaryText || '')
-        .replace(/\bfont-(sans|serif|mono|cinzel|pirata|gothic|grenze)\b/g, '')
-        .replace(/\btracking-[^\s]+\b/g, '')
-    : safeTheme.primaryText || '';
+  // Strip competing theme font/tracking/color classes when custom Masthead options are active
+  let basePrimaryText = safeTheme.primaryText || '';
+  if (customFont) {
+    basePrimaryText = basePrimaryText
+      .replace(/\bfont-(sans|serif|mono|cinzel|pirata|gothic|grenze)\b/g, '')
+      .replace(/\btracking-[^\s]+\b/g, '');
+  }
+  if (mastheadColor.isCustomColor) {
+    basePrimaryText = basePrimaryText.replace(
+      /\btext-(?:white|black|current|transparent|(?:slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-\d{2,3}(?:\/\d+)?|\[[^\]]+\])\b/g,
+      ''
+    );
+  }
 
   return (
     <section
@@ -103,7 +191,8 @@ export default function MastheadHero({
 
         {/* Monumental Brand Masthead */}
         <h1
-          className={`w-full ${basePrimaryText} ${customFont ? `${customFont.fontClass} ${customFont.trackingClass} font-normal` : 'tracking-[0.04em]'} ${mastheadSize} leading-[1.02] text-balance select-none`}
+          style={mastheadColor.style}
+          className={`w-full ${basePrimaryText} ${customFont ? `${customFont.fontClass} ${customFont.trackingClass} font-normal` : 'tracking-[0.04em]'} ${mastheadSize} ${mastheadColor.isGradient ? 'py-2' : ''} leading-[1.02] text-balance select-none`}
         >
           {safeTheme.prefix || ''}
           {displayName}
