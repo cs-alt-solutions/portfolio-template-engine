@@ -167,6 +167,11 @@ export default function UniversalLeadModal({
         phone: formData.phone,
         details: combinedDetails,
         brandColorHex: getLeadBrandHex(brandColor || ''),
+        ctaLabel,
+        inquiryType: effectiveInquiryType,
+        selectedOptions: selectedAddons,
+        preferredDate: shouldAskTimeframe ? formData.preferredDate.trim() : '',
+        notes: formData.details.trim(),
       });
 
       if (response.success) setIsSubmitted(true);

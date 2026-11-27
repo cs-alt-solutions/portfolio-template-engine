@@ -3,22 +3,19 @@
 
 import { supabase } from '@/utils/supabase';
 import { Resend } from 'resend';
+import {
+  LeadPayload,
+  parseLeadDetails,
+  sanitizeHex,
+} from './lead-emails/parseLeadDetails';
+import { buildOwnerLeadEmail } from './lead-emails/buildOwnerEmail';
+import { buildCustomerReceiptEmail } from './lead-emails/buildCustomerEmail';
 
-export interface LeadPayload {
-  storefrontSlug: string;
-  businessName: string;
-  contactEmail: string;
-  name: string;
-  email: string;
-  phone?: string;
-  details: string;
-  brandColorHex?: string; 
-  packagePrice?: string;  
-}
+export type { LeadPayload } from './lead-emails/parseLeadDetails';
 
 export async function submitStorefrontLead(payload: LeadPayload) {
   try {
-    // 1. ROUTE TO EXISTING TABLE
+    // 1. LOG FULL RECORD TO SYSTEM LEDGER
     const { error: dbError } = await supabase
       .from('storefront_leads')
       .insert([
@@ -45,179 +42,59 @@ export async function submitStorefrontLead(payload: LeadPayload) {
     }
 
     const resend = new Resend(apiKey);
-    const ownerEmail = payload.contactEmail || process.env.FALLBACK_LEADS_EMAIL || 'support@alternativesolutions.io';
-    
-    // 🚀 THE INTERCEPTOR: Routes tests to you locally
+    const ownerEmail =
+      payload.contactEmail ||
+      process.env.FALLBACK_LEADS_EMAIL ||
+      'support@alternativesolutions.io';
+
     const isLocal = process.env.NODE_ENV === 'development';
     const testEmail = process.env.LOCAL_TEST_EMAIL;
-    const finalOwnerRecipient = (isLocal && testEmail) ? testEmail : ownerEmail;
-    const finalLeadRecipient = (isLocal && testEmail) ? testEmail : payload.email;
+    const finalOwnerRecipient = isLocal && testEmail ? testEmail : ownerEmail;
+    const finalLeadRecipient = isLocal && testEmail ? testEmail : payload.email;
 
-    // 3. SMART PARSING
-    const inquiryMatch = payload.details.match(/\[INQUIRY TYPE: (.*?)\]/);
-    const inquiryType = inquiryMatch ? inquiryMatch[1] : 'Direct Inquiry';
+    // 3. PARSE DETAILS & BUILD BOTH EMAILS
+    const summary = parseLeadDetails(payload);
+    const activeHex = sanitizeHex(payload.brandColorHex, '#0ea5e9');
+    const cleanBizName = (payload.businessName || 'Storefront').replace(/[<>]/g, '');
 
-    const addonMatch = payload.details.match(/SELECTED ADD-ONS:\n([\s\S]*?)\n\n/);
-    const addonsList = addonMatch ? addonMatch[1].split('\n').map(a => a.replace('- ', '').trim()) : [];
-
-    const cleanDetails = payload.details
-      .replace(/\[INQUIRY TYPE: .*?\]\n\n/, '')
-      .replace(/SELECTED ADD-ONS:\n[\s\S]*?\n\n/, '');
-
-    const activeHex = payload.brandColorHex || '#0ea5e9';
-
-    // 🚀 NEW: The Unified Request Summary Block
-    const summaryHtmlBlock = `
-      <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; padding: 20px; border-radius: 8px; margin-bottom: 24px;">
-        <p style="margin: 0 0 4px 0; color: #64748b; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Primary Selection</p>
-        <p style="margin: 0 0 ${addonsList.length > 0 ? '16px' : '0'} 0; color: ${activeHex}; font-size: 18px; font-weight: 800;">${inquiryType}</p>
-        
-        ${addonsList.length > 0 ? `
-          <p style="margin: 0 0 8px 0; color: #64748b; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Selected Upgrades</p>
-          <ul style="margin: 0; padding-left: 20px; color: #0f172a; font-size: 14px; line-height: 1.6; font-weight: 600;">
-            ${addonsList.map(addon => `<li style="margin-bottom: 4px;">${addon}</li>`).join('')}
-          </ul>
-        ` : ''}
-      </div>
-    `;
-
-    const testWarningBanner = isLocal ? `
-      <div style="background-color: #fef08a; padding: 12px; border-radius: 6px; margin-bottom: 24px; border: 1px solid #facc15;">
-        <p style="margin: 0; color: #854d0e; font-size: 12px; font-weight: bold;">
-          Note: This lead was originally meant for ${ownerEmail}, but is routing to your test email during local development.
-        </p>
-      </div>
-    ` : '';
-
-    // 4. DISPATCH OWNER NOTIFICATION
-    const ownerEmailResult = resend.emails.send({
-      from: `${payload.businessName} Leads <leads@alternativesolutions.io>`, 
-      to: [finalOwnerRecipient], 
-      replyTo: payload.email,
-      subject: isLocal ? `[TEST] New ${inquiryType}: ${payload.name}` : `New ${inquiryType}: ${payload.name} - ${payload.businessName}`,
-      html: `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <meta charset="utf-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        </head>
-        <body style="margin: 0; padding: 0; background-color: #f4f4f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
-          <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #f4f4f5; padding: 40px 20px;">
-            <tr>
-              <td align="center">
-                <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="max-w: 600px; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05); border: 1px solid #e4e4e7;">
-                  <tr>
-                    <td style="background-color: #0f172a; padding: 32px 40px; text-align: left;">
-                      <p style="margin: 0; color: ${activeHex}; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px;">New Inquiry</p>
-                      <h1 style="margin: 8px 0 0 0; color: #ffffff; font-size: 24px; font-weight: 800; letter-spacing: -0.5px;">${payload.businessName}</h1>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td style="padding: 40px;">
-                      
-                      ${testWarningBanner}
-
-                      <p style="margin: 0 0 24px 0; color: #3f3f46; font-size: 15px; line-height: 1.6;">
-                        You have received a new potential project lead via your storefront. Review the details below and reply directly to this email to respond to the client.
-                      </p>
-
-                      ${summaryHtmlBlock}
-
-                      <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 32px;">
-                        <tr>
-                          <td style="padding: 20px;">
-                            <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0">
-                              <tr>
-                                <td width="35%" style="padding: 6px 0; color: #64748b; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Client Name</td>
-                                <td width="65%" style="padding: 6px 0; color: #0f172a; font-size: 15px; font-weight: 700;">${payload.name}</td>
-                              </tr>
-                              <tr>
-                                <td width="35%" style="padding: 6px 0; color: #64748b; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Email Address</td>
-                                <td width="65%" style="padding: 6px 0; font-size: 15px;">
-                                  <a href="mailto:${payload.email}" style="color: #0284c7; text-decoration: none; font-weight: 600;">${payload.email}</a>
-                                </td>
-                              </tr>
-                              <tr>
-                                <td width="35%" style="padding: 6px 0; color: #64748b; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Phone Number</td>
-                                <td width="65%" style="padding: 6px 0; color: #0f172a; font-size: 15px; font-weight: 600;">${payload.phone || 'Not provided'}</td>
-                              </tr>
-                            </table>
-                          </td>
-                        </tr>
-                      </table>
-                      
-                      <p style="margin: 0 0 8px 0; color: #0f172a; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Project Scope & Notes</p>
-                      <div style="border-left: 4px solid ${activeHex}; background-color: #f8fafc; padding: 20px; border-radius: 0 8px 8px 0;">
-                        <p style="margin: 0; color: #334155; font-size: 15px; line-height: 1.6; white-space: pre-wrap;">${cleanDetails}</p>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td style="background-color: #fafafa; border-top: 1px solid #e4e4e7; padding: 20px 40px; text-align: center;">
-                      <p style="margin: 0; font-size: 11px; font-weight: 600; color: #71717a; letter-spacing: 0.5px;">
-                        POWERED BY ALTERNATIVE SOLUTIONS INFRASTRUCTURE
-                      </p>
-                    </td>
-                  </tr>
-                </table>
-              </td>
-            </tr>
-          </table>
-        </body>
-        </html>
-      `,
+    const ownerHtml = buildOwnerLeadEmail({
+      payload,
+      summary,
+      accentHex: activeHex,
+      isLocal,
+      originalOwnerEmail: ownerEmail,
     });
 
-    // 5. DISPATCH END-USER CONFIRMATION
-    const leadEmailResult = resend.emails.send({
-      from: `${payload.businessName} <hello@alternativesolutions.io>`, 
-      to: [finalLeadRecipient], 
-      replyTo: ownerEmail, 
-      subject: isLocal ? `[TEST] Request Received: ${payload.businessName}` : `Request Received: ${payload.businessName}`,
-      html: `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <meta charset="utf-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        </head>
-        <body style="margin: 0; padding: 0; background-color: #f4f4f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
-          <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #f4f4f5; padding: 40px 20px;">
-            <tr>
-              <td align="center">
-                <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="max-w: 600px; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05); border: 1px solid #e4e4e7;">
-                  <tr>
-                    <td style="background-color: #0f172a; padding: 32px 40px; text-align: left;">
-                      <h1 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: 800; letter-spacing: -0.5px;">${payload.businessName}</h1>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td style="padding: 40px;">
-                      <h2 style="margin: 0 0 16px 0; color: #0f172a; font-size: 20px; font-weight: 700;">Request Received!</h2>
-                      <p style="margin: 0 0 24px 0; color: #3f3f46; font-size: 15px; line-height: 1.6;">
-                        Hi ${payload.name},<br><br>
-                        Thank you for reaching out! We have successfully received your inquiry. We will review your project details and get back to you as soon as possible.
-                      </p>
-                      
-                      ${summaryHtmlBlock}
-
-                      <p style="margin: 0 0 8px 0; color: #0f172a; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Your Provided Notes:</p>
-                      <div style="border-left: 4px solid #e2e8f0; padding-left: 16px;">
-                        <p style="margin: 0; color: #64748b; font-size: 14px; line-height: 1.6; white-space: pre-wrap; font-style: italic;">${cleanDetails}</p>
-                      </div>
-                    </td>
-                  </tr>
-                </table>
-              </td>
-            </tr>
-          </table>
-        </body>
-        </html>
-      `,
+    const customerHtml = buildCustomerReceiptEmail({
+      payload,
+      summary,
+      accentHex: activeHex,
     });
 
-    await Promise.all([ownerEmailResult, leadEmailResult]);
+    // 4. DISPATCH OWNER ALERT + CUSTOMER RECEIPT
+    const [ownerRes, leadRes] = await Promise.all([
+      resend.emails.send({
+        from: `${cleanBizName} Leads <leads@alternativesolutions.io>`,
+        to: [finalOwnerRecipient],
+        replyTo: payload.email,
+        subject: isLocal
+          ? `[TEST] New ${summary.inquiryType}: ${payload.name}`
+          : `New ${summary.inquiryType}: ${payload.name} — ${cleanBizName}`,
+        html: ownerHtml,
+      }),
+      resend.emails.send({
+        from: `${cleanBizName} <hello@alternativesolutions.io>`,
+        to: [finalLeadRecipient],
+        replyTo: ownerEmail,
+        subject: isLocal
+          ? `[TEST] Request Received: ${cleanBizName}`
+          : `Request Received: ${cleanBizName}`,
+        html: customerHtml,
+      }),
+    ]);
+
+    if (ownerRes.error) console.error('Owner email error:', ownerRes.error);
+    if (leadRes.error) console.error('Customer receipt email error:', leadRes.error);
 
     return { success: true };
   } catch (error) {
