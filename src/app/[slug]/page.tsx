@@ -274,13 +274,17 @@ export default async function DynamicStorefront({
           {store.is_template && (
             <PrototypeTourGuide
               vibe={themeStyle}
-              heroLayout={HERO_NAMES[layout] || layout}
+              heroLayout={HERO_NAMES[layout.split('--')[0]] || layout}
               journeyLayout={FLOW_NAMES[store.content_layout || 'classic'] || store.content_layout}
             />
           )}
-          {!store.is_template && store.status?.toUpperCase() === 'IN REVIEW' && <StagingReviewOverlay store={store} />}
+          {!store.is_template &&
+            (['IN_REVIEW', 'IN REVIEW'].includes((store.status || '').toUpperCase()) || isAuditMode) && (
+              <StagingReviewOverlay store={store} />
+            )}
         </>
       )}
+      
     </main>
   );
 }

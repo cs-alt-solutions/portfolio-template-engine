@@ -1,14 +1,19 @@
+/* src/actions/submitStagingAudit.ts */
 'use server';
 
 import { supabase } from '@/utils/supabase';
+
+export type ApprovalTarget = 'CONTENT_ASSEMBLY' | 'ACTIVE';
 
 export interface StagingAuditPayload {
   storefrontSlug: string;
   businessName: string;
   contactEmail: string;
   sectionNotes: Record<number, string>;
+  sectionLabels?: Record<number, string>;
   completedSteps: number[];
   status: 'APPROVED' | 'CHANGES_REQUESTED';
+  approvalTarget?: ApprovalTarget;
   contactName?: string;
   planTier?: string;
 }
@@ -20,29 +25,40 @@ export interface StagingAuditResponse {
   warning?: string;
 }
 
-export async function submitStagingAudit(payload: StagingAuditPayload): Promise<StagingAuditResponse> {
+export async function submitStagingAudit(
+  payload: StagingAuditPayload
+): Promise<StagingAuditResponse> {
   try {
     const isApproved = payload.status === 'APPROVED';
+    const nextStage = isApproved
+      ? payload.approvalTarget || 'CONTENT_ASSEMBLY'
+      : 'BUILDING_CORE';
 
-    // Build an ironclad digital receipt for historical proof
     const historicalAuditTrail = {
       client_notes: payload.sectionNotes,
+      section_labels: payload.sectionLabels || {},
       verified_checkpoints: payload.completedSteps,
-      total_sections_verified: `${payload.completedSteps.length} of 4 Sections Checked`,
-      legal_signoff: isApproved 
-        ? "Client explicitly verified all section checkpoints and locked in the build as-is for launch. No further complimentary revisions." 
-        : "Client requested specific copy adjustments prior to launch approval.",
+      total_sections_verified: `${payload.completedSteps.length} Sections Checked`,
+      next_stage: nextStage,
+      legal_signoff: isApproved
+        ? nextStage === 'ACTIVE'
+          ? 'Client verified all checkpoints and cleared the storefront for Live Production.'
+          : 'Client verified core architecture and moved into Content Assembly to add final photos/content.'
+        : 'Client requested adjustments prior to approval.',
       logged_at: new Date().toISOString(),
       contact_name: payload.contactName || 'Founder',
-      plan_tier: payload.planTier || 'Standard Starter'
+      plan_tier: payload.planTier || 'Standard',
     };
 
-    // THE FIX: Combine the notes into a clean string for the Repo A webhook to read!
-    const combinedNotes = isApproved 
-      ? null 
-      : Object.values(payload.sectionNotes).join("\n\n");
+    const combinedNotes = isApproved
+      ? null
+      : Object.entries(payload.sectionNotes)
+          .map(([idx, text]) => {
+            const label = payload.sectionLabels?.[Number(idx)];
+            return label ? `[${label}]: ${text}` : text;
+          })
+          .join('\n\n');
 
-    // 1. Drop the audit payload into our Supabase Ledger WITH the exact webhook fields
     const { data, error: dbError } = await supabase
       .from('storefront_audits')
       .insert([
@@ -50,22 +66,21 @@ export async function submitStagingAudit(payload: StagingAuditPayload): Promise<
           storefront_slug: payload.storefrontSlug,
           business_name: payload.businessName,
           client_email: payload.contactEmail,
-          client_name: payload.contactName || 'Founder', 
-          plan_tier: payload.planTier || 'Standard Starter', 
-          notes: combinedNotes, // <-- The Webhook can now read this!
+          client_name: payload.contactName || 'Founder',
+          plan_tier: payload.planTier || 'Standard',
+          notes: combinedNotes,
           audit_notes: JSON.stringify(historicalAuditTrail, null, 2),
-          status: isApproved ? 'APPROVED_PENDING_BILLING' : 'CHANGES_REQUESTED',
+          status: isApproved ? 'APPROVED' : 'CHANGES_REQUESTED',
         },
       ])
       .select()
       .single();
 
     if (dbError) {
-      console.error('❌ Supabase Audit Insertion Error:', dbError.message);
+      console.error('Supabase Audit Insertion Error:', dbError.message);
       return { success: false, error: `Database error: ${dbError.message}` };
     }
 
-    console.log('✅ Audit safely logged to Supabase! Webhook will trigger email engine.');
     return { success: true, auditId: data?.id };
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Failed to record audit.';
