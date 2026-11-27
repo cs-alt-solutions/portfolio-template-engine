@@ -1,116 +1,232 @@
-// src/components/storefronts/ShowroomCard.tsx
+/* eslint-disable @next/next/no-img-element */
+/* src/components/storefronts/ShowroomCard.tsx */
+'use client';
+
 import React from 'react';
-import Link from 'next/link';
-import Image from 'next/image';
-import { ArrowRight } from 'lucide-react';
 import { StorefrontData } from './LiveRoster';
+import { Sparkles, BriefcaseBusiness, Store } from 'lucide-react';
+import { parseMastheadSpec, resolveBrandHex } from '@/utils/mastheadStyles';
 
-export default function ShowroomCard({ site }: { site: StorefrontData }) {
-  // Graceful fallbacks for the UI
-  const brandColor = (site.brand_color as string) || '#06b6d4'; // Defaults to cyan
-  const hasLogo = site.brand_logo && (site.brand_logo as string).trim() !== '';
-  const businessName = site.business_name || 'Unnamed Project';
-  const tagline = (site.tagline as string) || 'Explore this custom digital storefront.';
-  
-  // Clean offline state handling
-  const isOffline = site.status === 'MAINTENANCE' || site.status === 'HIDDEN';
+interface ShowroomCardProps {
+  site: StorefrontData;
+  engineUrl: string;
+}
 
-  // Determine routing based on domain setup
-  const targetUrl = site.custom_domain 
-    ? `https://${site.custom_domain}` 
-    : `/${site.slug}`;
+export default function ShowroomCard({ site, engineUrl }: ShowroomCardProps) {
+  const brandLogo = typeof site.brand_logo === 'string' ? site.brand_logo.trim() : '';
+  const heroImage = typeof site.hero_image === 'string' ? site.hero_image.trim() : '';
+  const businessName = (typeof site.business_name === 'string' && site.business_name.trim()) || 'Storefront';
 
-  // If it's a custom domain, we want to open it in a new tab so they don't lose the directory
-  const linkProps = site.custom_domain ? {
-    target: "_blank",
-    rel: "noopener noreferrer"
-  } : {};
+  const hasLogo = brandLogo !== '';
+  const hasHero = heroImage !== '';
+  const initial = businessName.charAt(0).toUpperCase();
+  const pulseColor = resolveBrandHex(site.brand_color, '#22d3ee');
+
+  const masthead = parseMastheadSpec(
+    site.hero_layout,
+    site.brand_color,
+    site.secondary_brand_color
+  );
+  const useMastheadMark = !hasLogo && masthead.isMasthead;
+
+  // Responsive wordmark sizing so short names command the card and longer names wrap cleanly
+  const charCount = businessName.length;
+  const wordmarkSize =
+    charCount <= 10
+      ? masthead.isBlackletter
+        ? 'text-5xl'
+        : 'text-4xl'
+      : charCount <= 16
+        ? 'text-3xl'
+        : 'text-2xl';
+
+  const industry = (typeof site.industry_tag === 'string' ? site.industry_tag : '').toLowerCase();
+  const isCulinary = industry === 'culinary';
+  const isStoryDriven = isCulinary || industry === 'e-commerce' || industry === 'general';
+
+  const rawServices = (site.capabilities as { title?: string; description?: string }[]) || [];
+  const servicesToShow = Array.isArray(rawServices) ? rawServices.slice(0, 3) : [];
+
+  const targetUrl = site.custom_domain
+    ? `https://${site.custom_domain}`
+    : `${engineUrl}/${site.slug}`;
+
+  const displayUrl = site.custom_domain
+    ? (site.custom_domain as string)
+    : `${engineUrl.replace(/^https?:\/\//, '')}/${site.slug}`;
 
   return (
-    <Link 
-      href={targetUrl}
-      {...linkProps}
-      className={`group relative block w-full transition-all duration-500 hover:-translate-y-2 ${isOffline ? 'opacity-50 grayscale' : ''}`}
-      style={{ 
-        // We safely pass the dynamic hex color to our CSS variable
-        '--brand-color': brandColor 
-      } as React.CSSProperties}
-    >
-      {/* 🟢 THE OUTER NEON EDGE GLOW */}
-      {/* This sits absolutely behind the card (-inset-0.5 makes it slightly larger) and blurs outward on hover */}
-      <div 
-        className="absolute -inset-0.5 rounded-3xl opacity-0 group-hover:opacity-60 blur-lg transition-all duration-500"
-        style={{ backgroundColor: 'var(--brand-color)' }}
-      />
+    <div className="group relative h-88 w-full rounded-2xl">
+      <div className="relative w-full h-full transition-transform duration-700 transform-3d group-hover:transform-[rotateY(180deg)]">
+        {/* --- FRONT FACE --- */}
+        <a
+          href={targetUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="absolute inset-0 w-full h-full rounded-2xl overflow-hidden border border-zinc-800/50 bg-[#0a0a0c] backface-hidden cursor-pointer shadow-lg"
+        >
+          {/* Live Indicator */}
+          <div className="absolute top-4 right-4 z-30 flex items-center gap-2 bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/5">
+            <div
+              className="w-2 h-2 rounded-full animate-pulse"
+              style={{ backgroundColor: pulseColor, boxShadow: `0 0 12px ${pulseColor}` }}
+            />
+            <span className="text-[10px] font-bold tracking-widest text-zinc-300 uppercase">Live</span>
+          </div>
 
-      {/* 🟢 THE ACTUAL CARD CONTAINER (Sits on top of the glow) */}
-      <div className="relative z-10 flex flex-col h-full w-full rounded-3xl overflow-hidden border border-white/5 bg-black/60 backdrop-blur-xl shadow-2xl">
-
-        {/* TOP HALF: The Brand Showcase */}
-        <div className="relative h-64 w-full bg-zinc-950/80 flex items-center justify-center overflow-hidden border-b border-white/5">
-          
-          {/* Subtle top-down gradient wash (Replaces the weird centered blob) */}
-          <div 
-            className="absolute inset-0 opacity-10"
-            style={{ backgroundImage: `linear-gradient(to bottom, var(--brand-color), transparent)` }}
-          />
-
-          {/* Logo or Fallback */}
-          {hasLogo ? (
-            <div className="relative w-3/4 h-3/4 z-10 transition-transform duration-700 group-hover:scale-110">
-              <Image 
-                src={site.brand_logo as string} 
-                alt={businessName} 
-                fill 
-                className="object-contain drop-shadow-2xl"
+          {/* Background Layer */}
+          <div className="absolute inset-0 z-0 bg-zinc-950">
+            {hasHero && (
+              <img
+                src={heroImage}
+                alt=""
+                className={`w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110 ${
+                  useMastheadMark ? 'opacity-20' : 'opacity-30'
+                }`}
               />
-            </div>
-          ) : (
-            <h2 className="text-7xl font-black tracking-tighter text-zinc-800 group-hover:text-zinc-600 transition-colors z-10">
-              {businessName.charAt(0).toUpperCase()}
-            </h2>
-          )}
-        </div>
+            )}
+            <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/80 to-transparent" />
+          </div>
 
-        {/* BOTTOM HALF: The Details & Pulse */}
-        <div className="p-6 relative z-10 flex flex-col grow bg-black/20 group-hover:bg-black/40 transition-colors duration-500">
-          
-          {/* Header & Pulse */}
-          <div className="flex items-start justify-between mb-3 gap-4">
-            <div className="flex items-center gap-3">
-              {/* The Live Blinking Indicator */}
-              {!isOffline && (
-                <span className="relative flex h-2.5 w-2.5 shrink-0 mt-1">
-                  <span 
-                    className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
-                    style={{ backgroundColor: 'var(--brand-color)' }}
-                  />
-                  <span 
-                    className="relative inline-flex rounded-full h-2.5 w-2.5"
-                    style={{ backgroundColor: 'var(--brand-color)' }}
-                  />
+          {/* Foreground Layer: Logo -> Live Masthead Wordmark -> Initial Fallback */}
+          <div className="absolute inset-0 flex flex-col items-center justify-center px-6 pb-14 z-10">
+            {hasLogo ? (
+              <img
+                src={brandLogo}
+                alt={businessName}
+                className="max-w-[55%] max-h-[55%] object-contain filter drop-shadow-[0_0_30px_rgba(0,0,0,0.8)] transition-transform duration-700 group-hover:scale-110"
+              />
+            ) : useMastheadMark ? (
+              <div className="w-full flex flex-col items-center text-center transition-transform duration-700 group-hover:scale-105">
+                <span
+                  style={masthead.textStyle}
+                  className={`block w-full ${masthead.fontClass} ${masthead.trackingClass} ${wordmarkSize} ${
+                    masthead.isGradient ? 'py-1.5' : ''
+                  } leading-[1.06] font-normal text-balance select-none`}
+                >
+                  {businessName}
                 </span>
-              )}
-              <h3 className="text-xl font-bold text-white group-hover:text-white transition-colors leading-tight">
+                <div className="w-24 flex items-center justify-center gap-2 mt-3 opacity-70">
+                  <span className="h-px flex-1" style={{ backgroundColor: pulseColor }} />
+                  <span className="w-1 h-1 rotate-45" style={{ backgroundColor: pulseColor }} />
+                  <span className="h-px flex-1" style={{ backgroundColor: pulseColor }} />
+                </div>
+              </div>
+            ) : (
+              <div className="text-8xl font-black text-white/20 transition-colors duration-500 group-hover:text-white/30">
+                {initial}
+              </div>
+            )}
+          </div>
+
+          {/* Bottom Details Layer (hides duplicate title when Masthead Wordmark is shown above) */}
+          <div className="absolute inset-x-0 bottom-0 p-5 pt-16 z-20 flex flex-col justify-end">
+            {!useMastheadMark && (
+              <h3 className="text-lg font-bold text-white mb-0.5 drop-shadow-md leading-tight line-clamp-2">
                 {businessName}
               </h3>
+            )}
+            <p className="text-xs text-zinc-300 line-clamp-2 drop-shadow-md mt-0.5">
+              {(site.tagline as string) || 'View Live Storefront'}
+            </p>
+            {typeof site.industry_tag === 'string' && site.industry_tag && (
+              <div className="mt-2">
+                <span className="inline-block px-2 py-1 text-[9px] font-bold uppercase tracking-wider text-zinc-400 bg-black/50 backdrop-blur-md rounded border border-zinc-700/50">
+                  {site.industry_tag}
+                </span>
+              </div>
+            )}
+          </div>
+        </a>
+
+        {/* --- BACK FACE (BUSINESS CARD) --- */}
+        <div className="absolute inset-0 w-full h-full rounded-2xl border border-zinc-800 bg-[#0c0d10] p-7 flex flex-col justify-between backface-hidden transform-[rotateY(180deg)] shadow-xl shadow-cyan-500/5">
+          <div className="flex items-center gap-3">
+            <div
+              className="w-12 h-12 shrink-0 flex items-center justify-center rounded-full border border-zinc-700 bg-zinc-900 overflow-hidden"
+              style={{ boxShadow: `0 0 16px ${pulseColor}22` }}
+            >
+              {hasLogo ? (
+                <img src={brandLogo} alt="Logo" className="w-full h-full object-cover p-1.5" />
+              ) : useMastheadMark ? (
+                <span
+                  style={masthead.textStyle}
+                  className={`${masthead.fontClass} text-2xl leading-none select-none ${
+                    masthead.isGradient ? 'px-1 py-0.5' : ''
+                  }`}
+                >
+                  {initial}
+                </span>
+              ) : (
+                <BriefcaseBusiness className="w-5 h-5" style={{ color: pulseColor }} />
+              )}
+            </div>
+
+            <div className="flex-1 min-w-0">
+              <h3 className="text-lg font-bold text-white leading-tight line-clamp-2">{businessName}</h3>
+              <p className="text-[10px] font-mono text-zinc-500 lowercase leading-tight mt-1 line-clamp-2">
+                {displayUrl}
+              </p>
             </div>
           </div>
 
-          {/* Tagline / Bio */}
-          <p className="text-sm text-zinc-400 line-clamp-2 mb-8">
-            {tagline}
-          </p>
+          <div className="flex-1 pt-6 pb-2 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']">
+            {isStoryDriven ? (
+              <div className="animate-in fade-in duration-500">
+                <p className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest mb-3 flex items-center gap-2">
+                  <Store className="w-3.5 h-3.5 shrink-0" style={{ color: pulseColor }} />
+                  The Story
+                </p>
+                <p className="text-sm text-zinc-300 leading-relaxed">
+                  {(site.about_text as string) ||
+                    (site.tagline as string) ||
+                    'A local visionary building their digital footprint on the Alternative Solutions network.'}
+                </p>
+              </div>
+            ) : (
+              <div className="animate-in fade-in duration-500">
+                <p className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest mb-3 flex items-center gap-2">
+                  <Sparkles className="w-3.5 h-3.5 shrink-0" style={{ color: pulseColor }} />
+                  Featured Services
+                </p>
+                <div className="space-y-3">
+                  {servicesToShow.length > 0 ? (
+                    servicesToShow.map((service, index) => (
+                      <div key={index} className="flex gap-2.5">
+                        <div
+                          className="w-1 h-1 shrink-0 mt-1.5 rounded-full"
+                          style={{ backgroundColor: pulseColor }}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-zinc-100 leading-tight">
+                            {service.title || 'Service'}
+                          </p>
+                          <p className="text-xs text-zinc-400 leading-snug mt-1 pr-2">
+                            {service.description || ''}
+                          </p>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-xs text-zinc-600 italic">Exploring custom offerings...</p>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
 
-          {/* Interaction Footer */}
-          <div className="flex items-center justify-end border-t border-white/5 pt-5 mt-auto">
-            <div className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider transition-colors duration-300" style={{ color: 'var(--brand-color)' }}>
-              Visit Site
-              <ArrowRight className="w-4 h-4 transform group-hover:translate-x-1.5 transition-transform duration-300" />
-            </div>
+          <div className="border-t border-zinc-800/80 pt-4 flex justify-center shrink-0">
+            <a
+              href={targetUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full py-2.5 rounded-lg text-sm font-bold tracking-tight bg-white text-black hover:bg-zinc-200 transition text-center block"
+            >
+              {isCulinary ? 'Explore Menu' : 'Visit Site'}
+            </a>
           </div>
         </div>
       </div>
-    </Link>
+    </div>
   );
 }
