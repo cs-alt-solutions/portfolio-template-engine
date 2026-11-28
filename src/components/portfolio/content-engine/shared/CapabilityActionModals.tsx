@@ -71,6 +71,18 @@ export default function CapabilityActionModals({
   const activeBookingTitle = bookingCapability?.title || '';
   const bookingTopicConfig = activeBookingTitle ? topicConfigs[activeBookingTitle] : undefined;
 
+  const orderedInquiryTopics = useMemo(() => {
+    const allTitles = capabilities
+      .filter((c) => c && !c.isAlaCarte && c.title?.trim())
+      .map((c) => c.title.trim());
+
+    if (!activeBookingTitle) {
+      return allTitles.length > 0 ? allTitles : [CAPABILITY_DEFAULTS.DIRECT_INQUIRY_OPTION];
+    }
+
+    return [activeBookingTitle, ...allTitles.filter((t) => t !== activeBookingTitle)];
+  }, [capabilities, activeBookingTitle]);
+
   const modalCtaLabel = bookingCapability?.ctaLabel?.trim()
     ? bookingCapability.ctaLabel.trim()
     : `${ctaPrefix} ${activeBookingTitle}`.trim() || CAPABILITY_DEFAULTS.INQUIRE_BTN;
@@ -106,7 +118,7 @@ export default function CapabilityActionModals({
         isOpen={!!bookingCapability}
         onClose={onCloseBooking}
         ctaLabel={modalCtaLabel}
-        inquiryOptions={[activeBookingTitle || CAPABILITY_DEFAULTS.DIRECT_INQUIRY_OPTION]}
+        inquiryOptions={orderedInquiryTopics}
         addonOptions={bookingTopicConfig?.addons || []}
         addonSelectionMode={bookingCapability?.addonSelectionMode || 'multiple'}
         showTimeframeFields={showTimeframe}
