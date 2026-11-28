@@ -170,7 +170,7 @@ export default function StagingReviewOverlay({ store }: { store: StorefrontData 
         : 'bg-fuchsia-500/20 border-fuchsia-500/30 text-fuchsia-400';
 
     return (
-      <div className={`fixed bottom-6 right-6 z-50 bg-zinc-950 border ${accentBorder} p-6 rounded-2xl shadow-2xl flex flex-col gap-4 w-[330px] animate-in fade-in slide-in-from-bottom-4`}>
+      <div className={`fixed bottom-6 right-6 z-50 bg-zinc-950 border ${accentBorder} p-6 rounded-2xl shadow-2xl flex flex-col gap-4 w-82.5 animate-in fade-in slide-in-from-bottom-4`}>
         <div className="flex justify-between items-start gap-2">
           <div className="flex items-center gap-3">
             <div className={`w-8 h-8 rounded-full flex items-center justify-center border ${iconTone}`}>

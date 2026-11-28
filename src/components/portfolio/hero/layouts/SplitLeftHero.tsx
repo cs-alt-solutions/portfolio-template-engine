@@ -1,4 +1,4 @@
-/* eslint-disable @next/next/no-img-element */
+ 
 /* src/components/portfolio/hero/layouts/SplitLeftHero.tsx */
 import React from 'react';
 import { HeroEngineProps, HeroMedia, getHeroHeightClass, getRawBgColor } from '../HeroEngine';

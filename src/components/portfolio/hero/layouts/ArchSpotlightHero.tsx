@@ -1,4 +1,4 @@
-/* eslint-disable @next/next/no-img-element */
+ 
 /* src/components/portfolio/hero/layouts/ArchSpotlightHero.tsx */
 import React from 'react';
 import { HeroEngineProps, HeroMedia, getHeroHeightClass } from '../HeroEngine';

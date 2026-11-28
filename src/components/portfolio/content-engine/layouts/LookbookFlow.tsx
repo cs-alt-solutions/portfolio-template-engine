@@ -2,7 +2,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Map } from 'lucide-react';
 import { Capability, ContentLayoutProps } from '../types';
 import { getFonts } from '../utils';
 import { THEME_REGISTRY } from '@/utils/themes';

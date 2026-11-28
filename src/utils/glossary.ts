@@ -272,3 +272,30 @@ export const CAPABILITY_DEFAULTS = {
   DEFAULT_BUSINESS_NAME: 'Our Team',
   DEFAULT_SLUG: 'platform-direct',
 };
+// Content Flow Defaults
+export const FLOW_DEFAULTS = {
+  CLASSIC_HEADING: 'Scope of Work',
+  CLASSIC_GALLERY_HEADING: 'Proof of Work',
+  BENTO_HEADING: 'Featured Offerings',
+  STICKY_HEADING: 'Capabilities',
+  STICKY_NO_MEDIA: 'No Media Assigned',
+  EDITORIAL_HEADING: 'Index',
+  ACCORDION_HEADING: 'Services & Offerings',
+  CAPABILITIES_EYEBROW: 'What We Do',
+  ADDONS_BADGE: 'Flexible Upgrades',
+  ADDONS_HEADING: 'Additional Add-ons',
+  ADDONS_SUBTEXT: 'Customize your selection with any of these standalone enhancements.',
+  FALLBACK_CLIENT_NAME: 'Client',
+};
+
+// Menu Flow Defaults
+export const MENU_DEFAULTS = {
+  HEADING: 'Menu',
+  ORDER_ONLINE_BTN: 'Order Online',
+  TAP_FOR_INFO: 'Tap for Info',
+  DETAILS_LABEL: 'Details',
+  OPTIONS_LABEL: 'Options & Add-ons',
+  FALLBACK_ITEM_ALT: 'Menu Item',
+  RAW_WARNING_TEXT:
+    'Consuming raw or undercooked meats, poultry, seafood, shellfish, or eggs may increase your risk of foodborne illness.',
+};

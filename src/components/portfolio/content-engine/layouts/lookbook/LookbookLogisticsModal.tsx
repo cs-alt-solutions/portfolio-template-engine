@@ -2,7 +2,7 @@
 'use client';
 
 import React from 'react';
-import { Map, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import { LOOKBOOK_DEFAULTS } from '@/utils/glossary';
 import { LookbookFonts, LookbookOperationalTerm } from './types';
 

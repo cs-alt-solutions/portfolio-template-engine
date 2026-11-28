@@ -1,81 +1,214 @@
+/* eslint-disable @next/next/no-img-element */
+/* src/components/portfolio/content-engine/layouts/EditorialHoverFlow.tsx */
 'use client';
 
 import React, { useState } from 'react';
-import { ContentLayoutProps } from '../types';
+import { Capability, ContentLayoutProps } from '../types';
 import { getFonts, getThemeBullet } from '../utils';
+import { THEME_REGISTRY } from '@/utils/themes';
+import { CAPABILITY_DEFAULTS, FLOW_DEFAULTS } from '@/utils/glossary';
+import CapabilityActionButtons from '../shared/CapabilityActionButtons';
+import CapabilityActionModals from '../shared/CapabilityActionModals';
+import CapabilityAddonsSection from '../shared/CapabilityAddonsSection';
+import {
+  getCapabilityPhotos,
+  getCapabilityTerms,
+  getSmartCtaLabel,
+  getSmartDetailsLabel,
+  hasCapabilityDetails,
+} from '../shared/capabilityHelpers';
 
 export default function EditorialHoverFlow({
-  themeStyle, brandColor, isLightMode, capabilitiesHeading, capabilities, galleryItems
+  themeStyle,
+  brandColor,
+  secondaryBrandColor,
+  isLightMode,
+  capabilitiesHeading,
+  capabilities,
+  galleryItems,
+  operationalTerms,
+  businessName,
+  storefrontSlug,
+  contactEmail,
 }: ContentLayoutProps) {
-  
-  // THE FIX: Track the exact index of the capability, not the gallery modulo
-  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
-  
+  const [activeIndex, setActiveIndex] = useState<number | null>(0);
+  const [detailsCap, setDetailsCap] = useState<Capability | null>(null);
+  const [bookingCap, setBookingCap] = useState<Capability | null>(null);
+
   const fonts = getFonts(themeStyle);
+  const theme = THEME_REGISTRY[themeStyle] || THEME_REGISTRY['industrial'];
+  const shapeRadius = theme.surfaceRadius || theme.radius || 'rounded-none';
+  const isSharp = shapeRadius === 'rounded-none';
   const brandTextColor = themeStyle === 'midnight' ? 'text-white' : `text-${brandColor}`;
-  const hasCaps = capabilities && capabilities.length > 0;
-  const hasGallery = galleryItems && galleryItems.length > 0;
+  const activeSecondary = secondaryBrandColor || brandColor;
+
+  const packages = (capabilities || []).filter((c) => !c.isAlaCarte);
+  const alaCarte = (capabilities || []).filter((c) => c.isAlaCarte);
+  const safeTerms = (operationalTerms || []).filter((t) => t && t.title?.trim());
+  const validGallery = (galleryItems || []).filter((img) => img.isVisible !== false && img.imageUrl);
+
+  if (packages.length === 0 && alaCarte.length === 0) return null;
+
+  const activeCap = activeIndex !== null ? packages[activeIndex] : null;
+  const activeCapPhotos = activeCap ? getCapabilityPhotos(activeCap.title, galleryItems) : [];
+  const backdropImage =
+    activeCap?.coverImage ||
+    activeCapPhotos[0]?.url ||
+    (activeIndex !== null && validGallery.length > 0
+      ? validGallery[activeIndex % validGallery.length].imageUrl
+      : null);
 
   return (
-    <div className="w-full py-24 min-h-screen flex items-center relative overflow-hidden">
-      
-      {/* THE FIX: Apply the modulo here when looking up the image, so we don't break the hover tracking */}
-      {hasGallery && hoveredIndex !== null && galleryItems[hoveredIndex % galleryItems.length] && (
-        <div className="absolute inset-0 z-0 animate-in fade-in duration-700">
-           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={galleryItems[hoveredIndex % galleryItems.length].imageUrl} alt="Hover visual" className="w-full h-full object-cover opacity-30 scale-105 transition-transform duration-[10s]" />
+    <div className="w-full py-20 md:py-24 min-h-[80vh] flex flex-col justify-center relative overflow-hidden">
+      {backdropImage && (
+        <div className="absolute inset-0 z-0 animate-in fade-in duration-700 pointer-events-none">
+          <img
+            key={backdropImage}
+            src={backdropImage}
+            alt=""
+            aria-hidden="true"
+            className="w-full h-full object-cover opacity-30 scale-105 transition-transform duration-700"
+          />
           <div className={`absolute inset-0 bg-${brandColor} mix-blend-color opacity-20`} />
-          <div className={`absolute inset-0 bg-linear-to-t ${isLightMode ? 'from-white/95 via-white/80 to-white/95' : 'from-black/95 via-black/80 to-black/95'}`} />
+          <div
+            className={`absolute inset-0 bg-linear-to-t ${
+              isLightMode
+                ? 'from-white/95 via-white/80 to-white/95'
+                : 'from-black/95 via-black/80 to-black/95'
+            }`}
+          />
         </div>
       )}
 
       <div className="max-w-6xl mx-auto px-6 relative z-10 w-full">
-        <h2 className={`mb-20 text-center ${brandTextColor} ${fonts.accent}`}>
-          {capabilitiesHeading || 'Index'}
+        <h2 className={`mb-14 md:mb-20 text-center ${brandTextColor} ${fonts.accent}`}>
+          {capabilitiesHeading || FLOW_DEFAULTS.EDITORIAL_HEADING}
         </h2>
-        
-        <div className="flex flex-col w-full border-t border-current/20">
-          {hasCaps && capabilities.map((cap, i) => {
-            const isHoveringAny = hoveredIndex !== null;
-            const isThisHovered = hoveredIndex === i;
-            
-            return (
-              <div 
-                key={i}
-                // THE FIX: Set the hover index specifically to 'i'
-                onMouseEnter={() => setHoveredIndex(i)}
-                onMouseLeave={() => setHoveredIndex(null)}
-                className={`w-full py-10 md:py-16 border-b ${isLightMode ? 'border-zinc-300' : 'border-zinc-800'} flex flex-col md:flex-row justify-between gap-10 cursor-pointer transition-all duration-500 ${isThisHovered ? `px-4 md:px-12 bg-current/5 border-${brandColor}` : 'hover:px-4'} ${isHoveringAny && !isThisHovered ? 'opacity-30' : 'opacity-100'}`}
-              >
-                <div className="flex items-baseline gap-6 md:w-1/2">
-                  <h3 className={`text-4xl md:text-6xl transition-colors ${fonts.heading} ${isThisHovered ? brandTextColor : isLightMode ? 'text-zinc-900' : 'text-zinc-100'}`}>
-                    {cap.title}
-                  </h3>
+
+        {packages.length > 0 && (
+          <div className="flex flex-col w-full border-t border-current/20">
+            {packages.map((cap, i) => {
+              const isAnyActive = activeIndex !== null;
+              const isThisActive = activeIndex === i;
+              const capPhotos = getCapabilityPhotos(cap.title, galleryItems);
+              const capTerms = getCapabilityTerms(cap.title, safeTerms);
+              const showDetails = hasCapabilityDetails(cap, capPhotos, capTerms);
+              const detailsLabel = getSmartDetailsLabel(cap, capPhotos, capTerms);
+              const ctaLabel = getSmartCtaLabel(cap, CAPABILITY_DEFAULTS.INQUIRE_BTN);
+              const cleanBullets = (cap.bullets || []).filter((b) => b && b.trim() !== '');
+
+              return (
+                <div
+                  key={i}
+                  onMouseEnter={() => setActiveIndex(i)}
+                  onClick={() => setActiveIndex(isThisActive ? null : i)}
+                  className={`w-full py-8 md:py-12 border-b ${
+                    isLightMode ? 'border-zinc-300' : 'border-zinc-800'
+                  } flex flex-col md:flex-row justify-between gap-8 cursor-pointer transition-all duration-500 ${
+                    isThisActive ? `px-4 md:px-10 bg-current/5 border-${brandColor}` : 'hover:px-4'
+                  } ${isAnyActive && !isThisActive ? 'opacity-40' : 'opacity-100'}`}
+                >
+                  <div className="flex flex-col gap-2 md:w-1/2">
+                    <h3
+                      className={`text-3xl md:text-5xl transition-colors ${fonts.heading} ${
+                        isThisActive
+                          ? brandTextColor
+                          : isLightMode
+                            ? 'text-zinc-900'
+                            : 'text-zinc-100'
+                      }`}
+                    >
+                      {cap.title}
+                    </h3>
+                    {cap.price && (
+                      <span className={`text-base md:text-lg font-mono font-bold ${brandTextColor}`}>
+                        {cap.price}
+                      </span>
+                    )}
+                  </div>
+
+                  <div
+                    className={`md:w-1/2 overflow-hidden transition-all duration-500 ease-in-out ${
+                      isThisActive ? 'max-h-300 opacity-100' : 'max-h-0 opacity-0'
+                    }`}
+                  >
+                    <div className="space-y-6">
+                      {cap.description && (
+                        <p
+                          className={`text-base md:text-xl leading-relaxed ${fonts.body} ${
+                            isLightMode ? 'text-zinc-700' : 'text-zinc-300'
+                          } ${['elegant', 'organic'].includes(themeStyle) ? 'italic' : ''}`}
+                        >
+                          {cap.description}
+                        </p>
+                      )}
+
+                      {cleanBullets.length > 0 && (
+                        <ul className={`space-y-3 pt-4 border-t ${isLightMode ? 'border-zinc-300' : 'border-zinc-800'}`}>
+                          {cleanBullets.map((b, bIdx) => (
+                            <li key={bIdx} className="flex items-start gap-3">
+                              {getThemeBullet(themeStyle, brandTextColor)}
+                              <span className={`text-sm md:text-base ${fonts.body} ${isLightMode ? 'text-zinc-800' : 'text-zinc-200'}`}>
+                                {b}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+
+                      <div className="pt-2">
+                        <CapabilityActionButtons
+                          capability={cap}
+                          hasDetails={showDetails}
+                          detailsLabel={detailsLabel}
+                          ctaLabel={ctaLabel}
+                          brandTextColor={brandTextColor}
+                          activeSecondary={activeSecondary}
+                          isLightMode={isLightMode}
+                          isSharp={isSharp}
+                          onOpenDetails={() => setDetailsCap(cap)}
+                          onInquire={() => setBookingCap(cap)}
+                        />
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                
-                {/* The Smooth Reveal Description */}
-                <div className={`md:w-1/2 overflow-hidden transition-all duration-500 ease-in-out ${isThisHovered ? 'max-h-125 opacity-100' : 'max-h-0 opacity-0'}`}>
-                  {cap.description && (
-                    <p className={`text-xl leading-relaxed mb-6 ${fonts.body} ${isLightMode ? 'text-zinc-700' : 'text-zinc-300'} ${['elegant', 'organic'].includes(themeStyle) ? 'italic' : ''}`}>
-                      {cap.description}
-                    </p>
-                  )}
-                  {cap.bullets && cap.bullets.length > 0 && (
-                    <ul className={`space-y-4 pt-4 border-t ${isLightMode ? 'border-zinc-300' : 'border-zinc-800'}`}>
-                      {cap.bullets.map((b, bIdx) => (
-                        <li key={bIdx} className="flex items-start gap-4">
-                           {getThemeBullet(themeStyle, brandTextColor)}
-                           <span className={`text-lg ${fonts.body} ${isLightMode ? 'text-zinc-800' : 'text-zinc-200'}`}>{b}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        )}
+
+        <CapabilityAddonsSection
+          items={alaCarte}
+          activeSecondary={activeSecondary}
+          isLightMode={isLightMode}
+          shapeRadius={shapeRadius}
+          isSharp={isSharp}
+          fonts={fonts}
+        />
       </div>
+
+      <CapabilityActionModals
+        capabilities={packages}
+        alaCarte={alaCarte}
+        galleryItems={galleryItems}
+        operationalTerms={safeTerms}
+        detailsCapability={detailsCap}
+        bookingCapability={bookingCap}
+        onCloseDetails={() => setDetailsCap(null)}
+        onCloseBooking={() => setBookingCap(null)}
+        onSwitchDetailsToBooking={(cap) => {
+          setDetailsCap(null);
+          setBookingCap(cap);
+        }}
+        themeStyle={themeStyle}
+        brandColor={brandColor}
+        isLightMode={isLightMode}
+        fonts={fonts}
+        businessName={businessName}
+        storefrontSlug={storefrontSlug}
+        contactEmail={contactEmail}
+      />
     </div>
   );
 }

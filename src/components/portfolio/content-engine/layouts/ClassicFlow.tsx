@@ -1,54 +1,59 @@
-// src/components/portfolio/content-engine/layouts/ClassicFlow.tsx
+/* src/components/portfolio/content-engine/layouts/ClassicFlow.tsx */
+'use client';
+
 import React from 'react';
 import { ContentLayoutProps } from '../types';
-import { getFonts } from '../utils';
+import { FLOW_DEFAULTS } from '@/utils/glossary';
 import Capabilities from '../../Capabilities';
 import GalleryGrid from '../../gallery/GalleryGrid';
 
 export default function ClassicFlow({
-  themeStyle, brandColor, secondaryBrandColor, isLightMode, capabilitiesHeading, galleryHeading, capabilities, galleryItems, businessName // 🚨 ADDED
+  themeStyle,
+  brandColor,
+  secondaryBrandColor,
+  isLightMode,
+  capabilitiesHeading,
+  galleryHeading,
+  capabilities,
+  galleryItems,
+  operationalTerms,
+  businessName,
+  storefrontSlug,
+  contactEmail,
 }: ContentLayoutProps) {
-  const fonts = getFonts(themeStyle);
-  const brandTextColor = `text-${brandColor}`;
   const hasCaps = capabilities && capabilities.length > 0;
-  
-  const unattachedGallery = (galleryItems || []).filter(img => !img.category || img.category.trim() === '');
-  const hasUnattachedGallery = unattachedGallery.length > 0;
+  const unattachedGallery = (galleryItems || []).filter(
+    (img) => img.isVisible !== false && (!img.category || img.category.trim() === '')
+  );
 
   return (
     <>
       {hasCaps && (
-        <div className="max-w-7xl mx-auto px-6 py-20">
-          <h2 className={`text-4xl md:text-5xl mb-16 text-center ${brandTextColor} ${fonts.heading}`}>
-            {capabilitiesHeading || 'Scope of Work'}
-          </h2>
-          
-          <Capabilities 
-            items={capabilities} 
-            galleryItems={galleryItems} 
-            themeStyle={themeStyle} 
-            brandColor={brandColor} 
-            secondaryBrandColor={secondaryBrandColor}
-            businessName={businessName} // 🚨 PASSING PROP
-          />
-        </div>
+        <Capabilities
+          heading={capabilitiesHeading || FLOW_DEFAULTS.CLASSIC_HEADING}
+          items={capabilities}
+          galleryItems={galleryItems}
+          operationalTerms={operationalTerms}
+          themeStyle={themeStyle}
+          brandColor={brandColor}
+          secondaryBrandColor={secondaryBrandColor}
+          businessName={businessName}
+          storefrontSlug={storefrontSlug}
+          contactEmail={contactEmail}
+        />
       )}
-      
-      {hasUnattachedGallery && (
-        <div className={`w-full py-24 ${isLightMode ? 'bg-black/5' : 'bg-white/5'}`}>
-          <div className="container mx-auto px-6">
-            <h3 className={`text-4xl md:text-5xl mb-12 text-center ${brandTextColor} ${fonts.heading}`}>
-              {galleryHeading || 'Proof of Work'}
-            </h3>
-            <GalleryGrid 
-              items={unattachedGallery} 
-              themeStyle={themeStyle} 
-              brandColor={brandColor} 
-              secondaryBrandColor={secondaryBrandColor} 
-              isLightMode={isLightMode} 
-              businessName={businessName} // 🚨 PASSING PROP
-            />
-          </div>
+
+      {unattachedGallery.length > 0 && (
+        <div className={`w-full py-12 md:py-16 ${isLightMode ? 'bg-black/3' : 'bg-white/3'}`}>
+          <GalleryGrid
+            items={unattachedGallery}
+            galleryHeading={galleryHeading || FLOW_DEFAULTS.CLASSIC_GALLERY_HEADING}
+            themeStyle={themeStyle}
+            brandColor={brandColor}
+            secondaryBrandColor={secondaryBrandColor}
+            isLightMode={isLightMode}
+            businessName={businessName}
+          />
         </div>
       )}
     </>

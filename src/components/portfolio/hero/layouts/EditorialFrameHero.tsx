@@ -1,4 +1,4 @@
-/* eslint-disable @next/next/no-img-element */
+ 
 /* src/components/portfolio/hero/layouts/EditorialFrameHero.tsx */
 import React from 'react';
 import { HeroEngineProps, HeroMedia } from '../HeroEngine';

@@ -70,7 +70,7 @@ export default function StagingAuditCard({
       : 'bg-cyan-500 hover:bg-cyan-400 text-zinc-950 shadow-[0_0_15px_rgba(6,182,212,0.3)]';
 
   return (
-    <div className="flex flex-col bg-zinc-950 border border-zinc-800 rounded-xl shadow-2xl overflow-hidden pointer-events-auto w-[330px] sm:w-[360px]">
+    <div className="flex flex-col bg-zinc-950 border border-zinc-800 rounded-xl shadow-2xl overflow-hidden pointer-events-auto w-82.5 sm:w-90">
       {/* Header */}
       <div className="bg-zinc-900 px-4 py-3 flex items-center justify-between gap-2 border-b border-zinc-800">
         <div className="flex items-center gap-2.5 min-w-0">

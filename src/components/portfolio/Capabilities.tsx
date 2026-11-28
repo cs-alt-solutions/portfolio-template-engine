@@ -3,74 +3,88 @@
 
 import React, { useState } from 'react';
 import { THEME_REGISTRY } from '@/utils/themes';
-import { STOREFRONT_DEFAULTS } from '@/utils/glossary';
-import { Eye, Sparkles } from 'lucide-react';
-import ServiceProofModal, { GalleryItem } from './ServiceProofModal';
+import { CAPABILITY_DEFAULTS, FLOW_DEFAULTS, STOREFRONT_DEFAULTS } from '@/utils/glossary';
+import {
+  Capability,
+  CapabilityOperationalTerm,
+  GalleryItem,
+} from './content-engine/types';
+import { getFonts } from './content-engine/utils';
+import CapabilityActionButtons from './content-engine/shared/CapabilityActionButtons';
+import CapabilityActionModals from './content-engine/shared/CapabilityActionModals';
+import CapabilityAddonsSection from './content-engine/shared/CapabilityAddonsSection';
+import {
+  getCapabilityPhotos,
+  getCapabilityTerms,
+  getSmartCtaLabel,
+  getSmartDetailsLabel,
+  hasCapabilityDetails,
+} from './content-engine/shared/capabilityHelpers';
 
-export interface Capability {
-  title: string;
-  description?: string;
-  price?: string;
-  bullets?: string[];
-  isAlaCarte?: boolean;
-  coverImage?: string;
-  addons?: Array<{ title?: string; name?: string; price?: string; description?: string } | string>;
-}
+export type { Capability } from './content-engine/types';
 
 interface CapabilitiesProps {
   heading?: string;
   items: (string | Capability)[];
   galleryItems?: GalleryItem[];
+  operationalTerms?: CapabilityOperationalTerm[];
   themeStyle?: string;
   brandColor?: string;
   secondaryBrandColor?: string;
   businessName?: string;
+  storefrontSlug?: string;
+  contactEmail?: string;
 }
 
 export default function Capabilities({
   heading,
   items,
   galleryItems = [],
+  operationalTerms = [],
   themeStyle = 'industrial',
-  brandColor = 'cyan-500',
+  brandColor = 'brand-primary',
   secondaryBrandColor,
-  businessName = 'Client',
+  businessName = FLOW_DEFAULTS.FALLBACK_CLIENT_NAME,
+  storefrontSlug,
+  contactEmail,
 }: CapabilitiesProps) {
-  const [selectedServiceForProof, setSelectedServiceForProof] = useState<string | null>(null);
+  const [detailsCap, setDetailsCap] = useState<Capability | null>(null);
+  const [bookingCap, setBookingCap] = useState<Capability | null>(null);
 
   if (!items || items.length === 0) return null;
 
   const theme = THEME_REGISTRY[themeStyle] || THEME_REGISTRY['industrial'];
+  const fonts = getFonts(themeStyle);
   const isLightMode = Boolean(theme.isLightMode);
   const isNoir = themeStyle === 'noir';
+  const shapeRadius = theme.surfaceRadius || theme.radius || 'rounded-none';
+  const isSharp = shapeRadius === 'rounded-none';
+
   const subtleBorder = isLightMode
     ? 'border-zinc-900/10'
     : isNoir
       ? 'border-[#F3EFE6]/10'
-      : 'border-white/5';
+      : 'border-white/10';
 
   const activeSecondary = secondaryBrandColor || brandColor;
-  const isCustomHex = activeSecondary.startsWith('#');
-  const secHex = isCustomHex ? activeSecondary : undefined;
-
+  const brandTextColor = `text-${brandColor}`;
   const isBrutalist = themeStyle?.startsWith('neo');
   const isEditorial = themeStyle === 'editorial';
 
-  const secAccent = (isBrutalist || isEditorial)
-    ? (isLightMode ? 'text-black' : 'text-white')
-    : (isCustomHex ? 'text-(--sec-brand-hex)' : `text-${activeSecondary}`);
-
-  const secBorder = (isBrutalist || isEditorial)
-    ? (isLightMode ? 'border-black' : 'border-white')
-    : (isCustomHex ? 'border-(--sec-brand-hex)' : `border-${activeSecondary}`);
+  const secAccent =
+    isBrutalist || isEditorial
+      ? isLightMode
+        ? 'text-black'
+        : 'text-white'
+      : `text-${activeSecondary}`;
 
   const cardSurface =
-    (theme as unknown as { cardStyle?: string; cardBg?: string }).cardStyle ||
-    (theme as unknown as { cardBg?: string }).cardBg ||
-    (isLightMode ? 'bg-white border border-zinc-200 rounded-2xl' : 'bg-zinc-900/60 border border-white/10 rounded-2xl');
+    theme.surfaceStyle ||
+    (isLightMode
+      ? 'bg-white border border-zinc-200'
+      : 'bg-zinc-900/60 border border-white/10');
 
-  const badgeRadius = isNoir ? 'rounded-sm' : 'rounded-full';
-  const addonRadius = isNoir ? 'rounded-sm' : 'rounded-xl';
+  const badgeRadius = isSharp ? 'rounded-none' : isNoir ? 'rounded-sm' : 'rounded-full';
   const titleWeight = isNoir ? 'font-normal tracking-wide' : 'font-bold';
   const descTone = isLightMode ? 'text-zinc-600' : isNoir ? 'text-stone-300 font-light' : 'text-zinc-400';
   const bulletTone = isLightMode ? 'text-zinc-700' : isNoir ? 'text-stone-300 font-light' : 'text-zinc-300';
@@ -81,163 +95,129 @@ export default function Capabilities({
 
   const packages = normalizedItems.filter((item) => !item.isAlaCarte);
   const addons = normalizedItems.filter((item) => item.isAlaCarte);
-
-  const parsedGallery: GalleryItem[] = galleryItems.map((item) =>
-    typeof item === 'string' ? { imageUrl: item, title: '', description: '', category: '' } : item
-  );
-
-  const activeProofImages = selectedServiceForProof
-    ? parsedGallery.filter((img) => img.category?.toLowerCase() === selectedServiceForProof.toLowerCase())
-    : [];
-
-  // Build props safely for ServiceProofModal regardless of which prop signature it expects
-  const modalProps = {
-    isOpen: !!selectedServiceForProof,
-    onClose: () => setSelectedServiceForProof(null),
-    serviceName: selectedServiceForProof || '',
-    serviceTitle: selectedServiceForProof || '',
-    images: activeProofImages,
-    themeStyle,
-    brandColor: activeSecondary,
-    isLightMode,
-    businessName,
-    theme,
-  };
-
-  const SafeServiceProofModal = ServiceProofModal as unknown as React.ComponentType<typeof modalProps>;
+  const safeTerms = (operationalTerms || []).filter((t) => t && t.title?.trim());
 
   return (
-    <section className={`py-24 px-6 border-t ${subtleBorder} relative z-10 ${theme.pageBg}`}>
+    <section className={`py-20 md:py-24 px-6 border-t ${subtleBorder} relative z-10 ${theme.pageBg || ''}`}>
       <div className="max-w-7xl mx-auto">
         {heading && (
-          <div className="flex flex-col items-center text-center mb-16">
-            <h2
-              className={`${theme.accentText} ${secAccent} mb-4 flex items-center justify-center gap-3`}
-              style={secHex ? { color: secHex } : undefined}
-            >
-              <div className="w-2 h-2 rounded-full bg-current opacity-70" />
-              {STOREFRONT_DEFAULTS.CAPABILITIES_HEADING || 'What We Do'}
-              <div className="w-2 h-2 rounded-full bg-current opacity-70" />
+          <div className="flex flex-col items-center text-center mb-14 md:mb-16">
+            <h2 className={`${theme.accentText} ${secAccent} mb-4 flex items-center justify-center gap-3`}>
+              <span className="w-2 h-2 rounded-full bg-current opacity-70" />
+              {STOREFRONT_DEFAULTS.CAPABILITIES_HEADING || FLOW_DEFAULTS.CAPABILITIES_EYEBROW}
+              <span className="w-2 h-2 rounded-full bg-current opacity-70" />
             </h2>
             <h3 className={`text-4xl md:text-5xl ${theme.primaryText}`}>{heading}</h3>
           </div>
         )}
 
-        {/* 1. CORE PACKAGES GRID */}
         {packages.length > 0 && (
           <div className="flex flex-wrap justify-center gap-6">
             {packages.map((item, idx) => {
-              const matchingImages = parsedGallery.filter(
-                (img) => img.category && img.category.toLowerCase() === item.title.toLowerCase()
-              );
-              const hasProof = matchingImages.length > 0;
-              const hasBullets = item.bullets && item.bullets.filter((b) => b.trim() !== '').length > 0;
+              const capPhotos = getCapabilityPhotos(item.title, galleryItems);
+              const capTerms = getCapabilityTerms(item.title, safeTerms);
+              const showDetails = hasCapabilityDetails(item, capPhotos, capTerms);
+              const detailsLabel = getSmartDetailsLabel(item, capPhotos, capTerms);
+              const ctaLabel = getSmartCtaLabel(item, CAPABILITY_DEFAULTS.INQUIRE_BTN);
+              const cleanBullets = (item.bullets || []).filter((b) => b && b.trim() !== '');
+              const indexLabel = idx + 1 < 10 ? `0${idx + 1}` : `${idx + 1}`;
 
               return (
                 <div
                   key={idx}
-                  onClick={() => { if (hasProof) setSelectedServiceForProof(item.title); }}
-                  style={hasProof && secHex ? { borderColor: secHex } : undefined}
-                  className={`w-full md:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)] p-8 transition-all duration-300 relative overflow-hidden flex flex-col justify-between ${cardSurface} ${
-                    hasProof ? `cursor-pointer group hover:-translate-y-1 hover:${secBorder}` : ''
-                  }`}
+                  className={`w-full md:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)] p-7 md:p-8 border transition-all duration-300 relative overflow-hidden flex flex-col justify-between gap-6 ${cardSurface} ${shapeRadius}`}
                 >
                   <div>
-                    <div className="flex justify-between items-start mb-6">
-                      <div
-                        className={`text-xs font-mono opacity-40 px-2.5 py-1 rounded-sm border border-current ${secAccent}`}
-                        style={secHex ? { color: secHex, borderColor: secHex } : undefined}
+                    <div className="flex justify-between items-start gap-3 mb-5">
+                      <span
+                        className={`text-xs font-mono opacity-50 px-2.5 py-1 border border-current ${
+                          isSharp ? 'rounded-none' : 'rounded-sm'
+                        } ${secAccent}`}
                       >
-                        0{idx + 1}
-                      </div>
+                        {indexLabel}
+                      </span>
 
-                      <div className="flex items-center gap-2">
-                        {item.price && (
-                          <span
-                            className={`px-3 py-1 ${badgeRadius} text-xs font-mono font-bold tracking-wider border border-current/20 bg-current/5 ${secAccent}`}
-                            style={secHex ? { color: secHex, borderColor: `${secHex}40`, backgroundColor: `${secHex}10` } : undefined}
-                          >
-                            {item.price}
-                          </span>
-                        )}
-                        {hasProof && (
-                          <div
-                            className={`flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest px-2.5 py-1 ${badgeRadius} border border-current/20 bg-current/5 opacity-70 group-hover:opacity-100 transition-opacity ${secAccent}`}
-                            style={secHex ? { color: secHex, borderColor: `${secHex}40`, backgroundColor: `${secHex}10` } : undefined}
-                          >
-                            <Eye size={12} /> Proof ({matchingImages.length})
-                          </div>
-                        )}
-                      </div>
+                      {item.price && (
+                        <span
+                          className={`px-3 py-1 ${badgeRadius} text-xs font-mono font-bold tracking-wider border border-current/20 bg-current/5 ${secAccent}`}
+                        >
+                          {item.price}
+                        </span>
+                      )}
                     </div>
 
-                    <h4 className={`text-xl mb-3 ${titleWeight} ${theme.primaryText} transition-colors`}>
+                    <h4 className={`text-xl md:text-2xl mb-3 ${titleWeight} ${theme.primaryText}`}>
                       {item.title}
                     </h4>
 
                     {item.description && (
-                      <p className={`text-sm leading-relaxed ${descTone}`}>
-                        {item.description}
-                      </p>
+                      <p className={`text-sm leading-relaxed ${descTone}`}>{item.description}</p>
+                    )}
+
+                    {cleanBullets.length > 0 && (
+                      <ul className="mt-6 space-y-2.5 border-t border-current/10 pt-5">
+                        {cleanBullets.map((bullet, bIdx) => (
+                          <li key={bIdx} className={`text-xs flex items-start gap-2.5 ${bulletTone}`}>
+                            <span className={`mt-1.5 w-1.5 h-1.5 rounded-full bg-current shrink-0 ${secAccent}`} />
+                            <span className="leading-relaxed">{bullet}</span>
+                          </li>
+                        ))}
+                      </ul>
                     )}
                   </div>
 
-                  {hasBullets && (
-                    <ul className="mt-6 space-y-2.5 border-t border-current/10 pt-5">
-                      {item.bullets!.filter((b) => b.trim() !== '').map((bullet, bIdx) => (
-                        <li key={bIdx} className={`text-xs flex items-start gap-2.5 ${bulletTone}`}>
-                          <span
-                            className={`mt-1.5 w-1.5 h-1.5 rounded-full bg-current shrink-0 ${secAccent}`}
-                            style={secHex ? { backgroundColor: secHex } : undefined}
-                          />
-                          <span className="leading-relaxed">{bullet}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
+                  <div className="pt-4 border-t border-current/10 mt-auto">
+                    <CapabilityActionButtons
+                      capability={item}
+                      hasDetails={showDetails}
+                      detailsLabel={detailsLabel}
+                      ctaLabel={ctaLabel}
+                      brandTextColor={brandTextColor}
+                      activeSecondary={activeSecondary}
+                      isLightMode={isLightMode}
+                      isSharp={isSharp}
+                      compact={true}
+                      onOpenDetails={() => setDetailsCap(item)}
+                      onInquire={() => setBookingCap(item)}
+                    />
+                  </div>
                 </div>
               );
             })}
           </div>
         )}
 
-        {/* 2. FLEXIBLE UPGRADES (ADD-ONS) GRID */}
-        {addons.length > 0 && (
-          <div className={`mt-16 pt-16 border-t ${subtleBorder}`}>
-            <div className="flex items-center justify-center gap-2 mb-8">
-              <Sparkles className={`w-4 h-4 ${secAccent}`} style={secHex ? { color: secHex } : undefined} />
-              <h4 className={`text-sm uppercase tracking-widest ${titleWeight} ${theme.primaryText}`}>
-                Flexible Upgrades & Add-ons
-              </h4>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-5xl mx-auto">
-              {addons.map((addon, idx) => (
-                <div key={idx} className={`p-5 ${addonRadius} border ${subtleBorder} flex flex-col justify-between gap-3 ${cardSurface} opacity-90 hover:opacity-100 transition-opacity`}>
-                  <div className="flex items-start justify-between gap-2">
-                    <span className={`text-sm ${titleWeight} ${theme.primaryText}`}>{addon.title}</span>
-                    {addon.price && (
-                      <span
-                        className={`text-xs font-mono font-bold px-2 py-0.5 rounded-sm bg-current/10 shrink-0 ${secAccent}`}
-                        style={secHex ? { color: secHex, backgroundColor: `${secHex}15` } : undefined}
-                      >
-                        {addon.price}
-                      </span>
-                    )}
-                  </div>
-                  {addon.description && (
-                    <p className={`text-xs leading-relaxed ${descTone}`}>
-                      {addon.description}
-                    </p>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+        <CapabilityAddonsSection
+          items={addons}
+          activeSecondary={activeSecondary}
+          isLightMode={isLightMode}
+          shapeRadius={shapeRadius}
+          isSharp={isSharp}
+          fonts={fonts}
+        />
       </div>
 
-      <SafeServiceProofModal {...modalProps} />
+      <CapabilityActionModals
+        capabilities={packages}
+        alaCarte={addons}
+        galleryItems={galleryItems}
+        operationalTerms={safeTerms}
+        detailsCapability={detailsCap}
+        bookingCapability={bookingCap}
+        onCloseDetails={() => setDetailsCap(null)}
+        onCloseBooking={() => setBookingCap(null)}
+        onSwitchDetailsToBooking={(cap) => {
+          setDetailsCap(null);
+          setBookingCap(cap);
+        }}
+        themeStyle={themeStyle}
+        brandColor={brandColor}
+        isLightMode={isLightMode}
+        fonts={fonts}
+        businessName={businessName}
+        storefrontSlug={storefrontSlug}
+        contactEmail={contactEmail}
+      />
     </section>
   );
 }
