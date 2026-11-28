@@ -2,6 +2,7 @@
 /* src/components/portfolio/hero/layouts/CinematicHero.tsx */
 import React from 'react';
 import { HeroEngineProps, HeroMedia, getHeroLogoClasses, getHeroHeightClass } from '../HeroEngine';
+import { PAGE_DEFAULTS } from '@/utils/glossary';
 
 export default function CinematicHero({
   store,
@@ -29,7 +30,11 @@ export default function CinematicHero({
   );
 
   const isCompactPadding = isHubMode || store?.hero_height === 'compact';
-  const bottomPad = isCompactPadding ? 'pb-8 md:pb-10' : store?.hero_height === 'balanced' ? 'pb-10 md:pb-16' : 'pb-12 md:pb-20';
+  const bottomPad = isCompactPadding
+    ? 'pb-8 md:pb-10'
+    : store?.hero_height === 'balanced'
+      ? 'pb-10 md:pb-16'
+      : 'pb-12 md:pb-20';
   const accentRadius = safeTheme.radius === 'rounded-none' ? 'rounded-none' : 'rounded-full';
 
   const copyStack = (
@@ -38,7 +43,8 @@ export default function CinematicHero({
 
       {!hasValidLogo && (
         <h2 className={`${safeTheme.accentText || ''} ${accentColorClass} mb-3`}>
-          {safeTheme.prefix || ''}{store?.business_name || ''}
+          {safeTheme.prefix || ''}
+          {store?.business_name || ''}
         </h2>
       )}
 
@@ -92,7 +98,7 @@ export default function CinematicHero({
         <div className="container mx-auto px-6 pt-6 md:pt-10 relative z-10">
           <img
             src={store?.brand_logo || ''}
-            alt={store?.business_name || 'Logo'}
+            alt={store?.business_name || PAGE_DEFAULTS.LOGO_ALT}
             className={getHeroLogoClasses(logoSizePref, 'masthead')}
           />
         </div>
@@ -111,7 +117,7 @@ export default function CinematicHero({
             >
               <img
                 src={store?.brand_logo || ''}
-                alt={store?.business_name || 'Logo'}
+                alt={store?.business_name || PAGE_DEFAULTS.LOGO_ALT}
                 className={`${getHeroLogoClasses(logoSizePref, 'left')} mb-0! shrink-0`}
               />
               {copyStack}

@@ -1,6 +1,7 @@
 /* src/components/portfolio/hero/layouts/MastheadHero.tsx */
 import React from 'react';
 import { HeroEngineProps, HeroMedia, getRawBgColor } from '../HeroEngine';
+import { PAGE_DEFAULTS } from '@/utils/glossary';
 
 const MASTHEAD_FONTS: Record<string, { fontClass: string; trackingClass: string }> = {
   gothic: { fontClass: 'font-gothic', trackingClass: 'tracking-normal' },
@@ -110,10 +111,9 @@ export default function MastheadHero({
   const customFont = MASTHEAD_FONTS[fontKey];
   const mastheadColor = resolveMastheadColor(colorKey);
 
-  const displayName = (store?.business_name || store?.tagline || 'Studio').trim();
+  const displayName = (store?.business_name || store?.tagline || PAGE_DEFAULTS.FALLBACK_BUSINESS_NAME).trim();
   const charCount = displayName.length;
 
-  // Slightly larger ceiling for ornate blackletter so fine serifs stay crisp
   const isBlackletter = fontKey === 'gothic' || fontKey === 'pirata';
   const mastheadSize =
     charCount <= 10
@@ -124,18 +124,20 @@ export default function MastheadHero({
         ? 'text-[clamp(2.5rem,8vw,7rem)]'
         : 'text-[clamp(2rem,6vw,5.25rem)]';
 
-  const heightClass = isHubMode
-    ? 'py-12 md:py-16'
-    : store?.hero_height === 'full'
-      ? 'min-h-[76vh] py-20 md:py-28'
+  const heightClass =
+    store?.hero_height === 'compact'
+      ? 'py-10 md:py-14'
       : store?.hero_height === 'balanced'
         ? 'min-h-[54vh] py-16 md:py-24'
-        : 'py-16 md:py-24';
+        : store?.hero_height === 'full'
+          ? 'min-h-[76vh] py-20 md:py-28'
+          : isHubMode
+            ? 'py-12 md:py-16'
+            : 'py-16 md:py-24';
 
   const borderClass = isLight ? 'border-zinc-900/10' : 'border-white/10';
   const eyebrowTone = isLight ? 'text-zinc-600' : 'text-stone-400';
 
-  // Strip competing theme font/tracking/color classes when custom Masthead options are active
   let basePrimaryText = safeTheme.primaryText || '';
   if (customFont) {
     basePrimaryText = basePrimaryText
@@ -178,7 +180,6 @@ export default function MastheadHero({
       )}
 
       <div className="container mx-auto px-6 max-w-7xl relative z-10 flex flex-col items-center text-center">
-        {/* Optional Top Location / Category Eyebrow */}
         {store?.industry_tag && (
           <div className="flex items-center justify-center gap-4 mb-5 md:mb-7">
             <span className={`h-px w-8 md:w-12 opacity-60 ${lineAccent}`} />
@@ -189,37 +190,38 @@ export default function MastheadHero({
           </div>
         )}
 
-        {/* Monumental Brand Masthead */}
         <h1
           style={mastheadColor.style}
-          className={`w-full ${basePrimaryText} ${customFont ? `${customFont.fontClass} ${customFont.trackingClass} font-normal` : 'tracking-[0.04em]'} ${mastheadSize} ${mastheadColor.isGradient ? 'py-2' : ''} leading-[1.02] text-balance select-none`}
+          className={`w-full ${basePrimaryText} ${
+            customFont ? `${customFont.fontClass} ${customFont.trackingClass} font-normal` : 'tracking-[0.04em]'
+          } ${mastheadSize} ${mastheadColor.isGradient ? 'py-2' : ''} leading-[1.02] text-balance select-none`}
         >
           {safeTheme.prefix || ''}
           {displayName}
         </h1>
 
-        {/* Fine Gallery Rule */}
         <div className="w-full max-w-2xl flex items-center justify-center gap-4 my-6 md:my-8">
           <div className={`h-px flex-1 opacity-40 ${lineAccent}`} />
           <div className={`w-1.5 h-1.5 rotate-45 opacity-80 ${lineAccent}`} />
           <div className={`h-px flex-1 opacity-40 ${lineAccent}`} />
         </div>
 
-        {/* Subtitle (Tagline) */}
         {store?.tagline && store.tagline.trim().toLowerCase() !== displayName.toLowerCase() && (
           <p className={`${safeTheme.accentText || ''} ${accentColorClass} max-w-3xl mx-auto mb-4 text-balance`}>
             {store.tagline}
           </p>
         )}
 
-        {/* Supporting Line */}
         {store?.subtext && (
-          <p className={`text-sm md:text-lg max-w-2xl mx-auto opacity-85 text-balance ${isHubMode ? 'mb-0' : 'mb-8 md:mb-10'} ${safeTheme.bodyText || ''}`}>
+          <p
+            className={`text-sm md:text-lg max-w-2xl mx-auto opacity-85 text-balance ${
+              isHubMode ? 'mb-0' : 'mb-8 md:mb-10'
+            } ${safeTheme.bodyText || ''}`}
+          >
             {store.subtext}
           </p>
         )}
 
-        {/* Action CTA (Hidden in Hub Mode) */}
         {!isHubMode && (
           <a href={exploreLink} className={`inline-block ${safeTheme.buttonStyle || ''} ${buttonBgClass}`}>
             {store?.hero_cta || heroButtonText}

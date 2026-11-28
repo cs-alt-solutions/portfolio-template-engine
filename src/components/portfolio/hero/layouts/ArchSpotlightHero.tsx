@@ -1,7 +1,9 @@
 /* eslint-disable @next/next/no-img-element */
 /* src/components/portfolio/hero/layouts/ArchSpotlightHero.tsx */
 import React from 'react';
-import { HeroEngineProps, HeroMedia, getHeroLogoClasses } from '../HeroEngine';
+import { HeroEngineProps, HeroMedia, getHeroHeightClass } from '../HeroEngine';
+import HeroBrandBlock, { HeroMastheadLogo } from '../core/HeroBrandBlock';
+import { PAGE_DEFAULTS } from '@/utils/glossary';
 
 export default function ArchSpotlightHero({
   store,
@@ -17,49 +19,42 @@ export default function ArchSpotlightHero({
   isHubMode,
 }: HeroEngineProps) {
   const safeTheme = theme || {};
-  const cleanBodyText = (safeTheme.bodyText || '').replace('mx-auto', '');
+  const heightClass = getHeroHeightClass(
+    store?.hero_height,
+    isHubMode,
+    'min-h-[90vh]',
+    'min-h-[65vh]'
+  );
+  const isMasthead = hasValidLogo && store?.logo_placement === 'masthead';
+  const fallbackName = store?.business_name || PAGE_DEFAULTS.FALLBACK_BUSINESS_NAME;
 
   return (
     <section
       id="hero"
-      className={`relative w-full ${isHubMode ? 'min-h-[70vh] py-12' : 'min-h-[90vh] py-16 md:py-24'} flex items-center ${safeTheme.pageBg || ''} overflow-hidden`}
+      className={`relative w-full ${heightClass} ${
+        isMasthead ? 'pt-28 md:pt-36 pb-16' : isHubMode ? 'py-12' : 'py-16 md:py-20'
+      } flex items-center ${safeTheme.pageBg || ''} overflow-hidden`}
     >
+      <HeroMastheadLogo store={store} hasValidLogo={hasValidLogo} />
+
       <div className="container mx-auto px-6 max-w-7xl">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
           {/* Left Copy Column */}
           <div className="lg:col-span-6 text-left order-2 lg:order-1">
-            {hasValidLogo ? (
-              <img
-                src={store?.brand_logo || ''}
-                alt={store?.business_name || 'Logo'}
-                className={getHeroLogoClasses(store?.logo_size, 'left')}
-              />
-            ) : (
-              <h2 className={`${safeTheme.accentText || ''} ${accentColorClass} mb-5 flex items-center gap-3`}>
-                <span className={`h-px w-10 ${lineAccent}`} />
-                {safeTheme.prefix || ''}{store?.business_name || ''}
-              </h2>
-            )}
-
-            {store?.tagline && (
-              <h1 className={`${safeTheme.primaryText || ''} text-4xl md:text-5xl lg:text-6xl mb-6 text-balance`}>
-                {store.tagline}
-              </h1>
-            )}
-
-            <div className={`w-20 h-1.5 mb-6 rounded-full ${lineAccent}`} />
-
-            {store?.subtext && (
-              <p className={`text-base md:text-lg ${isHubMode ? 'mb-4' : 'mb-10'} max-w-xl text-balance ${cleanBodyText}`}>
-                {store.subtext}
-              </p>
-            )}
-
-            {!isHubMode && (
-              <a href={exploreLink} className={`inline-block ${safeTheme.buttonStyle || ''} ${buttonBgClass}`}>
-                {store?.hero_cta || heroButtonText}
-              </a>
-            )}
+            <HeroBrandBlock
+              store={store}
+              theme={theme}
+              hasValidLogo={hasValidLogo}
+              exploreLink={exploreLink}
+              heroButtonText={heroButtonText}
+              accentColorClass={accentColorClass}
+              buttonBgClass={buttonBgClass}
+              lineAccent={lineAccent}
+              isHubMode={isHubMode}
+              align="left"
+              showBusinessRule={true}
+              headingClassName="text-4xl md:text-5xl lg:text-6xl"
+            />
           </div>
 
           {/* Right Sculpted Arch Frame */}
@@ -70,13 +65,17 @@ export default function ArchSpotlightHero({
               />
 
               <div
-                className={`relative w-full ${isHubMode ? 'aspect-4/4' : 'aspect-4/5'} rounded-t-[260px] rounded-b-3xl overflow-hidden shadow-2xl border ${safeTheme.isLightMode ? 'border-zinc-900/10 bg-zinc-200' : 'border-white/15 bg-zinc-900'}`}
+                className={`relative w-full ${
+                  isHubMode || store?.hero_height === 'compact' ? 'aspect-square' : 'aspect-4/5'
+                } rounded-t-[260px] rounded-b-3xl overflow-hidden shadow-2xl border ${
+                  safeTheme.isLightMode ? 'border-zinc-900/10 bg-zinc-200' : 'border-white/15 bg-zinc-900'
+                }`}
                 style={{ clipPath: 'inset(0 round 260px 260px 24px 24px)' }}
               >
                 <HeroMedia
                   store={store}
                   isHeroFixed={isHeroFixed}
-                  alt={store?.business_name || 'Featured'}
+                  alt={fallbackName}
                   fallback={<div className={`w-full h-full opacity-20 ${lineAccent}`} />}
                 />
               </div>
