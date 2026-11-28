@@ -5,7 +5,7 @@ import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { supabase } from '@/utils/supabase';
 import { THEME_REGISTRY } from '@/utils/themes';
-import { STOREFRONT_DEFAULTS } from '@/utils/glossary';
+import { STOREFRONT_DEFAULTS, PAGE_DEFAULTS } from '@/utils/glossary';
 import {
   HERO_NAMES,
   FLOW_NAMES,
@@ -40,11 +40,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     .eq('slug', slug)
     .single();
 
-  if (!store) return { title: 'Not Found' };
+  if (!store) return { title: PAGE_DEFAULTS.NOT_FOUND_TITLE };
   const hasLogo = typeof store.brand_logo === 'string' && store.brand_logo.trim() !== '';
 
   return {
-    title: `${store.business_name || 'Workspace'} | ${store.tagline || 'Custom Solutions'}`,
+    title: `${store.business_name || PAGE_DEFAULTS.FALLBACK_BUSINESS_NAME} | ${store.tagline || PAGE_DEFAULTS.FALLBACK_TAGLINE}`,
     description: store.tagline || '',
     icons: hasLogo
       ? [
@@ -79,6 +79,7 @@ export default async function DynamicStorefront({
   const theme = THEME_REGISTRY[themeStyle] || THEME_REGISTRY['industrial'];
   const layout = store.hero_layout || 'center';
   const isLightMode = theme.isLightMode || false;
+  const sectionBg = theme.pageBg || 'bg-zinc-950';
 
   const brandColor = 'brand-primary';
   const secondaryBrandColor = 'brand-secondary';
@@ -93,10 +94,22 @@ export default async function DynamicStorefront({
       : 'border-2 border-white text-white hover:bg-white hover:text-zinc-950 shadow-sm';
   const lineAccent = theme.useBrandAccent
     ? `bg-linear-to-r from-${brandColor} to-${secondaryBrandColor}`
-    : isLightMode ? 'bg-zinc-900' : 'bg-white';
+    : isLightMode
+      ? 'bg-zinc-900'
+      : 'bg-white';
 
-  const galleryTitle = store.gallery_heading || STOREFRONT_DEFAULTS?.GALLERY_HEADING || 'Featured Work';
-  const heroButtonText = isHubMode ? 'Explore Departments' : `View ${galleryTitle}`;
+  const galleryTitle =
+    store.gallery_heading || STOREFRONT_DEFAULTS?.GALLERY_HEADING || PAGE_DEFAULTS.FALLBACK_GALLERY_HEADING;
+  const capabilitiesTitle =
+    store.capabilities_heading ||
+    STOREFRONT_DEFAULTS?.CAPABILITIES_HEADING ||
+    PAGE_DEFAULTS.FALLBACK_CAPABILITIES_HEADING;
+  const aboutTitle =
+    store.about_heading || STOREFRONT_DEFAULTS?.ABOUT_HEADING || PAGE_DEFAULTS.FALLBACK_ABOUT_HEADING;
+
+  const heroButtonText = isHubMode
+    ? PAGE_DEFAULTS.HUB_HERO_CTA
+    : `${PAGE_DEFAULTS.HERO_CTA_PREFIX} ${galleryTitle}`;
   const hasAbout = !!store.about_bio || !!store.about_image || !!store.about_heading;
   const formattedGalleryItems = formatGalleryItems(store.gallery_items);
 
@@ -139,7 +152,7 @@ export default async function DynamicStorefront({
   };
 
   const aboutData = {
-    heading: store.about_heading || STOREFRONT_DEFAULTS?.ABOUT_HEADING || 'About Us',
+    heading: aboutTitle,
     bio: store.about_bio,
     imageUrl: store.about_image,
     brandColor,
@@ -153,7 +166,7 @@ export default async function DynamicStorefront({
   const eventsSection = (
     <EventsSection
       events={store.events}
-      businessName={store.business_name || 'Our Team'}
+      businessName={store.business_name || PAGE_DEFAULTS.FALLBACK_TEAM_NAME}
       storefrontSlug={store.slug}
       contactEmail={store.public_email || store.contact_email || ''}
       brandColor={brandColor}
@@ -165,7 +178,7 @@ export default async function DynamicStorefront({
 
   const locationSection = (
     <LocationPanel
-      businessName={store.business_name || 'Our Location'}
+      businessName={store.business_name || PAGE_DEFAULTS.FALLBACK_LOCATION_NAME}
       mapEmbedUrl={store.map_embed_url}
       scheduleTerms={isHubMode ? storewideSchedules : []}
       themeStyle={themeStyle}
@@ -176,18 +189,29 @@ export default async function DynamicStorefront({
   );
 
   const parallaxDivider = isHeroFixed && store.hero_image && (
-    <div className="relative w-full h-[30vh] md:h-[40vh] border-y border-white/10 shadow-[inset_0_0_100px_rgba(0,0,0,0.8)]" style={{ clipPath: 'inset(0)' }}>
-      <div className="fixed inset-0 w-full h-full bg-cover bg-center opacity-50 pointer-events-none" style={{ backgroundImage: `url('${store.hero_image}')` }} />
+    <div
+      className="relative w-full h-[30vh] md:h-[40vh] border-y border-white/10 shadow-[inset_0_0_100px_rgba(0,0,0,0.8)]"
+      style={{ clipPath: 'inset(0)' }}
+    >
+      <div
+        className="fixed inset-0 w-full h-full bg-cover bg-center opacity-50 pointer-events-none"
+        style={{ backgroundImage: `url('${store.hero_image}')` }}
+      />
       {theme.useBrandAccent && <div className={`absolute top-0 left-0 w-full h-1 z-10 ${lineAccent} opacity-50`} />}
     </div>
   );
 
   return (
     <main
-      className={`min-h-screen flex flex-col selection:bg-${secondaryBrandColor}/30 ${theme.pageBg || 'bg-zinc-950'} relative`}
+      className={`min-h-screen flex flex-col selection:bg-${secondaryBrandColor}/30 ${sectionBg} relative`}
       style={{ '--brand-primary': primaryHex, '--brand-secondary': secondaryHex } as React.CSSProperties}
     >
-      <StorefrontAnalyticsBeacon storefrontId={store.id} slug={store.slug} isCanvasMode={isCanvasMode} isAuditMode={isAuditMode} />
+      <StorefrontAnalyticsBeacon
+        storefrontId={store.id}
+        slug={store.slug}
+        isCanvasMode={isCanvasMode}
+        isAuditMode={isAuditMode}
+      />
 
       {isHubMode ? (
         <>
@@ -207,10 +231,19 @@ export default async function DynamicStorefront({
           {parallaxDivider}
           {eventsSection}
           {hasAbout && (
-            <div id="about" className={`w-full py-24 border-t ${isLightMode ? 'border-zinc-900/10 bg-black/2' : 'border-white/10 bg-zinc-950/50'}`}>
-              <div className="container mx-auto px-6">
+            <div
+              id="about"
+              className={`w-full relative z-10 border-t ${
+                isLightMode ? 'border-zinc-900/10 bg-black/2' : 'border-white/10 bg-zinc-950/50'
+              } ${aboutData.aboutLayout === 'wash' ? '' : 'py-24'}`}
+            >
+              {aboutData.aboutLayout === 'wash' ? (
                 <AboutSection data={aboutData} />
-              </div>
+              ) : (
+                <div className="container mx-auto px-6">
+                  <AboutSection data={aboutData} />
+                </div>
+              )}
             </div>
           )}
           <StorewidePoliciesSection
@@ -220,25 +253,40 @@ export default async function DynamicStorefront({
             industryTag={store.industry_tag}
           />
           {locationSection}
-          <StorefrontClientActions store={hubStoreActions} brandColor={brandColor} secondaryBrandColor={secondaryBrandColor} isLightMode={isLightMode} themeStyle={themeStyle} />
+          <StorefrontClientActions
+            store={hubStoreActions}
+            brandColor={brandColor}
+            secondaryBrandColor={secondaryBrandColor}
+            isLightMode={isLightMode}
+            themeStyle={themeStyle}
+          />
         </>
       ) : (
         <>
           <HeroEngine {...sharedHeroProps} isHubMode={false} />
-          {parallaxDivider}
           {hasAbout && (
-            <div id="about" className="container mx-auto px-6 py-20">
-              <AboutSection data={aboutData} />
+            <div
+              id="about"
+              className={`w-full relative z-10 ${sectionBg} ${aboutData.aboutLayout === 'wash' ? '' : 'py-16 md:py-20'}`}
+            >
+              {aboutData.aboutLayout === 'wash' ? (
+                <AboutSection data={aboutData} />
+              ) : (
+                <div className="container mx-auto px-6">
+                  <AboutSection data={aboutData} />
+                </div>
+              )}
             </div>
           )}
-          <div id="gallery">
+          {parallaxDivider}
+          <div id="gallery" className={`w-full relative z-10 ${sectionBg}`}>
             <ContentEngine
               layout={store.content_layout || 'classic'}
               themeStyle={themeStyle}
               brandColor={brandColor}
               secondaryBrandColor={secondaryBrandColor}
               isLightMode={isLightMode}
-              capabilitiesHeading={store.capabilities_heading || STOREFRONT_DEFAULTS?.CAPABILITIES_HEADING || 'Services'}
+              capabilitiesHeading={capabilitiesTitle}
               galleryHeading={galleryTitle}
               capabilities={store.capabilities || []}
               galleryItems={formattedGalleryItems}
@@ -253,19 +301,40 @@ export default async function DynamicStorefront({
             />
           </div>
           {eventsSection}
-          <StorefrontClientActions store={store} brandColor={brandColor} secondaryBrandColor={secondaryBrandColor} isLightMode={isLightMode} themeStyle={themeStyle} />
+          <StorefrontClientActions
+            store={store}
+            brandColor={brandColor}
+            secondaryBrandColor={secondaryBrandColor}
+            isLightMode={isLightMode}
+            themeStyle={themeStyle}
+          />
           {locationSection}
         </>
       )}
 
       <footer className="w-full py-8 px-6 border-t border-white/10 bg-zinc-950 text-[11px] font-mono text-zinc-500 uppercase tracking-widest flex flex-col md:flex-row items-center justify-between gap-6 relative z-20">
         <div className="flex items-center gap-4">
-          {hasValidLogo && <img src={store.brand_logo} alt="Brand Icon" className="h-6 w-auto object-contain opacity-50 grayscale" />}
-          <span>&copy; {new Date().getFullYear()} {store.business_name || 'All Rights Reserved'}.</span>
+          {hasValidLogo && (
+            <img
+              src={store.brand_logo}
+              alt={store.business_name || PAGE_DEFAULTS.LOGO_ALT}
+              className="h-6 w-auto object-contain opacity-50 grayscale"
+            />
+          )}
+          <span>
+            &copy; {new Date().getFullYear()} {store.business_name || PAGE_DEFAULTS.FALLBACK_RIGHTS_HOLDER}.
+          </span>
         </div>
         <div className="flex items-center gap-1.5">
-          <span>Powered by</span>
-          <a href="https://alternativesolutions.io" target="_blank" rel="noopener noreferrer" className="text-zinc-300 hover:text-cyan-400 font-bold transition-colors underline decoration-cyan-500/50 underline-offset-4">Alternative Solutions</a>
+          <span>{PAGE_DEFAULTS.POWERED_BY_LABEL}</span>
+          <a
+            href={PAGE_DEFAULTS.AGENCY_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-zinc-300 hover:text-cyan-400 font-bold transition-colors underline decoration-cyan-500/50 underline-offset-4"
+          >
+            {PAGE_DEFAULTS.AGENCY_NAME}
+          </a>
         </div>
       </footer>
 
@@ -284,7 +353,6 @@ export default async function DynamicStorefront({
             )}
         </>
       )}
-      
     </main>
   );
 }

@@ -213,3 +213,50 @@ export const LEAD_MODAL_DEFAULTS = {
   SUCCESS_HEADING: 'Request Received!',
   SUCCESS_BTN: 'Back to Website',
 };
+// Storefront Page Route Defaults
+export const PAGE_DEFAULTS = {
+  NOT_FOUND_TITLE: 'Not Found',
+  FALLBACK_BUSINESS_NAME: 'Workspace',
+  FALLBACK_TAGLINE: 'Custom Solutions',
+  FALLBACK_TEAM_NAME: 'Our Team',
+  FALLBACK_LOCATION_NAME: 'Our Location',
+  FALLBACK_RIGHTS_HOLDER: 'All Rights Reserved',
+  FALLBACK_GALLERY_HEADING: 'Featured Work',
+  FALLBACK_ABOUT_HEADING: 'About Us',
+  FALLBACK_CAPABILITIES_HEADING: 'Services',
+  HUB_HERO_CTA: 'Explore Departments',
+  HERO_CTA_PREFIX: 'View',
+  LOGO_ALT: 'Brand Icon',
+  POWERED_BY_LABEL: 'Powered by',
+  AGENCY_NAME: 'Alternative Solutions',
+  AGENCY_URL: 'https://alternativesolutions.io',
+};
+
+// Lookbook Flow Defaults
+export const LOOKBOOK_DEFAULTS = {
+  GALLERY_HEADING: 'Featured Work',
+  COLLECTIONS_HEADING: 'Collections',
+  NO_COVER_LABEL: 'No Cover',
+  VIEW_GALLERY_LABEL: 'View Gallery',
+  BOOK_PACKAGE_BTN: 'Book This Package',
+  BOOK_CULINARY_BTN: 'Inquire / Preorder',
+  BOOK_CTA_PREFIX: 'Book',
+  DIRECT_BOOKING_OPTION: 'Direct Booking',
+  ADDONS_BADGE: 'Flexible Upgrades',
+  ADDONS_HEADING: 'Additional Add-ons',
+  ADDONS_SUBTEXT: 'Customize your package with any of these standalone enhancements.',
+  LOGISTICS_BTN: 'View Travel & Logistics',
+  LOGISTICS_BADGE: 'Logistics & Terms',
+  LOGISTICS_HEADING: 'Rules of Engagement',
+  DEFAULT_BUSINESS_NAME: 'Our Team',
+  DEFAULT_SLUG: 'platform-direct',
+};
+// Gallery Grid Defaults
+export const GALLERY_DEFAULTS = {
+  FALLBACK_HEADING: 'Featured Work',
+  UNCATEGORIZED_LABEL: 'Featured Collection',
+  MODAL_FALLBACK_TITLE: 'Gallery',
+  PHOTO_SINGULAR: 'Photo',
+  PHOTO_PLURAL: 'Photos',
+  VIEW_SET_LABEL: 'View Collection',
+};
