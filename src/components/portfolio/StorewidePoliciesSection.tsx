@@ -4,6 +4,7 @@
 import React from 'react';
 import { ShieldCheck } from 'lucide-react';
 import { THEME_REGISTRY } from '@/utils/themes';
+import { STOREWIDE_DEFAULTS } from '@/utils/glossary';
 import { getFonts } from './content-engine/utils';
 import PolicyCard, { OperationalTerm } from './content-engine/layouts/hub/PolicyCard';
 
@@ -21,7 +22,7 @@ export default function StorewidePoliciesSection({
   industryTag = 'General',
 }: StorewidePoliciesSectionProps) {
   const validTerms = Array.isArray(terms)
-    ? terms.filter((t) => t && t.title?.trim())
+    ? terms.filter((t) => t && t.title?.trim() && t.type !== 'faq' && t.type !== 'schedule')
     : [];
 
   if (validTerms.length === 0) return null;
@@ -31,10 +32,10 @@ export default function StorewidePoliciesSection({
 
   const sectionHeading =
     industryTag === 'Creative'
-      ? 'Studio Policies & Good to Know'
+      ? STOREWIDE_DEFAULTS.POLICIES_HEADING_CREATIVE
       : industryTag === 'Culinary'
-        ? 'House Policies & Kitchen Notes'
-        : 'Policies & Good to Know';
+        ? STOREWIDE_DEFAULTS.POLICIES_HEADING_CULINARY
+        : STOREWIDE_DEFAULTS.POLICIES_HEADING_DEFAULT;
 
   const gridCols =
     validTerms.length === 1
@@ -51,7 +52,7 @@ export default function StorewidePoliciesSection({
             className={`inline-flex items-center gap-2 px-3 py-1 text-[10px] font-mono uppercase tracking-widest border ${theme.controlRadius} ${theme.chipStyle}`}
           >
             <ShieldCheck className="w-3.5 h-3.5 text-brand-primary" />
-            <span>Storewide Info</span>
+            <span>{STOREWIDE_DEFAULTS.POLICIES_BADGE}</span>
           </div>
           <h2 className={`text-2xl md:text-3xl tracking-tight ${fonts.heading}`}>
             {sectionHeading}

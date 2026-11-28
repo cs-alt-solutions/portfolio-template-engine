@@ -5,7 +5,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import UniversalLeadModal, { TopicConfig } from '../../UniversalLeadModal';
 import { getFonts } from '../utils';
 import { THEME_REGISTRY } from '@/utils/themes';
-import { GalleryItem } from '../types';
+import { DepartmentFaq, GalleryItem } from '../types';
 import HubDepartmentCard from './hub/HubDepartmentCard';
 import HubDetailsModal, { OperationalTerm } from './hub/HubDetailsModal';
 import {
@@ -206,14 +206,42 @@ export default function HubFlow({
   }
 
   const activeDept = departments[activeIndexSafe] || departments[0];
+  const activeDeptKey = (activeDept?.title || '').trim().toLowerCase();
 
-  // Scope modal policies strictly to this department (storewide ALL policies live at the bottom of the page)
+  // Scope modal policies strictly to this department (exclude storewide ALL rules & FAQs)
   const activeDeptTerms = safeTerms.filter((t) => {
-    if (!t.appliesTo || t.appliesTo === 'ALL') return false;
-    return t.appliesTo.trim().toLowerCase() === activeDept?.title?.trim().toLowerCase();
+    if (!t.appliesTo || t.appliesTo === 'ALL' || t.type === 'faq') return false;
+    return t.appliesTo.trim().toLowerCase() === activeDeptKey;
   });
 
-  const activeDeptFaqs = (activeDept?.faqs || []).filter((f) => f && f.question?.trim() && f.answer?.trim());
+  // Merge Logistics-tagged FAQs for this department + any legacy cap.faqs (deduplicated)
+  const seenFaqKeys = new Set<string>();
+  const activeDeptFaqs: DepartmentFaq[] = [];
+
+  for (const t of safeTerms) {
+    if (
+      t.type !== 'faq' ||
+      !t.appliesTo ||
+      t.appliesTo === 'ALL' ||
+      !t.title?.trim() ||
+      !t.description?.trim()
+    ) {
+      continue;
+    }
+    if (t.appliesTo.trim().toLowerCase() !== activeDeptKey) continue;
+    const key = t.title.trim().toLowerCase();
+    if (seenFaqKeys.has(key)) continue;
+    seenFaqKeys.add(key);
+    activeDeptFaqs.push({ question: t.title.trim(), answer: t.description.trim() });
+  }
+
+  for (const f of activeDept?.faqs || []) {
+    if (!f || !f.question?.trim() || !f.answer?.trim()) continue;
+    const key = f.question.trim().toLowerCase();
+    if (seenFaqKeys.has(key)) continue;
+    seenFaqKeys.add(key);
+    activeDeptFaqs.push({ question: f.question.trim(), answer: f.answer.trim() });
+  }
 
   const deptPhotos: HubCollectionPhoto[] = safeGallery
     .filter(
@@ -221,11 +249,11 @@ export default function HubFlow({
         g &&
         g.imageUrl &&
         g.isVisible !== false &&
-        g.category?.toLowerCase() === activeDept?.title?.toLowerCase()
+        g.category?.toLowerCase() === activeDeptKey
     )
     .map((g) => {
       const cleanDesc =
-        g.description && g.description.trim().toLowerCase() !== activeDept?.title?.trim().toLowerCase()
+        g.description && g.description.trim().toLowerCase() !== activeDeptKey
           ? g.description.trim()
           : '';
       return {
@@ -259,7 +287,9 @@ export default function HubFlow({
         ? 'View Gallery'
         : activeDeptProfiles.length > 0
           ? 'Bios & Details'
-          : 'Policies & Details');
+          : activeDeptFaqs.length > 0 && activeDeptTerms.length === 0
+            ? 'FAQs & Details'
+            : 'Policies & Details');
 
   const toggleDetails = (open: boolean, collectionName: string | null = null) => {
     setActiveCollection(open ? collectionName : null);
@@ -363,7 +393,7 @@ export default function HubFlow({
           isOpen={isDetailsOpen}
           onClose={() => toggleDetails(false)}
           onInquire={() => handleOpenModal(activeDept)}
-          department={activeDept}
+          department={{ ...activeDept, faqs: activeDeptFaqs }}
           photos={deptPhotos}
           terms={activeDeptTerms}
           initialCollection={activeCollection}

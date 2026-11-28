@@ -1,5 +1,5 @@
 /* src/components/portfolio/content-engine/shared/capabilityHelpers.ts */
-import { Capability, CapabilityOperationalTerm, GalleryItem } from '../types';
+import { Capability, CapabilityOperationalTerm, DepartmentFaq, GalleryItem } from '../types';
 import { CAPABILITY_DEFAULTS } from '@/utils/glossary';
 import { OperationalTerm } from '../layouts/hub/PolicyCard';
 import { HubCollectionPhoto, normalizeExternalUrl } from '../layouts/hub/hubCollections';
@@ -40,7 +40,9 @@ export function getCapabilityTerms(
 
   return operationalTerms
     .filter((t) => {
-      if (!t || !t.title?.trim() || !t.appliesTo || t.appliesTo === 'ALL') return false;
+      if (!t || !t.title?.trim() || t.type === 'faq' || !t.appliesTo || t.appliesTo === 'ALL') {
+        return false;
+      }
       return t.appliesTo.trim().toLowerCase() === target;
     })
     .map((t) => ({
@@ -49,8 +51,43 @@ export function getCapabilityTerms(
     })) as OperationalTerm[];
 }
 
-export function getValidCapabilityFaqs(cap: Capability) {
-  return (cap.faqs || []).filter((f) => f && f.question?.trim() && f.answer?.trim());
+export function getValidCapabilityFaqs(
+  cap: Capability,
+  operationalTerms: CapabilityOperationalTerm[] = []
+): DepartmentFaq[] {
+  const target = (cap.title || '').trim().toLowerCase();
+  const seen = new Set<string>();
+  const merged: DepartmentFaq[] = [];
+
+  if (target) {
+    for (const term of operationalTerms) {
+      if (
+        !term ||
+        term.type !== 'faq' ||
+        !term.title?.trim() ||
+        !term.description?.trim() ||
+        !term.appliesTo ||
+        term.appliesTo === 'ALL'
+      ) {
+        continue;
+      }
+      if (term.appliesTo.trim().toLowerCase() !== target) continue;
+      const key = term.title.trim().toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+      merged.push({ question: term.title.trim(), answer: term.description.trim() });
+    }
+  }
+
+  for (const legacy of cap.faqs || []) {
+    if (!legacy || !legacy.question?.trim() || !legacy.answer?.trim()) continue;
+    const key = legacy.question.trim().toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    merged.push({ question: legacy.question.trim(), answer: legacy.answer.trim() });
+  }
+
+  return merged;
 }
 
 export function getValidCapabilityProfiles(cap: Capability) {
@@ -60,12 +97,13 @@ export function getValidCapabilityProfiles(cap: Capability) {
 export function hasCapabilityDetails(
   cap: Capability,
   photos: HubCollectionPhoto[],
-  terms: OperationalTerm[]
+  terms: OperationalTerm[],
+  allTerms: CapabilityOperationalTerm[] = []
 ): boolean {
   return (
     photos.length > 0 ||
     terms.length > 0 ||
-    getValidCapabilityFaqs(cap).length > 0 ||
+    getValidCapabilityFaqs(cap, allTerms).length > 0 ||
     getValidCapabilityProfiles(cap).length > 0
   );
 }
@@ -73,11 +111,12 @@ export function hasCapabilityDetails(
 export function getSmartDetailsLabel(
   cap: Capability,
   photos: HubCollectionPhoto[],
-  terms: OperationalTerm[]
+  terms: OperationalTerm[],
+  allTerms: CapabilityOperationalTerm[] = []
 ): string {
   if (cap.detailsLabel?.trim()) return cap.detailsLabel.trim();
 
-  const faqsCount = getValidCapabilityFaqs(cap).length;
+  const faqsCount = getValidCapabilityFaqs(cap, allTerms).length;
   const profilesCount = getValidCapabilityProfiles(cap).length;
   const hasSecondary = terms.length > 0 || faqsCount > 0 || profilesCount > 0;
 

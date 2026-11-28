@@ -2,10 +2,10 @@
 'use client';
 
 import React from 'react';
-import { CalendarDays, Truck, ShieldCheck, Tag, AlertTriangle, Clock } from 'lucide-react';
+import { CalendarDays, Truck, ShieldCheck, Tag, AlertTriangle, Clock, HelpCircle } from 'lucide-react';
 import { THEME_REGISTRY } from '@/utils/themes';
 
-export type RuleType = 'schedule' | 'travel' | 'booking' | 'rates' | 'notice';
+export type RuleType = 'schedule' | 'travel' | 'booking' | 'rates' | 'notice' | 'faq';
 
 export interface OperationalTerm {
   title: string;
@@ -35,6 +35,7 @@ const TYPE_ICONS: Record<RuleType, React.ElementType> = {
   booking: ShieldCheck,
   rates: Tag,
   notice: AlertTriangle,
+  faq: HelpCircle,
 };
 
 interface PolicyCardProps {

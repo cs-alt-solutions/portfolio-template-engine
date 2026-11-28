@@ -2,6 +2,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { MapIcon } from 'lucide-react';
 import { Capability, ContentLayoutProps } from '../types';
 import { getFonts } from '../utils';
 import { THEME_REGISTRY } from '@/utils/themes';
@@ -51,6 +52,7 @@ export default function LookbookFlow({
   const packages = (capabilities || []).filter((c) => !c.isAlaCarte);
   const alaCarte = (capabilities || []).filter((c) => c.isAlaCarte);
   const safeOperationalTerms = (operationalTerms || []).filter((t) => t && t.title?.trim());
+  const policyModalTerms = safeOperationalTerms.filter((t) => t.type !== 'faq');
   const validGalleryItems = (galleryItems || []).filter((img) => img.isVisible !== false);
   const hasGallery = validGalleryItems.length > 0;
 
@@ -113,8 +115,8 @@ export default function LookbookFlow({
                 const capPhotos = getCapabilityPhotos(cap.title, galleryItems);
                 const capTerms = getCapabilityTerms(cap.title, safeOperationalTerms);
                 const coverImage = cap.coverImage || (capPhotos.length > 0 ? capPhotos[0].url : null);
-                const showDetails = hasCapabilityDetails(cap, capPhotos, capTerms);
-                const detailsLabel = getSmartDetailsLabel(cap, capPhotos, capTerms);
+                const showDetails = hasCapabilityDetails(cap, capPhotos, capTerms, safeOperationalTerms);
+                const detailsLabel = getSmartDetailsLabel(cap, capPhotos, capTerms, safeOperationalTerms);
                 const bookingLabel = getSmartCtaLabel(cap, defaultBookingLabel);
 
                 return (
@@ -150,7 +152,7 @@ export default function LookbookFlow({
           fonts={fonts}
         />
 
-        {safeOperationalTerms.length > 0 && (
+        {policyModalTerms.length > 0 && (
           <div className="mt-8 mb-16 flex justify-center">
             <button
               type="button"
@@ -163,6 +165,7 @@ export default function LookbookFlow({
                   : 'bg-zinc-900/80 border-zinc-800 text-zinc-300 hover:bg-zinc-800 hover:text-white hover:border-zinc-700'
               }`}
             >
+              <MapIcon size={14} className={brandTextColor} />
               {LOOKBOOK_DEFAULTS.LOGISTICS_BTN}
             </button>
           </div>
@@ -172,7 +175,7 @@ export default function LookbookFlow({
       <LookbookLogisticsModal
         isOpen={isLogisticsOpen}
         onClose={() => setIsLogisticsOpen(false)}
-        terms={safeOperationalTerms}
+        terms={policyModalTerms}
         brandTextColor={brandTextColor}
         isLightMode={isLightMode}
         shapeRadius={shapeRadius}

@@ -19,6 +19,7 @@ import AboutSection from '@/components/portfolio/AboutSection';
 import ContentEngine from '@/components/portfolio/content-engine';
 import EventsSection from '@/components/portfolio/events/EventsSection';
 import StorewidePoliciesSection from '@/components/portfolio/StorewidePoliciesSection';
+import StorewideFaqsSection from '@/components/portfolio/StorewideFaqsSection';
 import LocationPanel from '@/components/portfolio/LocationPanel';
 import PrototypeTourGuide from '@/components/portfolio/PrototypeTourGuide';
 import StorefrontClientActions from '../../components/portfolio/StorefrontClientActions';
@@ -119,7 +120,8 @@ export default async function DynamicStorefront({
 
   const storewideTerms = safeTerms.filter((t) => !t.appliesTo || t.appliesTo === 'ALL');
   const storewideSchedules = storewideTerms.filter((t) => t.type === 'schedule');
-  const storewidePolicies = storewideTerms.filter((t) => t.type !== 'schedule');
+  const storewideFaqs = storewideTerms.filter((t) => t.type === 'faq');
+  const storewidePolicies = storewideTerms.filter((t) => t.type !== 'schedule' && t.type !== 'faq');
 
   const hubDeptTitles: string[] = Array.isArray(store.capabilities)
     ? store.capabilities
@@ -173,6 +175,14 @@ export default async function DynamicStorefront({
       isLightMode={isLightMode}
       themeStyle={themeStyle}
       inquiryOptions={store.lead_inquiry_types}
+    />
+  );
+
+  const faqsSection = (
+    <StorewideFaqsSection
+      faqs={storewideFaqs}
+      themeStyle={themeStyle}
+      isLightMode={isLightMode}
     />
   );
 
@@ -253,6 +263,7 @@ export default async function DynamicStorefront({
             industryTag={store.industry_tag}
           />
           {locationSection}
+          {faqsSection}
           <StorefrontClientActions
             store={hubStoreActions}
             brandColor={brandColor}
@@ -301,6 +312,7 @@ export default async function DynamicStorefront({
             />
           </div>
           {eventsSection}
+          {faqsSection}
           <StorefrontClientActions
             store={store}
             brandColor={brandColor}

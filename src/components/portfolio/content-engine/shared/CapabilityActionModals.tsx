@@ -10,6 +10,7 @@ import {
   buildCapabilityTopicConfigs,
   getCapabilityPhotos,
   getCapabilityTerms,
+  getValidCapabilityFaqs,
 } from './capabilityHelpers';
 
 interface CapabilityActionModalsProps {
@@ -68,6 +69,11 @@ export default function CapabilityActionModals({
     [detailsCapability, operationalTerms]
   );
 
+  const detailsFaqs = useMemo(
+    () => (detailsCapability ? getValidCapabilityFaqs(detailsCapability, operationalTerms) : []),
+    [detailsCapability, operationalTerms]
+  );
+
   const activeBookingTitle = bookingCapability?.title || '';
   const bookingTopicConfig = activeBookingTitle ? topicConfigs[activeBookingTitle] : undefined;
 
@@ -102,7 +108,7 @@ export default function CapabilityActionModals({
           isOpen={true}
           onClose={onCloseDetails}
           onInquire={() => onSwitchDetailsToBooking(detailsCapability)}
-          department={detailsCapability}
+          department={{ ...detailsCapability, faqs: detailsFaqs }}
           photos={detailsPhotos}
           terms={detailsTerms}
           initialCollection={initialCollection}
