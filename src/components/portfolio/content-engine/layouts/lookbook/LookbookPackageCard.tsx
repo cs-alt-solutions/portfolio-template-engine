@@ -3,16 +3,18 @@
 'use client';
 
 import React from 'react';
-import { ImageIcon, Maximize2, ArrowRight } from 'lucide-react';
+import { ImageIcon, Maximize2, ArrowRight, ExternalLink, Info } from 'lucide-react';
 import { Capability } from '../../types';
 import { LOOKBOOK_DEFAULTS } from '@/utils/glossary';
+import { resolveCapabilityBookingLink } from '../../shared/capabilityHelpers';
 import { LookbookFonts } from './types';
 import SmartDeliverable from './SmartDeliverable';
 
 interface LookbookPackageCardProps {
   capability: Capability;
   coverImage: string | null;
-  hasAttachedGallery: boolean;
+  hasDetails: boolean;
+  detailsLabel: string;
   themeStyle: string;
   brandTextColor: string;
   activeSecondary: string;
@@ -21,14 +23,15 @@ interface LookbookPackageCardProps {
   isSharp: boolean;
   fonts: LookbookFonts;
   bookingLabel: string;
-  onOpenProof: () => void;
+  onOpenDetails: () => void;
   onBook: () => void;
 }
 
 export default function LookbookPackageCard({
   capability,
   coverImage,
-  hasAttachedGallery,
+  hasDetails,
+  detailsLabel,
   themeStyle,
   brandTextColor,
   activeSecondary,
@@ -37,9 +40,11 @@ export default function LookbookPackageCard({
   isSharp,
   fonts,
   bookingLabel,
-  onOpenProof,
+  onOpenDetails,
   onBook,
 }: LookbookPackageCardProps) {
+  const directBooking = resolveCapabilityBookingLink(capability);
+
   return (
     <div
       className={`flex flex-col h-full group ${
@@ -47,8 +52,10 @@ export default function LookbookPackageCard({
       } border ${shapeRadius} overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300`}
     >
       <div
-        className="relative w-full aspect-4/3 overflow-hidden cursor-pointer bg-zinc-800 shrink-0"
-        onClick={onOpenProof}
+        className={`relative w-full aspect-4/3 overflow-hidden bg-zinc-800 shrink-0 ${
+          hasDetails ? 'cursor-pointer' : ''
+        }`}
+        onClick={hasDetails ? onOpenDetails : undefined}
       >
         {coverImage ? (
           <>
@@ -71,11 +78,15 @@ export default function LookbookPackageCard({
           </div>
         )}
 
-        {hasAttachedGallery && (
-          <div className="absolute top-4 right-4 z-20 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-full flex items-center gap-1.5 border border-white/10 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 transform translate-y-2 group-hover:translate-y-0">
+        {hasDetails && (
+          <div
+            className={`absolute top-4 right-4 z-20 bg-black/65 backdrop-blur-md px-3 py-1.5 flex items-center gap-1.5 border border-white/15 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 transform translate-y-2 group-hover:translate-y-0 ${
+              isSharp ? 'rounded-none' : 'rounded-full'
+            }`}
+          >
             <Maximize2 size={12} className={`text-${activeSecondary}`} />
             <span className="text-[9px] text-white font-bold tracking-widest uppercase">
-              {LOOKBOOK_DEFAULTS.VIEW_GALLERY_LABEL}
+              {detailsLabel}
             </span>
           </div>
         )}
@@ -127,19 +138,57 @@ export default function LookbookPackageCard({
           </div>
         )}
 
-        <button
-          type="button"
-          onClick={onBook}
-          className={`w-full py-4 px-4 mt-auto text-[11px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all border cursor-pointer ${
-            isSharp ? 'rounded-none' : 'rounded-xl'
-          } ${
-            isLightMode
-              ? `bg-zinc-950 border-zinc-900 text-white hover:bg-${activeSecondary} hover:text-zinc-950 hover:border-transparent shadow-lg`
-              : `bg-white border-white text-zinc-950 hover:bg-${activeSecondary} hover:text-zinc-950 hover:border-transparent shadow-lg`
-          }`}
-        >
-          {bookingLabel} <ArrowRight className="w-3.5 h-3.5" />
-        </button>
+        <div className="mt-auto space-y-2.5">
+          {hasDetails && (
+            <button
+              type="button"
+              onClick={onOpenDetails}
+              className={`w-full py-3 px-4 text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-all border cursor-pointer ${
+                isSharp ? 'rounded-none' : 'rounded-xl'
+              } ${
+                isLightMode
+                  ? 'bg-zinc-100 border-zinc-200 text-zinc-800 hover:bg-zinc-200'
+                  : 'bg-white/5 border-white/10 text-zinc-200 hover:bg-white/10 hover:text-white'
+              }`}
+            >
+              <Info className={`w-3.5 h-3.5 ${brandTextColor}`} />
+              <span>{detailsLabel}</span>
+            </button>
+          )}
+
+          {directBooking && (
+            <a
+              href={directBooking.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`w-full py-3.5 px-4 text-[11px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all border cursor-pointer ${
+                isSharp ? 'rounded-none' : 'rounded-xl'
+              } ${
+                isLightMode
+                  ? 'bg-white border-zinc-300 text-zinc-900 hover:border-zinc-900'
+                  : 'bg-zinc-950/80 border-white/20 text-white hover:border-white'
+              }`}
+            >
+              <span>{directBooking.label}</span>
+              <ExternalLink className="w-3.5 h-3.5" />
+            </a>
+          )}
+
+          <button
+            type="button"
+            onClick={onBook}
+            className={`w-full py-4 px-4 text-[11px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all border cursor-pointer ${
+              isSharp ? 'rounded-none' : 'rounded-xl'
+            } ${
+              isLightMode
+                ? `bg-zinc-950 border-zinc-900 text-white hover:bg-${activeSecondary} hover:text-zinc-950 hover:border-transparent shadow-lg`
+                : `bg-white border-white text-zinc-950 hover:bg-${activeSecondary} hover:text-zinc-950 hover:border-transparent shadow-lg`
+            }`}
+          >
+            <span>{bookingLabel}</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
       </div>
     </div>
   );

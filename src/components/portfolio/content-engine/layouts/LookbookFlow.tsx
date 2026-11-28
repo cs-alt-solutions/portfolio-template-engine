@@ -3,17 +3,22 @@
 
 import React, { useState } from 'react';
 import { Map } from 'lucide-react';
-import { ContentLayoutProps } from '../types';
+import { Capability, ContentLayoutProps } from '../types';
 import { getFonts } from '../utils';
 import { THEME_REGISTRY } from '@/utils/themes';
 import { LOOKBOOK_DEFAULTS } from '@/utils/glossary';
-import ServiceProofModal, { GalleryItem } from '../../ServiceProofModal';
-import UniversalLeadModal from '../../UniversalLeadModal';
 import GalleryGrid from '../../gallery/GalleryGrid';
 import LookbookPackageCard from './lookbook/LookbookPackageCard';
 import LookbookAddonsSection from './lookbook/LookbookAddonsSection';
 import LookbookLogisticsModal from './lookbook/LookbookLogisticsModal';
-import { ExtendedGalleryItem, LookbookOperationalTerm, ModalServiceState } from './lookbook/types';
+import CapabilityActionModals from '../shared/CapabilityActionModals';
+import {
+  getCapabilityPhotos,
+  getCapabilityTerms,
+  getSmartCtaLabel,
+  getSmartDetailsLabel,
+  hasCapabilityDetails,
+} from '../shared/capabilityHelpers';
 
 export default function LookbookFlow({
   themeStyle,
@@ -31,9 +36,9 @@ export default function LookbookFlow({
   isHeroFixed,
   operationalTerms,
   industryTag,
-}: ContentLayoutProps & { operationalTerms?: LookbookOperationalTerm[] }) {
-  const [activeModalService, setActiveModalService] = useState<ModalServiceState | null>(null);
-  const [activeBooking, setActiveBooking] = useState<string | null>(null);
+}: ContentLayoutProps) {
+  const [detailsCap, setDetailsCap] = useState<Capability | null>(null);
+  const [bookingCap, setBookingCap] = useState<Capability | null>(null);
   const [isLogisticsOpen, setIsLogisticsOpen] = useState<boolean>(false);
 
   const fonts = getFonts(themeStyle);
@@ -50,11 +55,8 @@ export default function LookbookFlow({
   const validGalleryItems = (galleryItems || []).filter((img) => img.isVisible !== false);
   const hasGallery = validGalleryItems.length > 0;
 
-  const bookingLabel =
+  const defaultBookingLabel =
     industryTag === 'Culinary' ? LOOKBOOK_DEFAULTS.BOOK_CULINARY_BTN : LOOKBOOK_DEFAULTS.BOOK_PACKAGE_BTN;
-
-  const getAttachedImages = (serviceTitle: string): ExtendedGalleryItem[] =>
-    (galleryItems || []).filter((item: GalleryItem) => item.category === serviceTitle) as ExtendedGalleryItem[];
 
   const packageGridClass =
     packages.length === 1
@@ -63,7 +65,7 @@ export default function LookbookFlow({
         ? 'grid-cols-1 md:grid-cols-2 max-w-5xl mx-auto'
         : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3';
 
- return (
+  return (
     <div className={`w-full ${sectionBg} ${hasGallery ? 'pt-8 md:pt-12' : 'pt-20'} pb-28 relative z-10`}>
       {hasGallery && (
         <div className="mb-16">
@@ -109,16 +111,20 @@ export default function LookbookFlow({
 
             <div className={`grid ${packageGridClass} gap-8 md:gap-10`}>
               {packages.map((cap, i) => {
-                const attachedImages = getAttachedImages(cap.title);
-                const coverImage = cap.coverImage || (attachedImages.length > 0 ? attachedImages[0].imageUrl : null);
-                const packageAddons = attachedImages.flatMap((img) => img.addons || []);
+                const capPhotos = getCapabilityPhotos(cap.title, galleryItems);
+                const capTerms = getCapabilityTerms(cap.title, safeOperationalTerms);
+                const coverImage = cap.coverImage || (capPhotos.length > 0 ? capPhotos[0].url : null);
+                const showDetails = hasCapabilityDetails(cap, capPhotos, capTerms);
+                const detailsLabel = getSmartDetailsLabel(cap, capPhotos, capTerms);
+                const bookingLabel = getSmartCtaLabel(cap, defaultBookingLabel);
 
                 return (
                   <LookbookPackageCard
                     key={i}
                     capability={cap}
                     coverImage={coverImage}
-                    hasAttachedGallery={attachedImages.length > 0}
+                    hasDetails={showDetails}
+                    detailsLabel={detailsLabel}
                     themeStyle={themeStyle}
                     brandTextColor={brandTextColor}
                     activeSecondary={activeSecondary}
@@ -127,16 +133,8 @@ export default function LookbookFlow({
                     isSharp={isSharp}
                     fonts={fonts}
                     bookingLabel={bookingLabel}
-                    onOpenProof={() =>
-                      setActiveModalService({
-                        title: cap.title,
-                        images: attachedImages,
-                        desc: cap.description,
-                        bullets: cap.bullets,
-                        addons: packageAddons,
-                      })
-                    }
-                    onBook={() => setActiveBooking(cap.title)}
+                    onOpenDetails={() => setDetailsCap(cap)}
+                    onBook={() => setBookingCap(cap)}
                   />
                 );
               })}
@@ -183,32 +181,27 @@ export default function LookbookFlow({
         fonts={fonts}
       />
 
-      <ServiceProofModal
-        isOpen={!!activeModalService}
-        onClose={() => setActiveModalService(null)}
-        title={activeModalService?.title || ''}
-        images={activeModalService?.images || []}
-        description={activeModalService?.desc}
-        bullets={activeModalService?.bullets}
-        addons={activeModalService?.addons}
+      <CapabilityActionModals
+        capabilities={packages}
+        alaCarte={alaCarte}
+        galleryItems={galleryItems}
+        operationalTerms={safeOperationalTerms}
+        detailsCapability={detailsCap}
+        bookingCapability={bookingCap}
+        onCloseDetails={() => setDetailsCap(null)}
+        onCloseBooking={() => setBookingCap(null)}
+        onSwitchDetailsToBooking={(cap) => {
+          setDetailsCap(null);
+          setBookingCap(cap);
+        }}
         themeStyle={themeStyle}
-        brandColor={brandColor}
-        businessName={businessName}
-        onBook={() => setActiveBooking(activeModalService?.title || null)}
-      />
-
-      <UniversalLeadModal
-        isOpen={!!activeBooking}
-        onClose={() => setActiveBooking(null)}
-        ctaLabel={`${LOOKBOOK_DEFAULTS.BOOK_CTA_PREFIX} ${activeBooking || ''}`.trim()}
-        inquiryOptions={[activeBooking || LOOKBOOK_DEFAULTS.DIRECT_BOOKING_OPTION]}
-        addonOptions={alaCarte.map((item) => ({ title: item.title, price: item.price }))}
-        businessName={businessName || LOOKBOOK_DEFAULTS.DEFAULT_BUSINESS_NAME}
-        storefrontSlug={storefrontSlug || LOOKBOOK_DEFAULTS.DEFAULT_SLUG}
-        contactEmail={contactEmail || ''}
         brandColor={brandColor}
         isLightMode={isLightMode}
-        themeStyle={themeStyle}
+        fonts={fonts}
+        businessName={businessName}
+        storefrontSlug={storefrontSlug}
+        contactEmail={contactEmail}
+        ctaPrefix={LOOKBOOK_DEFAULTS.BOOK_CTA_PREFIX}
       />
     </div>
   );

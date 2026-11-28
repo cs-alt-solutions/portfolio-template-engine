@@ -260,3 +260,15 @@ export const GALLERY_DEFAULTS = {
   PHOTO_PLURAL: 'Photos',
   VIEW_SET_LABEL: 'View Collection',
 };
+export const CAPABILITY_DEFAULTS = {
+  PHOTOS_DETAILS_LABEL: 'Photos & Details',
+  VIEW_GALLERY_LABEL: 'View Gallery',
+  FAQS_DETAILS_LABEL: 'FAQs & Details',
+  BIOS_DETAILS_LABEL: 'Profiles & Details',
+  POLICIES_DETAILS_LABEL: 'Policies & Details',
+  BOOK_ONLINE_BTN: 'Book Online',
+  INQUIRE_BTN: 'Inquire Now',
+  DIRECT_INQUIRY_OPTION: 'Direct Inquiry',
+  DEFAULT_BUSINESS_NAME: 'Our Team',
+  DEFAULT_SLUG: 'platform-direct',
+};

@@ -8,6 +8,13 @@ export interface DepartmentFaq {
   answer: string;
 }
 
+export interface CapabilityCollectionProfile {
+  name: string;
+  subtitle?: string;
+  bio?: string;
+  highlights?: string[];
+}
+
 export interface Capability {
   title: string;
   description?: string;
@@ -20,6 +27,12 @@ export interface Capability {
   askTimeframe?: boolean;
   timeframeMode?: TimeframeMode;
   addonSelectionMode?: AddonSelectionMode;
+  tabLabel?: string;
+  ctaLabel?: string;
+  bookingUrl?: string;
+  bookingLabel?: string;
+  detailsLabel?: string;
+  collectionProfiles?: CapabilityCollectionProfile[];
 }
 
 export interface GalleryItem {
@@ -28,10 +41,22 @@ export interface GalleryItem {
   title?: string;
   description?: string;
   category?: string;
+  collection?: string;
   price?: string;
   isVisible?: boolean;
   isRaw?: boolean;
+  focalPoint?: { x: number; y: number };
+  imageFit?: 'cover' | 'contain';
+  imageZoom?: number;
   addons?: { name: string; price: string }[];
+}
+
+export interface CapabilityOperationalTerm {
+  title: string;
+  description?: string;
+  type?: 'policy' | 'schedule' | string;
+  appliesTo?: string;
+  fees?: { name: string; price: string }[];
 }
 
 export interface ContentLayoutProps {
@@ -49,11 +74,6 @@ export interface ContentLayoutProps {
   businessName?: string;
   heroImage?: string;
   isHeroFixed?: boolean;
-  operationalTerms?: {
-    title: string;
-    description: string;
-    appliesTo?: string;
-    fees?: { name: string; price: string }[];
-  }[];
+  operationalTerms?: CapabilityOperationalTerm[];
   industryTag?: string;
 }
